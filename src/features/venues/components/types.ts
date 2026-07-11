@@ -34,6 +34,13 @@ export interface Stage {
   position: "top" | "bottom";
 }
 
+export interface VerticalAisle {
+  id: string;
+  columnIndex: number;       // 0-based cell position, aisle renders AFTER this cell
+  startRowId: string | null; // null = from first row
+  endRowId: string | null;   // null = to last row
+}
+
 export interface SeatMap {
   id: string;
   name: string;
@@ -41,4 +48,5 @@ export interface SeatMap {
   stage: Stage;
   categories: Category[];
   rows: Row[];
+  verticalAisles: VerticalAisle[];
 }

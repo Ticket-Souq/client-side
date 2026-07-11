@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import "./seat-map.css";
 
 export interface MenuItem {
@@ -33,7 +34,7 @@ export function ContextMenu({
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       ref={ref}
       className="fixed z-50 min-w-44 rounded-md border border-neutral-700 bg-neutral-900 shadow-xl py-1 text-sm text-neutral-100"
@@ -55,6 +56,7 @@ export function ContextMenu({
           </button>
         ),
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

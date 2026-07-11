@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import "./seat-map.css";
 import { listVenues, getVenue, type VenueResponse } from "../api/venueApi";
-import type { Category, SeatMap } from "./types";
+import type { Category, SeatMap, VerticalAisle } from "./types";
 import { LockedShell } from "./PublisherApp";
 
 export interface Customer {
@@ -153,6 +153,25 @@ function BookingView({
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  const aislesByRowIndex = useMemo(() => {
+    const result: VerticalAisle[][] = [];
+    for (let ri = 0; ri < map.rows.length; ri++) {
+      const aisles = map.verticalAisles.filter((va) => {
+        if (va.startRowId) {
+          const si = map.rows.findIndex((r) => r.id === va.startRowId);
+          if (si === -1 || ri < si) return false;
+        }
+        if (va.endRowId) {
+          const ei = map.rows.findIndex((r) => r.id === va.endRowId);
+          if (ei === -1 || ri > ei) return false;
+        }
+        return true;
+      });
+      result.push(aisles);
+    }
+    return result;
+  }, [map]);
+
   const catById = useMemo(() => {
     const m = new Map<string, Category>();
     map.categories.forEach((c) => m.set(c.id, c));
@@ -193,35 +212,40 @@ function BookingView({
       <div className="rounded-lg bg-neutral-900 border border-neutral-800 p-6 overflow-auto">
         {map.stage.position === "top" && <StagePill stage={map.stage.label} />}
         <div className="flex flex-col gap-1.5 items-center my-4">
-          {map.rows.map((row) => (
-            <div key={row.id} className="flex items-center gap-2">
-              <span className="w-6 text-xs text-neutral-500 text-right">
-                {row.aisle ? "" : row.label}
-              </span>
-              <div className={row.aisle ? "h-3" : "flex gap-1.5"}>
-                {!row.aisle &&
-                  row.cells.map((c) => {
-                    if (c.type === "space")
-                      return <div key={c.id} className="w-6 h-6" />;
-                    const isSel = selected.has(c.id);
-                    const cat = catById.get(c.categoryId ?? "");
-                    return (
-                      <button
-                        key={c.id}
-                        onClick={() => toggle(c.id, false)}
-                        title={`${cat?.name ?? "Seat"} — $${cat?.price ?? 0}`}
-                        className={`w-6 h-6 rounded text-[9px] font-medium flex items-center justify-center transition ${
-                          isSel ? "ring-2 ring-white text-white" : "hover:brightness-125"
-                        }`}
-                        style={{ backgroundColor: cat?.color ?? "#3b82f6" }}
-                      >
-                        {c.number}
-                      </button>
-                    );
-                  })}
+          {map.rows.map((row, ri) => {
+            const rowAisles = aislesByRowIndex[ri] ?? [];
+            return (
+              <div key={row.id} className="flex items-center gap-2">
+                <span className="w-6 text-xs text-neutral-500 text-right">
+                  {row.aisle ? "" : row.label}
+                </span>
+                <div className={row.aisle ? "h-3" : "flex gap-1.5"}>
+                  {!row.aisle &&
+                    row.cells.map((c, i) => (
+                      <Fragment key={c.id}>
+                        {c.type === "space" ? (
+                          <div className="w-6 h-6" />
+                        ) : (
+                          <button
+                            onClick={() => toggle(c.id, false)}
+                            title={`${catById.get(c.categoryId ?? "")?.name ?? "Seat"} — $${catById.get(c.categoryId ?? "")?.price ?? 0}`}
+                            className={`w-6 h-6 rounded text-[9px] font-medium flex items-center justify-center transition ${
+                              selected.has(c.id) ? "ring-2 ring-white text-white" : "hover:brightness-125"
+                            }`}
+                            style={{ backgroundColor: catById.get(c.categoryId ?? "")?.color ?? "#3b82f6" }}
+                          >
+                            {c.number}
+                          </button>
+                        )}
+                        {rowAisles.filter((va) => va.columnIndex === i).map((va) => (
+                          <div key={va.id} className="w-8 h-6" />
+                        ))}
+                      </Fragment>
+                    ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {map.stage.position === "bottom" && (
           <StagePill stage={map.stage.label} />

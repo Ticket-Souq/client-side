@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from "react";
 import { v4 as uuid } from "uuid";
-import type { Category, Cell, Row, SeatMap, SeatStatus, Stage } from "../components/types";
+import type { Category, Cell, Row, SeatMap, SeatStatus, Stage, VerticalAisle } from "../components/types";
 
 export { renumber, makeSeat, makeSpace, makeSeatedRow, makeEmptyRow, makeAisleRow, makeDefaultMap };
 
@@ -74,6 +74,7 @@ function makeDefaultMap(): SeatMap {
     stage: { label: "STAGE", color: "#7f1d1d", position: "top" },
     categories: cats,
     rows,
+    verticalAisles: [],
   });
 }
 
@@ -127,6 +128,9 @@ export type VenueAction =
   | { type: "SELECT_SEAT"; id: string; additive?: boolean }
   | { type: "CLEAR_SELECTION" }
   | { type: "SELECT_ALL_IN_ROW"; rowId: string }
+  | { type: "ADD_VERTICAL_AISLE"; columnIndex: number; startRowId?: string; endRowId?: string }
+  | { type: "REMOVE_VERTICAL_AISLE"; id: string }
+  | { type: "MOVE_VERTICAL_AISLE"; id: string; columnIndex: number }
   | { type: "UNDO" }
   | { type: "REDO" };
 
@@ -374,6 +378,45 @@ export function venueReducer(state: VenueState, action: VenueAction): VenueState
       row.cells.forEach((c) => c.type === "seat" && cur.add(c.id));
       return { ...state, selection: cur };
     }
+
+    case "ADD_VERTICAL_AISLE": {
+      const va: VerticalAisle = {
+        id: uuid(),
+        columnIndex: action.columnIndex,
+        startRowId: action.startRowId ?? null,
+        endRowId: action.endRowId ?? null,
+      };
+      return {
+        ...state,
+        map: {
+          ...state.map,
+          verticalAisles: [...state.map.verticalAisles, va],
+        },
+        history: push(state),
+      };
+    }
+
+    case "REMOVE_VERTICAL_AISLE":
+      return {
+        ...state,
+        map: {
+          ...state.map,
+          verticalAisles: state.map.verticalAisles.filter((va) => va.id !== action.id),
+        },
+        history: push(state),
+      };
+
+    case "MOVE_VERTICAL_AISLE":
+      return {
+        ...state,
+        map: {
+          ...state.map,
+          verticalAisles: state.map.verticalAisles.map((va) =>
+            va.id === action.id ? { ...va, columnIndex: action.columnIndex } : va,
+          ),
+        },
+        history: push(state),
+      };
 
     case "UNDO": {
       if (!state.history.past.length) return state;

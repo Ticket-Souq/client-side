@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import "./seat-map.css";
 import { useVenue } from "../context/VenueContext";
-import type { Category, Cell, Row, SeatMap } from "./types";
+import type { Category, Cell, Row, SeatMap, VerticalAisle } from "./types";
 import { ContextMenu, type MenuItem } from "./ContextMenu";
 
 function useKeys() {
@@ -186,10 +186,29 @@ function StageBar() {
 
 /* -------------------- Row -------------------- */
 
+function verticalAislesForRow(
+  rowIndex: number,
+  rows: Row[],
+  verticalAisles: VerticalAisle[],
+): VerticalAisle[] {
+  return verticalAisles.filter((va) => {
+    if (va.startRowId) {
+      const si = rows.findIndex((r) => r.id === va.startRowId);
+      if (si === -1 || rowIndex < si) return false;
+    }
+    if (va.endRowId) {
+      const ei = rows.findIndex((r) => r.id === va.endRowId);
+      if (ei === -1 || rowIndex > ei) return false;
+    }
+    return true;
+  });
+}
+
 function RowView({ row, index }: { row: Row; index: number }) {
   const { state, dispatch } = useVenue();
   const mode = state.mode;
   const rowsLen = state.map.rows.length;
+  const rowAisles = verticalAislesForRow(index, state.map.rows, state.map.verticalAisles);
 
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const [renaming, setRenaming] = useState(false);
@@ -302,8 +321,13 @@ function RowView({ row, index }: { row: Row; index: number }) {
             + first seat
           </button>
         )}
-        {row.cells.map((c) => (
-          <SeatCell key={c.id} row={row} cell={c} />
+        {row.cells.map((c, i) => (
+          <Fragment key={c.id}>
+            <SeatCell row={row} cell={c} cellIndex={i} />
+            {rowAisles.filter((va) => va.columnIndex === i).map((va) => (
+              <VerticalAisleGap key={va.id} aisle={va} />
+            ))}
+          </Fragment>
         ))}
         {mode === "edit" && row.cells.length > 0 && (
           <button
@@ -323,7 +347,7 @@ function RowView({ row, index }: { row: Row; index: number }) {
 
 /* -------------------- Cell -------------------- */
 
-function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
+function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: number }) {
   const { state, dispatch } = useVenue();
   const mode = state.mode;
   const categories = state.map.categories;
@@ -375,6 +399,9 @@ function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
     { label: "Insert space left", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "left", cellType: "space" }) },
     { label: "Insert space right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "space" }) },
     { separator: true, label: "", onClick: () => {} },
+    { label: "Insert vertical aisle left", onClick: () => d({ type: "ADD_VERTICAL_AISLE", columnIndex: Math.max(0, cellIndex - 1) }) },
+    { label: "Insert vertical aisle right", onClick: () => d({ type: "ADD_VERTICAL_AISLE", columnIndex: cellIndex }) },
+    { separator: true, label: "", onClick: () => {} },
     { label: "Set number…", onClick: () => {
         const n = prompt("Seat number", cell.number ?? "");
         if (n != null) d({ type: "RENUMBER_SEAT", rowId: row.id, cellId: cell.id, number: n });
@@ -407,6 +434,7 @@ function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
         onContextMenu={(e) => {
           if (mode !== "edit") return;
           e.preventDefault();
+          e.stopPropagation();
           setMenu({ x: e.clientX, y: e.clientY });
         }}
         className="w-6 h-7 rounded text-[10px] font-semibold text-white/95 flex items-center justify-center transition-transform hover:scale-110 disabled:cursor-not-allowed"
@@ -417,6 +445,41 @@ function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
       </button>
       {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} />}
     </>
+  );
+}
+
+/* -------------------- Vertical aisle gap -------------------- */
+
+function VerticalAisleGap({ aisle }: { aisle: VerticalAisle }) {
+  const { state, dispatch } = useVenue();
+  const mode = state.mode;
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+
+  const d = dispatch;
+
+  const menuItems: MenuItem[] = [
+    { label: "Remove aisle", danger: true, onClick: () => d({ type: "REMOVE_VERTICAL_AISLE", id: aisle.id }) },
+  ];
+
+  return (
+    <div className="relative group">
+      <div className="w-8 h-7" />
+      {mode === "edit" && (
+        <button
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 text-[10px] text-neutral-500 hover:text-red-400"
+          onClick={() => d({ type: "REMOVE_VERTICAL_AISLE", id: aisle.id })}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setMenu({ x: e.clientX, y: e.clientY });
+          }}
+          title="Remove vertical aisle"
+        >
+          ✕
+        </button>
+      )}
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} />}
+    </div>
   );
 }
 
@@ -771,7 +834,7 @@ import { v4 as uuid } from "uuid";
 import type { Stage } from "./types";
 
 const makeSeatTemplate = (id: string, name: string, stage: Stage, cats: Category[], rows: Row[]): SeatMap =>
-  renumber({ id, name, mode: "seat", stage, categories: cats, rows });
+  renumber({ id, name, mode: "seat", stage, categories: cats, rows, verticalAisles: [] });
 
 function baseCats(): Category[] {
   return [

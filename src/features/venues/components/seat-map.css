@@ -178,6 +178,8 @@
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .select-none { user-select: none; }
 .inline-block { display: inline-block; }
+.block { display: block; }
+.w-full { width: 100%; }
 
 /* ───── Effects ───── */
 .rounded { border-radius: 4px !important; }
