@@ -128,7 +128,7 @@ function PublisherInner({
 
   return (
     <div className="flex-grow-1 w-100 d-flex flex-column bg-neutral-950 text-neutral-100">
-      <header className="flex items-center gap-3 px-4 py-2 border-b border-neutral-800 bg-neutral-900">
+      <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-2 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur shadow-sm">
         <span className="text-xs uppercase tracking-widest text-amber-400 font-semibold">
           Publisher
         </span>
@@ -162,38 +162,41 @@ function PublisherInner({
         )}
       </header>
 
-      <div className="flex-1 min-h-0 flex">
-        <div className="flex-1 min-w-0">
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <SeatMapCreator />
         </div>
-        <aside className="w-72 border-l border-neutral-800 bg-neutral-900 p-3 overflow-auto">
-          <div className="flex items-center justify-between mb-2">
+        <aside className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-neutral-800 bg-neutral-900 p-4 overflow-auto shadow-lg">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-neutral-800">
             <h3 className="text-xs uppercase tracking-widest text-neutral-500">
               My venues
             </h3>
             <button
               onClick={handleNewVenue}
-              className="text-xs px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700"
+              className="text-xs px-2 py-1 rounded-md bg-neutral-800 hover:bg-neutral-700 transition-all"
             >
               + New
             </button>
           </div>
           {venues.length === 0 && (
-            <p className="text-xs text-neutral-500">Nothing published yet.</p>
+            <div className="rounded-lg border border-dashed border-neutral-700 p-6 text-center">
+              <p className="text-xs text-neutral-500">Nothing published yet.</p>
+              <p className="text-xs text-neutral-600 mt-1">Edit a map and click Publish.</p>
+            </div>
           )}
           <ul className="space-y-2">
             {venues.map((v) => (
               <li
                 key={v.id}
                 onClick={() => handleLoadVenue(v.id)}
-                className={`cursor-pointer rounded border p-2 text-sm ${
+                className={`cursor-pointer rounded-lg border p-3 text-sm transition-all ${
                   editingId === v.id
-                    ? "border-amber-500/50 bg-amber-900/20"
-                    : "border-neutral-800 bg-neutral-950 hover:border-neutral-700"
+                    ? "border-amber-500/30 bg-amber-900/15 border-l-2 border-amber-500 shadow-sm"
+                    : "border-neutral-800 bg-neutral-950 hover:border-neutral-700 hover:bg-neutral-900/50"
                 }`}
               >
                 <div className="font-medium truncate">{v.name}</div>
-                <div className="text-xs text-neutral-500 mt-0.5">
+                <div className="text-xs text-neutral-500 mt-1">
                   {v.mode} · {new Date(v.createdAt).toLocaleDateString()}
                 </div>
               </li>

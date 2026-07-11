@@ -184,6 +184,8 @@
 .rounded-md { border-radius: 6px; }
 .rounded-lg { border-radius: 8px !important; }
 .rounded-sm { border-radius: 2px !important; }
+.shadow-sm { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3); }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2); }
 .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1) !important; }
 .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1) !important; }
 .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important; }
@@ -193,9 +195,33 @@
 .opacity-0 { opacity: 0; }
 .opacity-100 { opacity: 1; }
 .transition { transition: all 0.15s ease; }
+.transition-all { transition: all 0.15s ease; }
 .transition-transform { transition: transform 0.15s ease; }
 .hover\:scale-110:hover { transform: scale(1.1); }
 .hover\:brightness-125:hover { filter: brightness(1.25); }
+
+/* ───── Border width ───── */
+.border-l-2 { border-left-width: 2px; border-left-style: solid; }
+
+/* ───── Border colors ───── */
+.border-transparent { border-color: transparent; }
+.border-amber-500 { border-color: #f59e0b; }
+
+/* ───── Background ───── */
+.bg-neutral-900\/80 { background-color: rgba(23,23,26,0.8); }
+
+/* ───── Position ───── */
+.sticky { position: sticky; }
+.top-0 { top: 0; }
+.z-10 { z-index: 10; }
+
+/* ───── Responsive layout ───── */
+@media (min-width: 1024px) {
+  .lg\:flex-row { flex-direction: row; }
+  .lg\:w-72 { width: 288px; }
+  .lg\:border-t-0 { border-top-width: 0; }
+  .lg\:border-l { border-left-width: 1px; border-left-style: solid; }
+}
 
 /* disabled */
 .disabled\:opacity-40:disabled { opacity: 0.4; }
