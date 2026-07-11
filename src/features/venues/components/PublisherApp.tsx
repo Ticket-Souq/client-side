@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import "./seat-map.css";
 import { SeatMapCreator } from "./SeatMapCreator";
-import { useVenue, VenueProvider } from "../context/VenueContext";
-import { createVenue, listVenues, deleteVenue, type VenueResponse } from "../api/venueApi";
+import { useVenue, VenueProvider, makeDefaultMap } from "../context/VenueContext";
+import {
+  createVenue,
+  listVenues,
+  deleteVenue,
+  getVenue,
+  updateVenue,
+  type VenueResponse,
+} from "../api/venueApi";
 
 /**
  * Publisher-facing app.
@@ -45,10 +52,11 @@ function PublisherInner({
   publisher: Publisher;
   onSignOut?: () => void;
 }) {
-  const { state } = useVenue();
+  const { state, dispatch } = useVenue();
   const map = state.map;
   const [publishing, setPublishing] = useState(false);
   const [venues, setVenues] = useState<VenueResponse[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchVenues = useCallback(async () => {
     try {
@@ -63,29 +71,60 @@ function PublisherInner({
     fetchVenues();
   }, [fetchVenues]);
 
+  const handleLoadVenue = useCallback(
+    async (id: string) => {
+      try {
+        const venue = await getVenue(id);
+        if (venue.layout) {
+          dispatch({ type: "LOAD_MAP", map: venue.layout });
+          setEditingId(id);
+        } else {
+          alert("Venue has no layout data");
+        }
+      } catch (e) {
+        alert("Failed to load venue: " + (e as Error).message);
+      }
+    },
+    [dispatch],
+  );
+
+  const handleNewVenue = useCallback(() => {
+    dispatch({ type: "LOAD_MAP", map: makeDefaultMap() });
+    setEditingId(null);
+  }, [dispatch]);
+
   const handlePublish = useCallback(async () => {
     setPublishing(true);
     try {
-      const venue = await createVenue(map, publisher.id);
-      alert(`Published "${venue.name}"`);
+      if (editingId) {
+        await updateVenue(editingId, map);
+        alert(`Updated "${map.name}"`);
+      } else {
+        const venue = await createVenue(map, publisher.id);
+        alert(`Published "${venue.name}"`);
+      }
       await fetchVenues();
     } catch (e) {
       alert("Failed to publish: " + (e as Error).message);
     } finally {
       setPublishing(false);
     }
-  }, [map, publisher.id, fetchVenues]);
+  }, [map, publisher.id, fetchVenues, editingId]);
 
-  const handleUnpublish = useCallback(async (id: string) => {
-    try {
-      await deleteVenue(id);
-      await fetchVenues();
-    } catch (e) {
-      alert("Failed to unpublish: " + (e as Error).message);
-    }
-  }, [fetchVenues]);
-
-  const isPublished = venues.some((v) => v.id === map.id);
+  const handleUnpublish = useCallback(
+    async (id: string) => {
+      try {
+        await deleteVenue(id);
+        if (editingId === id) {
+          setEditingId(null);
+        }
+        await fetchVenues();
+      } catch (e) {
+        alert("Failed to unpublish: " + (e as Error).message);
+      }
+    },
+    [fetchVenues, editingId],
+  );
 
   return (
     <div className="flex-grow-1 w-100 d-flex flex-column bg-neutral-950 text-neutral-100">
@@ -102,12 +141,13 @@ function PublisherInner({
           disabled={publishing}
           className="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-sm font-medium disabled:opacity-50"
         >
-          {publishing ? "Publishing…" : isPublished ? "Update published" : "Publish map"}
+          {publishing ? "Saving…" : editingId ? "Update" : "Publish"}
         </button>
-        {isPublished && (
+        {editingId && (
           <button
-            onClick={() => handleUnpublish(map.id)}
-            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-sm"
+            onClick={() => handleUnpublish(editingId)}
+            disabled={publishing}
+            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-sm disabled:opacity-50"
           >
             Unpublish
           </button>
@@ -127,15 +167,31 @@ function PublisherInner({
           <SeatMapCreator />
         </div>
         <aside className="w-72 border-l border-neutral-800 bg-neutral-900 p-3 overflow-auto">
-          <h3 className="text-xs uppercase tracking-widest text-neutral-500 mb-2">
-            My venues
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs uppercase tracking-widest text-neutral-500">
+              My venues
+            </h3>
+            <button
+              onClick={handleNewVenue}
+              className="text-xs px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700"
+            >
+              + New
+            </button>
+          </div>
           {venues.length === 0 && (
             <p className="text-xs text-neutral-500">Nothing published yet.</p>
           )}
           <ul className="space-y-2">
             {venues.map((v) => (
-              <li key={v.id} className="rounded border border-neutral-800 bg-neutral-950 p-2 text-sm">
+              <li
+                key={v.id}
+                onClick={() => handleLoadVenue(v.id)}
+                className={`cursor-pointer rounded border p-2 text-sm ${
+                  editingId === v.id
+                    ? "border-amber-500/50 bg-amber-900/20"
+                    : "border-neutral-800 bg-neutral-950 hover:border-neutral-700"
+                }`}
+              >
                 <div className="font-medium truncate">{v.name}</div>
                 <div className="text-xs text-neutral-500 mt-0.5">
                   {v.mode} · {new Date(v.createdAt).toLocaleDateString()}

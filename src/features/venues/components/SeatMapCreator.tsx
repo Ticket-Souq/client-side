@@ -93,40 +93,6 @@ function TopBar() {
     a.click();
     URL.revokeObjectURL(url);
   };
-  const importJson = () => {
-    const inp = document.createElement("input");
-    inp.type = "file";
-    inp.accept = "application/json";
-    inp.onchange = async () => {
-      const f = inp.files?.[0];
-      if (!f) return;
-      try {
-        const parsed: SeatMap = JSON.parse(await f.text());
-        dispatch({ type: "LOAD_MAP", map: { ...parsed, mode: "seat" } });
-      } catch (e) {
-        alert("Invalid JSON: " + (e as Error).message);
-      }
-    };
-    inp.click();
-  };
-  const saveLocal = () => {
-    localStorage.setItem(`seatmap:${map.name}`, JSON.stringify(map));
-    alert(`Saved locally as "seatmap:${map.name}"`);
-  };
-  const loadLocal = () => {
-    const keys = Object.keys(localStorage).filter((k) => k.startsWith("seatmap:"));
-    if (!keys.length) return alert("Nothing saved yet.");
-    const pick = prompt("Load which map?\n" + keys.join("\n"), keys[0]);
-    if (!pick) return;
-    const raw = localStorage.getItem(pick);
-    if (!raw) return;
-    try {
-      dispatch({ type: "LOAD_MAP", map: JSON.parse(raw) });
-    } catch (e) {
-      alert("Corrupt entry: " + (e as Error).message);
-    }
-  };
-
   return (
     <header className="flex flex-wrap items-center gap-2 border-b border-neutral-800 bg-neutral-900 px-3 py-2">
       <input
@@ -159,9 +125,6 @@ function TopBar() {
       <button className={btn} onClick={() => dispatch({ type: "SET_ZOOM", zoom: 1 })}>Fit</button>
 
       <div className="flex-1" />
-      <button className={btn} onClick={loadLocal}>Load</button>
-      <button className={btn} onClick={saveLocal}>Save</button>
-      <button className={btn} onClick={importJson}>Import</button>
       <button className={btnPrimary} onClick={exportJson}>Export JSON</button>
       <button className={btn} onClick={() => confirm("Reset to a fresh map?") && dispatch({ type: "RESET" })}>
         Reset
