@@ -1,15 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "./seat-map.css";
 import { SeatMapCreator } from "./SeatMapCreator";
-import { useSeatMap } from "./store";
-import {
-  listPublished,
-  publishMap,
-  unpublishMap,
-  subscribe,
-  bookingsForMap,
-  type PublishedMap,
-} from "./publishedStore";
+import { useVenue, VenueProvider } from "../context/VenueContext";
+import { createVenue, listVenues, deleteVenue, type VenueResponse } from "../api/venueApi";
 
 /**
  * Publisher-facing app.
@@ -38,7 +31,11 @@ export function PublisherApp({ publisher, onSignOut }: Props) {
       />
     );
   }
-  return <PublisherInner publisher={publisher} onSignOut={onSignOut} />;
+  return (
+    <VenueProvider>
+      <PublisherInner publisher={publisher} onSignOut={onSignOut} />
+    </VenueProvider>
+  );
 }
 
 function PublisherInner({
@@ -48,12 +45,47 @@ function PublisherInner({
   publisher: Publisher;
   onSignOut?: () => void;
 }) {
-  const map = useSeatMap((s) => s.map);
-  const [, force] = useState(0);
-  useEffect(() => subscribe(() => force((n) => n + 1)), []);
+  const { state } = useVenue();
+  const map = state.map;
+  const [publishing, setPublishing] = useState(false);
+  const [venues, setVenues] = useState<VenueResponse[]>([]);
 
-  const mine = listPublished().filter((p) => p.publisherId === publisher.id);
-  const isPublished = mine.some((p) => p.map.id === map.id);
+  const fetchVenues = useCallback(async () => {
+    try {
+      const list = await listVenues(publisher.id);
+      setVenues(list);
+    } catch {
+      setVenues([]);
+    }
+  }, [publisher.id]);
+
+  useEffect(() => {
+    fetchVenues();
+  }, [fetchVenues]);
+
+  const handlePublish = useCallback(async () => {
+    setPublishing(true);
+    try {
+      const venue = await createVenue(map, publisher.id);
+      alert(`Published "${venue.name}"`);
+      await fetchVenues();
+    } catch (e) {
+      alert("Failed to publish: " + (e as Error).message);
+    } finally {
+      setPublishing(false);
+    }
+  }, [map, publisher.id, fetchVenues]);
+
+  const handleUnpublish = useCallback(async (id: string) => {
+    try {
+      await deleteVenue(id);
+      await fetchVenues();
+    } catch (e) {
+      alert("Failed to unpublish: " + (e as Error).message);
+    }
+  }, [fetchVenues]);
+
+  const isPublished = venues.some((v) => v.id === map.id);
 
   return (
     <div className="flex-grow-1 w-100 d-flex flex-column bg-neutral-950 text-neutral-100">
@@ -66,14 +98,15 @@ function PublisherInner({
         </span>
         <div className="flex-1" />
         <button
-          onClick={() => publishMap(map, publisher.id)}
-          className="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-sm font-medium"
+          onClick={handlePublish}
+          disabled={publishing}
+          className="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-sm font-medium disabled:opacity-50"
         >
-          {isPublished ? "Update published" : "Publish map"}
+          {publishing ? "Publishing…" : isPublished ? "Update published" : "Publish map"}
         </button>
         {isPublished && (
           <button
-            onClick={() => unpublishMap(map.id)}
+            onClick={() => handleUnpublish(map.id)}
             className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-sm"
           >
             Unpublish
@@ -95,34 +128,24 @@ function PublisherInner({
         </div>
         <aside className="w-72 border-l border-neutral-800 bg-neutral-900 p-3 overflow-auto">
           <h3 className="text-xs uppercase tracking-widest text-neutral-500 mb-2">
-            My published maps
+            My venues
           </h3>
-          {mine.length === 0 && (
+          {venues.length === 0 && (
             <p className="text-xs text-neutral-500">Nothing published yet.</p>
           )}
           <ul className="space-y-2">
-            {mine.map((p) => (
-              <PublishedRow key={p.map.id} entry={p} />
+            {venues.map((v) => (
+              <li key={v.id} className="rounded border border-neutral-800 bg-neutral-950 p-2 text-sm">
+                <div className="font-medium truncate">{v.name}</div>
+                <div className="text-xs text-neutral-500 mt-0.5">
+                  {v.mode} · {new Date(v.createdAt).toLocaleDateString()}
+                </div>
+              </li>
             ))}
           </ul>
         </aside>
       </div>
     </div>
-  );
-}
-
-function PublishedRow({ entry }: { entry: PublishedMap }) {
-  const bookings = bookingsForMap(entry.map.id);
-  const seatsBooked = bookings.reduce((n, b) => n + b.seatIds.length, 0);
-  const revenue = bookings.reduce((n, b) => n + b.total, 0);
-  return (
-    <li className="rounded border border-neutral-800 bg-neutral-950 p-2 text-sm">
-      <div className="font-medium truncate">{entry.map.name}</div>
-      <div className="text-xs text-neutral-500 mt-0.5">
-        {seatsBooked} seat{seatsBooked === 1 ? "" : "s"} booked · $
-        {revenue.toFixed(2)} revenue
-      </div>
-    </li>
   );
 }
 

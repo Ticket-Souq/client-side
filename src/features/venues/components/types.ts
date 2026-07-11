@@ -37,6 +37,7 @@ export interface Stage {
 export interface SeatMap {
   id: string;
   name: string;
+  mode: 'seat';
   stage: Stage;
   categories: Category[];
   rows: Row[];

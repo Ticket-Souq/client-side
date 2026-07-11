@@ -1,51 +1,44 @@
 import { useEffect, useMemo, useState } from "react";
 import "./seat-map.css";
-import { useSeatMap } from "./store";
+import { useVenue } from "../context/VenueContext";
 import type { Category, Cell, Row, SeatMap } from "./types";
 import { ContextMenu, type MenuItem } from "./ContextMenu";
 
 function useKeys() {
-  const undo = useSeatMap((s) => s.undo);
-  const redo = useSeatMap((s) => s.redo);
-  const removeCellStore = useSeatMap((s) => s.removeCell);
-  const selection = useSeatMap((s) => s.selection);
-  const map = useSeatMap((s) => s.map);
-  const clear = useSeatMap((s) => s.clearSelection);
+  const { state, dispatch } = useVenue();
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey;
       if (meta && e.key.toLowerCase() === "z") {
         e.preventDefault();
-        if (e.shiftKey) redo();
-        else undo();
+        if (e.shiftKey) dispatch({ type: "REDO" });
+        else dispatch({ type: "UNDO" });
       } else if (meta && e.key.toLowerCase() === "y") {
         e.preventDefault();
-        redo();
+        dispatch({ type: "REDO" });
       } else if (e.key === "Delete" || e.key === "Backspace") {
-        if (selection.size === 0) return;
-        // avoid when typing in input
+        if (state.selection.size === 0) return;
         const t = e.target as HTMLElement;
         if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
         e.preventDefault();
-        for (const row of map.rows) {
+        for (const row of state.map.rows) {
           for (const c of row.cells) {
-            if (selection.has(c.id)) removeCellStore(row.id, c.id);
+            if (state.selection.has(c.id)) dispatch({ type: "REMOVE_CELL", rowId: row.id, cellId: c.id });
           }
         }
-        clear();
+        dispatch({ type: "CLEAR_SELECTION" });
       } else if (e.key === "Escape") {
-        clear();
+        dispatch({ type: "CLEAR_SELECTION" });
       }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [undo, redo, removeCellStore, selection, map, clear]);
+  }, [state, dispatch]);
 }
 
 export function SeatMapCreator() {
-  const map = useSeatMap((s) => s.map);
-  const mode = useSeatMap((s) => s.mode);
-  const zoom = useSeatMap((s) => s.zoom);
+  const { state } = useVenue();
+  const { map, mode, zoom } = state;
   useKeys();
 
   return (
@@ -83,18 +76,10 @@ export function SeatMapCreator() {
 /* -------------------- Top bar -------------------- */
 
 function TopBar() {
-  const map = useSeatMap((s) => s.map);
-  const setName = useSeatMap((s) => s.setName);
-  const mode = useSeatMap((s) => s.mode);
-  const setMode = useSeatMap((s) => s.setMode);
-  const undo = useSeatMap((s) => s.undo);
-  const redo = useSeatMap((s) => s.redo);
-  const zoom = useSeatMap((s) => s.zoom);
-  const setZoom = useSeatMap((s) => s.setZoom);
-  const loadMap = useSeatMap((s) => s.loadMap);
-  const reset = useSeatMap((s) => s.reset);
-  const canUndo = useSeatMap((s) => s.history.past.length > 0);
-  const canRedo = useSeatMap((s) => s.history.future.length > 0);
+  const { state, dispatch } = useVenue();
+  const { map, mode, zoom, history } = state;
+  const canUndo = history.past.length > 0;
+  const canRedo = history.future.length > 0;
 
   const btn = "px-2.5 py-1.5 text-xs rounded-md bg-neutral-800 hover:bg-neutral-700 disabled:opacity-40 border border-neutral-700 whitespace-nowrap";
   const btnPrimary = "px-3 py-1.5 text-xs rounded-md bg-indigo-600 hover:bg-indigo-500 text-white whitespace-nowrap";
@@ -117,7 +102,7 @@ function TopBar() {
       if (!f) return;
       try {
         const parsed: SeatMap = JSON.parse(await f.text());
-        loadMap(parsed);
+        dispatch({ type: "LOAD_MAP", map: { ...parsed, mode: "seat" } });
       } catch (e) {
         alert("Invalid JSON: " + (e as Error).message);
       }
@@ -136,7 +121,7 @@ function TopBar() {
     const raw = localStorage.getItem(pick);
     if (!raw) return;
     try {
-      loadMap(JSON.parse(raw));
+      dispatch({ type: "LOAD_MAP", map: JSON.parse(raw) });
     } catch (e) {
       alert("Corrupt entry: " + (e as Error).message);
     }
@@ -147,38 +132,38 @@ function TopBar() {
       <input
         className="bg-neutral-800 border border-neutral-700 rounded px-2 py-1 text-sm w-56"
         value={map.name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => dispatch({ type: "SET_NAME", name: e.target.value })}
       />
       <div className="w-px h-6 bg-neutral-800" />
-      <button className={btn} onClick={undo} disabled={!canUndo}>↶ Undo</button>
-      <button className={btn} onClick={redo} disabled={!canRedo}>↷ Redo</button>
+      <button className={btn} onClick={() => dispatch({ type: "UNDO" })} disabled={!canUndo}>↶ Undo</button>
+      <button className={btn} onClick={() => dispatch({ type: "REDO" })} disabled={!canRedo}>↷ Redo</button>
       <div className="w-px h-6 bg-neutral-800" />
       <div className="inline-flex rounded-md overflow-hidden border border-neutral-700">
         <button
           className={`px-3 py-1.5 text-xs ${mode === "edit" ? "bg-indigo-600 text-white" : "bg-neutral-800"}`}
-          onClick={() => setMode("edit")}
+          onClick={() => dispatch({ type: "SET_MODE", mode: "edit" })}
         >
           ✎ Edit
         </button>
         <button
           className={`px-3 py-1.5 text-xs ${mode === "preview" ? "bg-indigo-600 text-white" : "bg-neutral-800"}`}
-          onClick={() => setMode("preview")}
+          onClick={() => dispatch({ type: "SET_MODE", mode: "preview" })}
         >
           ▶ Preview
         </button>
       </div>
       <div className="w-px h-6 bg-neutral-800" />
-      <button className={btn} onClick={() => setZoom(zoom - 0.1)}>−</button>
+      <button className={btn} onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom - 0.1 })}>−</button>
       <span className="text-xs text-neutral-400 w-10 text-center">{Math.round(zoom * 100)}%</span>
-      <button className={btn} onClick={() => setZoom(zoom + 0.1)}>+</button>
-      <button className={btn} onClick={() => setZoom(1)}>Fit</button>
+      <button className={btn} onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom + 0.1 })}>+</button>
+      <button className={btn} onClick={() => dispatch({ type: "SET_ZOOM", zoom: 1 })}>Fit</button>
 
       <div className="flex-1" />
       <button className={btn} onClick={loadLocal}>Load</button>
       <button className={btn} onClick={saveLocal}>Save</button>
       <button className={btn} onClick={importJson}>Import</button>
       <button className={btnPrimary} onClick={exportJson}>Export JSON</button>
-      <button className={btn} onClick={() => confirm("Reset to a fresh map?") && reset()}>
+      <button className={btn} onClick={() => confirm("Reset to a fresh map?") && dispatch({ type: "RESET" })}>
         Reset
       </button>
     </header>
@@ -188,9 +173,9 @@ function TopBar() {
 /* -------------------- Stage -------------------- */
 
 function StageBar() {
-  const stage = useSeatMap((s) => s.map.stage);
-  const setStage = useSeatMap((s) => s.setStage);
-  const mode = useSeatMap((s) => s.mode);
+  const { state, dispatch } = useVenue();
+  const { stage } = state.map;
+  const mode = state.mode;
   const [editing, setEditing] = useState(false);
   return (
     <div
@@ -202,7 +187,7 @@ function StageBar() {
           autoFocus
           className="bg-black/30 rounded px-2 py-1 text-center tracking-[0.4em] font-bold"
           value={stage.label}
-          onChange={(e) => setStage({ label: e.target.value.toUpperCase() })}
+          onChange={(e) => dispatch({ type: "SET_STAGE", patch: { label: e.target.value.toUpperCase() } })}
           onBlur={() => setEditing(false)}
           onKeyDown={(e) => e.key === "Enter" && setEditing(false)}
         />
@@ -220,13 +205,13 @@ function StageBar() {
           <input
             type="color"
             value={stage.color}
-            onChange={(e) => setStage({ color: e.target.value })}
+            onChange={(e) => dispatch({ type: "SET_STAGE", patch: { color: e.target.value } })}
             className="w-6 h-6 rounded bg-transparent border-none cursor-pointer"
             title="Stage color"
           />
           <button
             className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded"
-            onClick={() => setStage({ position: stage.position === "top" ? "bottom" : "top" })}
+            onClick={() => dispatch({ type: "SET_STAGE", patch: { position: stage.position === "top" ? "bottom" : "top" } })}
           >
             ↕ Move
           </button>
@@ -239,19 +224,15 @@ function StageBar() {
 /* -------------------- Row -------------------- */
 
 function RowView({ row, index }: { row: Row; index: number }) {
-  const mode = useSeatMap((s) => s.mode);
-  const removeRow = useSeatMap((s) => s.removeRow);
-  const duplicateRow = useSeatMap((s) => s.duplicateRow);
-  const renameRow = useSeatMap((s) => s.renameRow);
-  const toggleRev = useSeatMap((s) => s.toggleRowReversed);
-  const appendSeat = useSeatMap((s) => s.appendSeat);
-  const selectAllInRow = useSeatMap((s) => s.selectAllInRow);
-  const moveRow = useSeatMap((s) => s.moveRow);
-  const rowsLen = useSeatMap((s) => s.map.rows.length);
+  const { state, dispatch } = useVenue();
+  const mode = state.mode;
+  const rowsLen = state.map.rows.length;
 
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [tempLabel, setTempLabel] = useState(row.label);
+
+  const d = dispatch;
 
   if (row.aisle) {
     return (
@@ -261,7 +242,7 @@ function RowView({ row, index }: { row: Row; index: number }) {
         {mode === "edit" && (
           <button
             className="opacity-0 group-hover:opacity-100 text-xs text-neutral-400 hover:text-red-400"
-            onClick={() => removeRow(row.id)}
+            onClick={() => d({ type: "REMOVE_ROW", rowId: row.id })}
           >
             ✕ aisle
           </button>
@@ -272,16 +253,16 @@ function RowView({ row, index }: { row: Row; index: number }) {
 
   const rowMenu: MenuItem[] = [
     { label: "Rename row", onClick: () => setRenaming(true) },
-    { label: "Select all seats", onClick: () => selectAllInRow(row.id) },
-    { label: row.reversed ? "Number left→right" : "Reverse numbering", onClick: () => toggleRev(row.id) },
-    { label: "Add seat at end", onClick: () => appendSeat(row.id, "seat") },
-    { label: "Add space at end", onClick: () => appendSeat(row.id, "space") },
-    { label: "Duplicate row", onClick: () => duplicateRow(row.id) },
+    { label: "Select all seats", onClick: () => d({ type: "SELECT_ALL_IN_ROW", rowId: row.id }) },
+    { label: row.reversed ? "Number left→right" : "Reverse numbering", onClick: () => d({ type: "TOGGLE_ROW_REVERSED", rowId: row.id }) },
+    { label: "Add seat at end", onClick: () => d({ type: "APPEND_SEAT", rowId: row.id, cellType: "seat" }) },
+    { label: "Add space at end", onClick: () => d({ type: "APPEND_SEAT", rowId: row.id, cellType: "space" }) },
+    { label: "Duplicate row", onClick: () => d({ type: "DUPLICATE_ROW", rowId: row.id }) },
     { separator: true, label: "", onClick: () => {} },
-    { label: "Move up", onClick: () => moveRow(index, Math.max(0, index - 1)) },
-    { label: "Move down", onClick: () => moveRow(index, Math.min(rowsLen - 1, index + 1)) },
+    { label: "Move up", onClick: () => d({ type: "MOVE_ROW", from: index, to: Math.max(0, index - 1) }) },
+    { label: "Move down", onClick: () => d({ type: "MOVE_ROW", from: index, to: Math.min(rowsLen - 1, index + 1) }) },
     { separator: true, label: "", onClick: () => {} },
-    { label: "Delete row", danger: true, onClick: () => removeRow(row.id) },
+    { label: "Delete row", danger: true, onClick: () => d({ type: "REMOVE_ROW", rowId: row.id }) },
   ];
 
   return (
@@ -299,7 +280,7 @@ function RowView({ row, index }: { row: Row; index: number }) {
       }}
       onDrop={(e) => {
         const from = Number(e.dataTransfer.getData("text/row-index"));
-        if (!Number.isNaN(from)) moveRow(from, index);
+        if (!Number.isNaN(from)) d({ type: "MOVE_ROW", from, to: index });
       }}
       onContextMenu={(e) => {
         if (mode !== "edit") return;
@@ -314,12 +295,12 @@ function RowView({ row, index }: { row: Row; index: number }) {
             value={tempLabel}
             onChange={(e) => setTempLabel(e.target.value)}
             onBlur={() => {
-              renameRow(row.id, tempLabel || row.label);
+              d({ type: "RENAME_ROW", rowId: row.id, label: tempLabel || row.label });
               setRenaming(false);
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                renameRow(row.id, tempLabel || row.label);
+                d({ type: "RENAME_ROW", rowId: row.id, label: tempLabel || row.label });
                 setRenaming(false);
               }
             }}
@@ -353,7 +334,7 @@ function RowView({ row, index }: { row: Row; index: number }) {
         {row.cells.length === 0 && mode === "edit" && (
           <button
             className="text-xs px-2 py-1 rounded border border-dashed border-neutral-700 text-neutral-500 hover:text-neutral-200"
-            onClick={() => appendSeat(row.id, "seat")}
+            onClick={() => d({ type: "APPEND_SEAT", rowId: row.id, cellType: "seat" })}
           >
             + first seat
           </button>
@@ -365,7 +346,7 @@ function RowView({ row, index }: { row: Row; index: number }) {
           <button
             title="Add seat"
             className="ml-1 w-6 h-6 rounded border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm"
-            onClick={() => appendSeat(row.id, "seat")}
+            onClick={() => d({ type: "APPEND_SEAT", rowId: row.id, cellType: "seat" })}
           >
             +
           </button>
@@ -380,16 +361,12 @@ function RowView({ row, index }: { row: Row; index: number }) {
 /* -------------------- Cell -------------------- */
 
 function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
-  const mode = useSeatMap((s) => s.mode);
-  const categories = useSeatMap((s) => s.map.categories);
-  const selection = useSeatMap((s) => s.selection);
-  const selectSeat = useSeatMap((s) => s.selectSeat);
-  const insertSeat = useSeatMap((s) => s.insertSeat);
-  const removeCell = useSeatMap((s) => s.removeCell);
-  const setStatus = useSeatMap((s) => s.setSeatStatus);
-  const assignCategory = useSeatMap((s) => s.assignCategory);
-  const renumberSeat = useSeatMap((s) => s.renumberSeat);
+  const { state, dispatch } = useVenue();
+  const mode = state.mode;
+  const categories = state.map.categories;
+  const selection = state.selection;
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const d = dispatch;
 
   if (cell.type === "space") {
     return (
@@ -398,7 +375,7 @@ function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
         {mode === "edit" && (
           <button
             className="absolute inset-0 opacity-0 group-hover:opacity-100 text-[10px] text-neutral-500 hover:text-red-400"
-            onClick={() => removeCell(row.id, cell.id)}
+            onClick={() => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id })}
             title="Remove space"
           >
             ✕
@@ -430,26 +407,26 @@ function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
   const clickable = mode === "preview" ? status === "available" : true;
 
   const menuItems: MenuItem[] = [
-    { label: "Insert seat left", onClick: () => insertSeat(row.id, cell.id, "left", "seat") },
-    { label: "Insert seat right", onClick: () => insertSeat(row.id, cell.id, "right", "seat") },
-    { label: "Insert space left", onClick: () => insertSeat(row.id, cell.id, "left", "space") },
-    { label: "Insert space right", onClick: () => insertSeat(row.id, cell.id, "right", "space") },
+    { label: "Insert seat left", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "left", cellType: "seat" }) },
+    { label: "Insert seat right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "seat" }) },
+    { label: "Insert space left", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "left", cellType: "space" }) },
+    { label: "Insert space right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "space" }) },
     { separator: true, label: "", onClick: () => {} },
     { label: "Set number…", onClick: () => {
         const n = prompt("Seat number", cell.number ?? "");
-        if (n != null) renumberSeat(row.id, cell.id, n);
+        if (n != null) d({ type: "RENUMBER_SEAT", rowId: row.id, cellId: cell.id, number: n });
       } },
     { separator: true, label: "", onClick: () => {} },
     ...categories.map<MenuItem>((c) => ({
       label: `Category → ${c.name}`,
-      onClick: () => assignCategory([cell.id], c.id),
+      onClick: () => d({ type: "ASSIGN_CATEGORY", ids: [cell.id], categoryId: c.id }),
     })),
     { separator: true, label: "", onClick: () => {} },
-    { label: "Mark available", onClick: () => setStatus([cell.id], "available") },
-    { label: "Mark reserved", onClick: () => setStatus([cell.id], "reserved") },
-    { label: "Mark blocked", onClick: () => setStatus([cell.id], "blocked") },
+    { label: "Mark available", onClick: () => d({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "available" }) },
+    { label: "Mark reserved", onClick: () => d({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "reserved" }) },
+    { label: "Mark blocked", onClick: () => d({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "blocked" }) },
     { separator: true, label: "", onClick: () => {} },
-    { label: "Delete seat", danger: true, onClick: () => removeCell(row.id, cell.id) },
+    { label: "Delete seat", danger: true, onClick: () => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id }) },
   ];
 
   return (
@@ -458,11 +435,10 @@ function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
         disabled={!clickable}
         onClick={(e) => {
           if (mode === "preview") {
-            // toggle "sold" for booking
-            setStatus([cell.id], status === "available" ? "sold" : "available");
-            selectSeat(cell.id, true);
+            d({ type: "SET_SEAT_STATUS", ids: [cell.id], status: status === "available" ? "sold" : "available" });
+            d({ type: "SELECT_SEAT", id: cell.id, additive: true });
           } else {
-            selectSeat(cell.id, e.shiftKey || e.metaKey || e.ctrlKey);
+            d({ type: "SELECT_SEAT", id: cell.id, additive: e.shiftKey || e.metaKey || e.ctrlKey });
           }
         }}
         onContextMenu={(e) => {
@@ -484,8 +460,8 @@ function SeatCell({ row, cell }: { row: Row; cell: Cell }) {
 /* -------------------- Add row inline -------------------- */
 
 function AddRowInline() {
-  const addRow = useSeatMap((s) => s.addRow);
-  const cats = useSeatMap((s) => s.map.categories);
+  const { state, dispatch } = useVenue();
+  const cats = state.map.categories;
   const [count, setCount] = useState(14);
   const [catId, setCatId] = useState<string>(cats[0]?.id ?? "");
   useEffect(() => {
@@ -516,19 +492,19 @@ function AddRowInline() {
       </select>
       <button
         className="px-2.5 py-1 text-xs rounded bg-indigo-600 hover:bg-indigo-500 text-white"
-        onClick={() => addRow("seated", { count, categoryId: catId })}
+        onClick={() => dispatch({ type: "ADD_ROW", kind: "seated", opts: { count, categoryId: catId } })}
       >
         + Seated row
       </button>
       <button
         className="px-2.5 py-1 text-xs rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
-        onClick={() => addRow("empty")}
+        onClick={() => dispatch({ type: "ADD_ROW", kind: "empty" })}
       >
         + Empty row
       </button>
       <button
         className="px-2.5 py-1 text-xs rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
-        onClick={() => addRow("aisle")}
+        onClick={() => dispatch({ type: "ADD_ROW", kind: "aisle" })}
       >
         + Aisle
       </button>
@@ -539,12 +515,8 @@ function AddRowInline() {
 /* -------------------- Panels -------------------- */
 
 function LeftPanel() {
-  const map = useSeatMap((s) => s.map);
-  const addCategory = useSeatMap((s) => s.addCategory);
-  const updateCategory = useSeatMap((s) => s.updateCategory);
-  const removeCategory = useSeatMap((s) => s.removeCategory);
-  const selection = useSeatMap((s) => s.selection);
-  const assignCategory = useSeatMap((s) => s.assignCategory);
+  const { state, dispatch } = useVenue();
+  const { map, selection } = state;
 
   return (
     <aside className="w-64 border-r border-neutral-800 bg-neutral-900 flex flex-col overflow-y-auto">
@@ -553,7 +525,7 @@ function LeftPanel() {
           <h2 className="text-xs font-semibold uppercase text-neutral-400">Categories</h2>
           <button
             className="text-xs px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
-            onClick={addCategory}
+            onClick={() => dispatch({ type: "ADD_CATEGORY" })}
           >
             + Add
           </button>
@@ -562,41 +534,41 @@ function LeftPanel() {
           {map.categories.map((c) => (
             <div key={c.id} className="rounded border border-neutral-800 p-2">
               <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={c.color}
-                  onChange={(e) => updateCategory(c.id, { color: e.target.value })}
-                  className="w-6 h-6 rounded bg-transparent border-none cursor-pointer"
-                />
-                <input
-                  value={c.name}
-                  onChange={(e) => updateCategory(c.id, { name: e.target.value })}
-                  className="flex-1 bg-neutral-800 border border-neutral-700 rounded px-2 py-1 text-xs"
-                />
-                <button
-                  className="text-xs text-neutral-500 hover:text-red-400"
-                  onClick={() => removeCategory(c.id)}
-                  title="Remove"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-[10px] text-neutral-500">Price $</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={c.price}
-                  onChange={(e) => updateCategory(c.id, { price: Number(e.target.value) || 0 })}
-                  className="w-20 bg-neutral-800 border border-neutral-700 rounded px-2 py-0.5 text-xs"
-                />
-                <button
-                  className="ml-auto text-[10px] px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 disabled:opacity-40"
-                  disabled={selection.size === 0}
-                  onClick={() => assignCategory(Array.from(selection), c.id)}
-                >
-                  Assign ({selection.size})
-                </button>
+                  <input
+                    type="color"
+                    value={c.color}
+                    onChange={(e) => dispatch({ type: "UPDATE_CATEGORY", id: c.id, patch: { color: e.target.value } })}
+                    className="w-6 h-6 rounded bg-transparent border-none cursor-pointer"
+                  />
+                  <input
+                    value={c.name}
+                    onChange={(e) => dispatch({ type: "UPDATE_CATEGORY", id: c.id, patch: { name: e.target.value } })}
+                    className="flex-1 bg-neutral-800 border border-neutral-700 rounded px-2 py-1 text-xs"
+                  />
+                  <button
+                    className="text-xs text-neutral-500 hover:text-red-400"
+                    onClick={() => dispatch({ type: "REMOVE_CATEGORY", id: c.id })}
+                    title="Remove"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-[10px] text-neutral-500">Price $</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={c.price}
+                    onChange={(e) => dispatch({ type: "UPDATE_CATEGORY", id: c.id, patch: { price: Number(e.target.value) || 0 } })}
+                    className="w-20 bg-neutral-800 border border-neutral-700 rounded px-2 py-0.5 text-xs"
+                  />
+                  <button
+                    className="ml-auto text-[10px] px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 disabled:opacity-40"
+                    disabled={selection.size === 0}
+                    onClick={() => dispatch({ type: "ASSIGN_CATEGORY", ids: Array.from(selection), categoryId: c.id })}
+                  >
+                    Assign ({selection.size})
+                  </button>
               </div>
             </div>
           ))}
@@ -640,11 +612,8 @@ function Tips() {
 }
 
 function RightPanel() {
-  const selection = useSeatMap((s) => s.selection);
-  const map = useSeatMap((s) => s.map);
-  const setStatus = useSeatMap((s) => s.setSeatStatus);
-  const assignCategory = useSeatMap((s) => s.assignCategory);
-  const mode = useSeatMap((s) => s.mode);
+  const { state, dispatch } = useVenue();
+  const { selection, map, mode } = state;
 
   const seatIndex = useMemo(() => {
     const idx = new Map<string, { row: Row; cell: Cell }>();
@@ -680,7 +649,7 @@ function RightPanel() {
                       <button
                         key={s}
                         className="px-2 py-1 text-[11px] rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 capitalize"
-                        onClick={() => setStatus(Array.from(selection), s)}
+                        onClick={() => dispatch({ type: "SET_SEAT_STATUS", ids: Array.from(selection), status: s })}
                       >
                         {s}
                       </button>
@@ -693,7 +662,7 @@ function RightPanel() {
                         key={c.id}
                         className="px-2 py-1 text-[11px] rounded border border-neutral-700"
                         style={{ background: c.color + "33", color: c.color }}
-                        onClick={() => assignCategory(Array.from(selection), c.id)}
+                        onClick={() => dispatch({ type: "ASSIGN_CATEGORY", ids: Array.from(selection), categoryId: c.id })}
                       >
                         {c.name}
                       </button>
@@ -711,32 +680,32 @@ function RightPanel() {
 }
 
 function TemplatesPanel() {
-  const loadMap = useSeatMap((s) => s.loadMap);
+  const { dispatch } = useVenue();
   return (
     <div className="px-3 py-3 border-b border-neutral-800">
       <h2 className="text-xs font-semibold uppercase text-neutral-400 mb-2">Templates</h2>
       <div className="grid grid-cols-2 gap-2">
         <button
           className="text-xs px-2 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
-          onClick={() => loadMap(buildTheater())}
+          onClick={() => dispatch({ type: "LOAD_MAP", map: buildTheater() })}
         >
           Theater
         </button>
         <button
           className="text-xs px-2 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
-          onClick={() => loadMap(buildArena())}
+          onClick={() => dispatch({ type: "LOAD_MAP", map: buildArena() })}
         >
           Arena
         </button>
         <button
           className="text-xs px-2 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
-          onClick={() => loadMap(buildClassroom())}
+          onClick={() => dispatch({ type: "LOAD_MAP", map: buildClassroom() })}
         >
           Classroom
         </button>
         <button
           className="text-xs px-2 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
-          onClick={() => loadMap(buildEmpty())}
+          onClick={() => dispatch({ type: "LOAD_MAP", map: buildEmpty() })}
         >
           Blank
         </button>
@@ -748,7 +717,8 @@ function TemplatesPanel() {
 /* -------------------- Stats -------------------- */
 
 function StatsBar() {
-  const map = useSeatMap((s) => s.map);
+  const { state } = useVenue();
+  const map = state.map;
   const stats = useMemo(() => {
     let total = 0;
     let available = 0;
@@ -787,8 +757,8 @@ function StatsBar() {
 }
 
 function BookingSummary() {
-  const map = useSeatMap((s) => s.map);
-  const setStatus = useSeatMap((s) => s.setSeatStatus);
+  const { state, dispatch } = useVenue();
+  const map = state.map;
   const sold = useMemo(() => {
     const arr: { row: Row; cell: Cell; cat?: Category }[] = [];
     for (const r of map.rows) {
@@ -815,7 +785,7 @@ function BookingSummary() {
               <span>${cat?.price?.toFixed(2) ?? "0.00"}</span>
               <button
                 className="text-neutral-500 hover:text-red-400"
-                onClick={() => setStatus([cell.id], "available")}
+                onClick={() => dispatch({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "available" })}
               >
                 ✕
               </button>
@@ -833,8 +803,12 @@ function BookingSummary() {
 
 /* -------------------- Templates -------------------- */
 
-import { renumber, makeSeatedRow, makeAisleRow, makeEmptyRow } from "./store";
+import { renumber, makeSeatedRow, makeAisleRow, makeEmptyRow } from "../context/VenueContext";
 import { v4 as uuid } from "uuid";
+import type { Stage } from "./types";
+
+const makeSeatTemplate = (id: string, name: string, stage: Stage, cats: Category[], rows: Row[]): SeatMap =>
+  renumber({ id, name, mode: "seat", stage, categories: cats, rows });
 
 function baseCats(): Category[] {
   return [
@@ -851,44 +825,20 @@ function buildTheater(): SeatMap {
   for (let i = 0; i < 6; i++) rows.push(makeSeatedRow(20, cats[1].id));
   rows.push(makeAisleRow());
   for (let i = 0; i < 6; i++) rows.push(makeSeatedRow(24, cats[0].id));
-  return renumber({
-    id: uuid(),
-    name: "Theater",
-    stage: { label: "STAGE", color: "#7f1d1d", position: "top" },
-    categories: cats,
-    rows,
-  });
+  return makeSeatTemplate(uuid(), "Theater", { label: "STAGE", color: "#7f1d1d", position: "top" }, cats, rows);
 }
 function buildArena(): SeatMap {
   const cats = baseCats();
   const rows: Row[] = [];
   for (let i = 0; i < 12; i++) rows.push(makeSeatedRow(30 + (i % 3), cats[i < 3 ? 2 : i < 8 ? 1 : 0].id));
-  return renumber({
-    id: uuid(),
-    name: "Arena",
-    stage: { label: "FLOOR", color: "#1e3a8a", position: "top" },
-    categories: cats,
-    rows,
-  });
+  return makeSeatTemplate(uuid(), "Arena", { label: "FLOOR", color: "#1e3a8a", position: "top" }, cats, rows);
 }
 function buildClassroom(): SeatMap {
   const cats = baseCats();
   const rows: Row[] = [];
   for (let i = 0; i < 6; i++) rows.push(makeSeatedRow(10, cats[0].id));
-  return renumber({
-    id: uuid(),
-    name: "Classroom",
-    stage: { label: "BOARD", color: "#065f46", position: "top" },
-    categories: cats,
-    rows,
-  });
+  return makeSeatTemplate(uuid(), "Classroom", { label: "BOARD", color: "#065f46", position: "top" }, cats, rows);
 }
 function buildEmpty(): SeatMap {
-  return renumber({
-    id: uuid(),
-    name: "Blank",
-    stage: { label: "STAGE", color: "#7f1d1d", position: "top" },
-    categories: baseCats(),
-    rows: [makeEmptyRow()],
-  });
+  return makeSeatTemplate(uuid(), "Blank", { label: "STAGE", color: "#7f1d1d", position: "top" }, baseCats(), [makeEmptyRow()]);
 }
