@@ -35,27 +35,29 @@ export function ContextMenu({
   }, [onClose]);
 
   return createPortal(
-    <div
-      ref={ref}
-      className="fixed z-50 min-w-44 rounded-md border border-neutral-700 bg-neutral-900 shadow-xl py-1 text-sm text-neutral-100"
-      style={{ left: x, top: y }}
-    >
-      {items.map((it, i) =>
-        it.separator ? (
-          <div key={i} className="my-1 border-t border-neutral-800" />
-        ) : (
-          <button
-            key={i}
-            className={`block w-full text-left px-3 py-1.5 hover:bg-neutral-800 ${it.danger ? "text-red-400" : ""}`}
-            onClick={() => {
-              it.onClick();
-              onClose();
-            }}
-          >
-            {it.label}
-          </button>
-        ),
-      )}
+    <div className="venue-app">
+      <div
+        ref={ref}
+        className="fixed z-50 min-w-44 rounded-md border border-venue-700 bg-venue-900 shadow-xl py-1 text-sm text-venue-100"
+        style={{ left: x, top: y }}
+      >
+        {items.map((it, i) =>
+          it.separator ? (
+            <div key={i} className="my-1 border-t border-venue-800" />
+          ) : (
+            <button
+              key={i}
+              className={`block w-full text-left px-3 py-1.5 hover:bg-venue-800 ${it.danger ? "text-danger" : ""}`}
+              onClick={() => {
+                it.onClick();
+                onClose();
+              }}
+            >
+              {it.label}
+            </button>
+          ),
+        )}
+      </div>
     </div>,
     document.body,
   );

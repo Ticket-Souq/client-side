@@ -1,264 +1,426 @@
+/* ───── Venue design tokens (scoped, no global overrides) ───── */
+.venue-app {
+  --venue-bg: #111113;
+  --venue-surface: #1a1a1d;
+  --venue-surface-raised: #232326;
+  --venue-border: #2e2e32;
+  --venue-border-subtle: #252528;
+  --venue-text: #e8e8ec;
+  --venue-text-secondary: #8a8a92;
+  --venue-text-muted: #5c5c66;
+
+  /* primary: indigo — actions, toggles, focus rings */
+  --venue-primary: #6366f1;
+  --venue-primary-hover: #818cf8;
+  --venue-primary-dim: rgba(99, 102, 241, 0.15);
+
+  /* accent: warm amber — selection, highlights */
+  --venue-accent: #f59e0b;
+  --venue-accent-dim: rgba(245, 158, 11, 0.12);
+
+  /* positive: emerald — available, success */
+  --venue-positive: #34d399;
+  --venue-positive-dim: rgba(52, 211, 153, 0.12);
+
+  /* danger: red — delete, blocked */
+  --venue-danger: #f87171;
+  --venue-danger-dim: rgba(248, 113, 113, 0.1);
+
+  /* neutral seat colors */
+  --venue-reserved: #6b7280;
+  --venue-blocked: #374151;
+  --venue-sold: #111827;
+
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--venue-text);
+}
+
 /* ───── Background colors ───── */
-.bg-neutral-950 { background-color: var(--color-bg); }
-.bg-neutral-900 { background-color: var(--color-surface); }
-.bg-neutral-800 { background-color: var(--color-border); }
-.bg-neutral-700 { background-color: #d0d0d0; }
-.bg-neutral-900\/95 { background-color: rgba(255,255,255,0.95); }
-.bg-emerald-600 { background-color: #059669; }
-.bg-emerald-500 { background-color: #10b981; }
-.bg-indigo-600 { background-color: #4f46e5; }
-.bg-indigo-500 { background-color: #6366f1; }
-.bg-sky-600 { background-color: #0284c7; }
-.bg-sky-500 { background-color: #0ea5e9; }
-.bg-white\/10 { background-color: rgba(0,0,0,0.05); }
-.bg-white\/20 { background-color: rgba(0,0,0,0.08); }
-.bg-black\/30 { background-color: rgba(0,0,0,0.1); }
-.bg-transparent { background-color: transparent; }
+.venue-app .bg-venue-950 { background-color: var(--venue-bg); }
+.venue-app .bg-venue-900 { background-color: var(--venue-surface); }
+.venue-app .bg-venue-800 { background-color: var(--venue-surface-raised); }
+.venue-app .bg-venue-700 { background-color: var(--venue-border); }
+.venue-app .bg-venue-900\/80 { background-color: rgba(26, 26, 29, 0.8); }
+.venue-app .bg-venue-900\/95 { background-color: rgba(26, 26, 29, 0.95); }
+.venue-app .bg-primary { background-color: var(--venue-primary); }
+.venue-app .bg-primary-hover { background-color: var(--venue-primary-hover); }
+.venue-app .bg-transparent { background-color: transparent; }
+.venue-app .bg-white\/10 { background-color: rgba(255, 255, 255, 0.06); }
+.venue-app .bg-white\/20 { background-color: rgba(255, 255, 255, 0.1); }
+.venue-app .bg-black\/30 { background-color: rgba(0, 0, 0, 0.3); }
 
 /* hover background variants */
-.hover\:bg-neutral-700:hover { background-color: #e0e0e0; }
-.hover\:bg-emerald-500:hover { background-color: #10b981; }
-.hover\:bg-indigo-500:hover { background-color: #6366f1; }
-.hover\:bg-white\/20:hover { background-color: rgba(0,0,0,0.08); }
+.venue-app .hover\:bg-venue-700:hover { background-color: var(--venue-border); }
+.venue-app .hover\:bg-primary-hover:hover { background-color: var(--venue-primary-hover); }
+.venue-app .hover\:bg-white\/20:hover { background-color: rgba(255, 255, 255, 0.1); }
 
 /* ───── Text colors ───── */
-.text-neutral-100 { color: var(--color-text); }
-.text-neutral-200 { color: #2d2d2d; }
-.text-neutral-300 { color: #4a4a4a; }
-.text-neutral-400 { color: var(--color-text-secondary); }
-.text-neutral-500 { color: #9a9a9a; }
-.text-white\/80 { color: rgba(0,0,0,0.8); }
-.text-white\/95 { color: rgba(0,0,0,0.95); }
-.text-amber-400 { color: #fbbf24; }
-.text-amber-300 { color: #fcd34b; }
-.text-emerald-400 { color: #34d399; }
-.text-emerald-300 { color: #6ee7b7; }
-.text-sky-400 { color: #38bdf8; }
-.text-red-400 { color: #f87171; }
+.venue-app .text-venue-100 { color: var(--venue-text); }
+.venue-app .text-venue-200 { color: #d0d0d6; }
+.venue-app .text-venue-300 { color: var(--venue-text-secondary); }
+.venue-app .text-venue-400 { color: var(--venue-text-muted); }
+.venue-app .text-venue-500 { color: #48484f; }
+.venue-app .text-white { color: #fff; }
+.venue-app .text-white\/80 { color: rgba(255, 255, 255, 0.8); }
+.venue-app .text-white\/95 { color: rgba(255, 255, 255, 0.95); }
+.venue-app .text-primary { color: var(--venue-primary); }
+.venue-app .text-primary-light { color: var(--venue-primary-hover); }
+.venue-app .text-accent { color: var(--venue-accent); }
+.venue-app .text-accent-light { color: #fcd34b; }
+.venue-app .text-positive { color: var(--venue-positive); }
+.venue-app .text-positive-light { color: #6ee7b7; }
+.venue-app .text-danger { color: var(--venue-danger); }
+.venue-app .text-sky { color: #38bdf8; }
 
 /* hover text variants */
-.hover\:text-red-400:hover { color: #f87171; }
-.hover\:text-neutral-200:hover { color: #2d2d2d; }
+.venue-app .hover\:text-danger:hover { color: var(--venue-danger); }
+.venue-app .hover\:text-venue-200:hover { color: #d0d0d6; }
 
-/* ───── Border (override Bootstrap's !important) ───── */
-.border { border-width: 1px; border-style: solid; border-color: currentColor; }
-.border-b { border-bottom-width: 1px; border-bottom-style: solid; }
-.border-l { border-left-width: 1px; border-left-style: solid; }
-.border-t { border-top-width: 1px; border-top-style: solid; }
-.border-neutral-800 { border-color: var(--color-border) !important; }
-.border-neutral-700 { border-color: #d0d0d0 !important; }
-.border-neutral-600 { border-color: #b0b0b0 !important; }
-.border-dashed { border-style: dashed !important; }
+/* ───── Border ───── */
+.venue-app .border { border-width: 1px; border-style: solid; border-color: currentColor; }
+.venue-app .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+.venue-app .border-l { border-left-width: 1px; border-left-style: solid; }
+.venue-app .border-t { border-top-width: 1px; border-top-style: solid; }
+.venue-app .border-venue-800 { border-color: var(--venue-border) !important; }
+.venue-app .border-venue-700 { border-color: var(--venue-surface-raised) !important; }
+.venue-app .border-venue-600 { border-color: #3a3a40 !important; }
+.venue-app .border-primary { border-color: var(--venue-primary) !important; }
+.venue-app .border-accent { border-color: var(--venue-accent) !important; }
+.venue-app .border-dashed { border-style: dashed !important; }
+.venue-app .border-none { border-style: none; }
 
 /* ───── Sizing ───── */
-.w-px { width: 1px; }
-.w-4 { width: 16px; }
-.w-6 { width: 24px; }
-.w-7 { width: 28px; }
-.w-8 { width: 32px; }
-.w-10 { width: 40px; }
-.w-16 { width: 64px; }
-.w-20 { width: 80px; }
-.w-56 { width: 224px; }
-.w-64 { width: 256px; }
-.w-72 { width: 288px; }
-.w-fit { width: fit-content; }
-.min-w-44 { min-width: 176px; }
-.min-w-0 { min-width: 0; }
-.min-w-max { min-width: max-content; }
-.min-w-\[420px\] { min-width: 420px; }
-.max-w-sm { max-width: 24rem; }
-.max-w-5xl { max-width: 64rem; }
-.max-w-\[600px\] { max-width: 600px; }
-.max-h-24 { max-height: 96px; }
-.max-h-32 { max-height: 128px; }
-.h-3 { height: 12px; }
-.h-4 { height: 16px; }
-.h-6 { height: 24px; }
-.h-7 { height: 28px; }
-.h-\[1px\] { height: 1px; }
+.venue-app .w-px { width: 1px; }
+.venue-app .w-3 { width: 12px; }
+.venue-app .w-4 { width: 16px; }
+.venue-app .w-6 { width: 24px; }
+.venue-app .w-7 { width: 28px; }
+.venue-app .w-8 { width: 32px; }
+.venue-app .w-10 { width: 40px; }
+.venue-app .w-16 { width: 64px; }
+.venue-app .w-20 { width: 80px; }
+.venue-app .w-56 { width: 224px; }
+.venue-app .w-64 { width: 256px; }
+.venue-app .w-72 { width: 288px; }
+.venue-app .w-fit { width: fit-content; }
+.venue-app .w-full { width: 100%; }
+.venue-app .min-w-0 { min-width: 0; }
+.venue-app .min-w-max { min-width: max-content; }
+.venue-app .max-w-sm { max-width: 24rem; }
+.venue-app .max-w-5xl { max-width: 64rem; }
+.venue-app .max-h-24 { max-height: 96px; }
+.venue-app .max-h-32 { max-height: 128px; }
+.venue-app .h-3 { height: 12px; }
+.venue-app .h-4 { height: 16px; }
+.venue-app .h-6 { height: 24px; }
+.venue-app .h-7 { height: 28px; }
+.venue-app .h-100 { height: 100%; }
 
 /* ───── Spacing ───── */
-.gap-1 { gap: 4px; }
-.gap-1\.5 { gap: 6px; }
-.gap-2 { gap: 8px; }
-.gap-3 { gap: 12px; }
-.gap-4 { gap: 16px; }
+.venue-app .gap-1 { gap: 4px; }
+.venue-app .gap-1\.5 { gap: 6px; }
+.venue-app .gap-2 { gap: 8px; }
+.venue-app .gap-3 { gap: 12px; }
+.venue-app .gap-4 { gap: 16px; }
 
-.p-1 { padding: 4px; }
-.p-1\.5 { padding: 6px; }
-.p-2 { padding: 8px; }
-.p-3 { padding: 12px; }
-.p-4 { padding: 16px; }
-.p-6 { padding: 24px; }
-.p-10 { padding: 40px; }
+.venue-app .p-1 { padding: 4px; }
+.venue-app .p-1\.5 { padding: 6px; }
+.venue-app .p-2 { padding: 8px; }
+.venue-app .p-3 { padding: 12px; }
+.venue-app .p-4 { padding: 16px; }
+.venue-app .p-6 { padding: 24px; }
+.venue-app .p-10 { padding: 40px; }
 
-.px-2 { padding-left: 8px; padding-right: 8px; }
-.px-2\.5 { padding-left: 10px; padding-right: 10px; }
-.px-3 { padding-left: 12px; padding-right: 12px; }
-.px-4 { padding-left: 16px; padding-right: 16px; }
-.px-6 { padding-left: 24px; padding-right: 24px; }
-.px-8 { padding-left: 32px; padding-right: 32px; }
+.venue-app .px-2 { padding-left: 8px; padding-right: 8px; }
+.venue-app .px-2\.5 { padding-left: 10px; padding-right: 10px; }
+.venue-app .px-3 { padding-left: 12px; padding-right: 12px; }
+.venue-app .px-4 { padding-left: 16px; padding-right: 16px; }
+.venue-app .px-6 { padding-left: 24px; padding-right: 24px; }
+.venue-app .px-8 { padding-left: 32px; padding-right: 32px; }
 
-.py-0\.5 { padding-top: 2px; padding-bottom: 2px; }
-.py-1 { padding-top: 4px; padding-bottom: 4px; }
-.py-1\.5 { padding-top: 6px; padding-bottom: 6px; }
-.py-2 { padding-top: 8px; padding-bottom: 8px; }
-.py-3 { padding-top: 12px; padding-bottom: 12px; }
-.py-4 { padding-top: 16px; padding-bottom: 16px; }
-.py-6 { padding-top: 24px; padding-bottom: 24px; }
+.venue-app .py-0\.5 { padding-top: 2px; padding-bottom: 2px; }
+.venue-app .py-1 { padding-top: 4px; padding-bottom: 4px; }
+.venue-app .py-1\.5 { padding-top: 6px; padding-bottom: 6px; }
+.venue-app .py-2 { padding-top: 8px; padding-bottom: 8px; }
+.venue-app .py-3 { padding-top: 12px; padding-bottom: 12px; }
+.venue-app .py-4 { padding-top: 16px; padding-bottom: 16px; }
+.venue-app .py-6 { padding-top: 24px; padding-bottom: 24px; }
 
-.mt-1 { margin-top: 4px; }
-.mt-1\.5 { margin-top: 6px; }
-.mt-2 { margin-top: 8px; }
-.mt-3 { margin-top: 12px; }
-.mt-4 { margin-top: 16px; }
-.mt-6 { margin-top: 24px; }
-.mt-10 { margin-top: 40px; }
-.mb-1 { margin-bottom: 4px; }
-.mb-2 { margin-bottom: 8px; }
-.mb-4 { margin-bottom: 16px; }
-.ml-1 { margin-left: 4px; }
-.ml-2 { margin-left: 8px; }
-.ml-4 { margin-left: 16px; }
-.ml-auto { margin-left: auto; }
-.mr-2 { margin-right: 8px; }
+.venue-app .mt-1 { margin-top: 4px; }
+.venue-app .mt-1\.5 { margin-top: 6px; }
+.venue-app .mt-2 { margin-top: 8px; }
+.venue-app .mt-3 { margin-top: 12px; }
+.venue-app .mt-4 { margin-top: 16px; }
+.venue-app .mt-6 { margin-top: 24px; }
+.venue-app .mt-10 { margin-top: 40px; }
+.venue-app .mb-1 { margin-bottom: 4px; }
+.venue-app .mb-2 { margin-bottom: 8px; }
+.venue-app .mb-3 { margin-bottom: 12px; }
+.venue-app .mb-4 { margin-bottom: 16px; }
+.venue-app .ml-1 { margin-left: 4px; }
+.venue-app .ml-2 { margin-left: 8px; }
+.venue-app .ml-4 { margin-left: 16px; }
+.venue-app .ml-auto { margin-left: auto; }
+.venue-app .mr-2 { margin-right: 8px; }
 
-.pt-2 { padding-top: 8px; }
-.pt-4 { padding-top: 16px; }
+.venue-app .pt-2 { padding-top: 8px; }
+.venue-app .pt-4 { padding-top: 16px; }
 
-.space-y-1 > * + * { margin-top: 4px; }
-.space-y-2 > * + * { margin-top: 8px; }
-.space-y-1\.5 > * + * { margin-top: 6px; }
+.venue-app .space-y-1 > * + * { margin-top: 4px; }
+.venue-app .space-y-2 > * + * { margin-top: 8px; }
+.venue-app .space-y-1\.5 > * + * { margin-top: 6px; }
 
 /* ───── Layout ───── */
-.flex { display: flex; }
-.inline-flex { display: inline-flex; }
-.flex-col { flex-direction: column; }
-.flex-wrap { flex-wrap: wrap; }
-.flex-1 { flex: 1 1 0%; }
-.items-center { align-items: center; }
-.items-baseline { align-items: baseline; }
-.justify-center { justify-content: center; }
-.justify-between { justify-content: space-between; }
-.relative { position: relative; }
-.absolute { position: absolute; }
-.fixed { position: fixed; }
-.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-.overflow-auto { overflow: auto; }
-.overflow-hidden { overflow: hidden; }
-.min-h-0 { min-height: 0; }
-.flex-shrink-0 { flex-shrink: 0; }
+.venue-app .flex { display: flex; }
+.venue-app .inline-flex { display: inline-flex; }
+.venue-app .flex-col { flex-direction: column; }
+.venue-app .flex-wrap { flex-wrap: wrap; }
+.venue-app .flex-1 { flex: 1 1 0%; }
+.venue-app .items-center { align-items: center; }
+.venue-app .items-baseline { align-items: baseline; }
+.venue-app .justify-center { justify-content: center; }
+.venue-app .justify-between { justify-content: space-between; }
+.venue-app .relative { position: relative; }
+.venue-app .absolute { position: absolute; }
+.venue-app .fixed { position: fixed; }
+.venue-app .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.venue-app .overflow-auto { overflow: auto; }
+.venue-app .overflow-hidden { overflow: hidden; }
+.venue-app .min-h-0 { min-height: 0; }
+.venue-app .flex-shrink-0 { flex-shrink: 0; }
 
 /* grid */
-.grid { display: grid; }
-.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (min-width: 640px) { .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1024px) { .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.venue-app .grid { display: grid; }
+.venue-app .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.venue-app .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 640px) { .venue-app .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .venue-app .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 /* ───── Typography ───── */
-.text-xs { font-size: 12px; }
-.text-sm { font-size: 14px; }
-.text-lg { font-size: 18px; }
-.text-\[9px\] { font-size: 9px; }
-.text-\[10px\] { font-size: 10px; }
-.text-\[11px\] { font-size: 11px; }
-.font-semibold { font-weight: 600; }
-.font-bold { font-weight: 700; }
-.font-medium { font-weight: 500; }
-.tracking-widest { letter-spacing: 0.1em; }
-.tracking-\[0\.4em\] { letter-spacing: 0.4em; }
-.uppercase { text-transform: uppercase; }
-.capitalize { text-transform: capitalize; }
-.text-center { text-align: center; }
-.text-left { text-align: left; }
-.text-right { text-align: right; }
-.whitespace-nowrap { white-space: nowrap; }
-.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.select-none { user-select: none; }
-.inline-block { display: inline-block; }
-.block { display: block; }
-.w-full { width: 100%; }
+.venue-app .text-xs { font-size: 11px; }
+.venue-app .text-sm { font-size: 13px; }
+.venue-app .text-base { font-size: 14px; }
+.venue-app .text-lg { font-size: 16px; }
+.venue-app .text-xl { font-size: 18px; }
+.venue-app .font-semibold { font-weight: 600; }
+.venue-app .font-bold { font-weight: 700; }
+.venue-app .font-medium { font-weight: 500; }
+.venue-app .tracking-widest { letter-spacing: 0.1em; }
+.venue-app .uppercase { text-transform: uppercase; }
+.venue-app .capitalize { text-transform: capitalize; }
+.venue-app .text-center { text-align: center; }
+.venue-app .text-left { text-align: left; }
+.venue-app .text-right { text-align: right; }
+.venue-app .whitespace-nowrap { white-space: nowrap; }
+.venue-app .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.venue-app .select-none { user-select: none; }
+.venue-app .inline-block { display: inline-block; }
+.venue-app .block { display: block; }
 
 /* ───── Effects ───── */
-.rounded { border-radius: 4px !important; }
-.rounded-md { border-radius: 6px; }
-.rounded-lg { border-radius: 8px !important; }
-.rounded-sm { border-radius: 2px !important; }
-.shadow-sm { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3); }
-.shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2); }
-.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1) !important; }
-.shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1) !important; }
-.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important; }
-.ring-2 { box-shadow: 0 0 0 2px var(--tw-ring-color, rgb(59 130 246)); }
-.ring-white { --tw-ring-color: #fff; }
-.backdrop-blur { backdrop-filter: blur(4px); }
-.opacity-0 { opacity: 0; }
-.opacity-100 { opacity: 1; }
-.transition { transition: all 0.15s ease; }
-.transition-all { transition: all 0.15s ease; }
-.transition-transform { transition: transform 0.15s ease; }
-.hover\:scale-110:hover { transform: scale(1.1); }
-.hover\:brightness-125:hover { filter: brightness(1.25); }
+.venue-app .rounded { border-radius: 4px; }
+.venue-app .rounded-md { border-radius: 6px; }
+.venue-app .rounded-lg { border-radius: 8px; }
+.venue-app .rounded-sm { border-radius: 2px; }
+.venue-app .rounded-full { border-radius: 9999px; }
+.venue-app .shadow-sm { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4); }
+.venue-app .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3); }
+.venue-app .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2); }
+.venue-app .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2); }
+.venue-app .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); }
+.venue-app .ring-2 { box-shadow: 0 0 0 2px var(--venue-ring-color, var(--venue-primary)); }
+.venue-app .ring-white { --venue-ring-color: #fff; }
+.venue-app .backdrop-blur { backdrop-filter: blur(8px); }
+.venue-app .opacity-0 { opacity: 0; }
+.venue-app .opacity-100 { opacity: 1; }
+.venue-app .transition { transition: all 0.15s ease; }
+.venue-app .transition-all { transition: all 0.15s ease; }
+.venue-app .transition-transform { transition: transform 0.15s ease; }
+.venue-app .hover\:scale-110:hover { transform: scale(1.1); }
+.venue-app .hover\:brightness-125:hover { filter: brightness(1.25); }
 
 /* ───── Border width ───── */
-.border-l-2 { border-left-width: 2px; border-left-style: solid; }
+.venue-app .border-l-2 { border-left-width: 2px; border-left-style: solid; }
 
 /* ───── Border colors ───── */
-.border-transparent { border-color: transparent; }
-.border-amber-500 { border-color: #f59e0b; }
-
-/* ───── Background ───── */
-.bg-neutral-900\/80 { background-color: rgba(23,23,26,0.8); }
+.venue-app .border-transparent { border-color: transparent; }
 
 /* ───── Position ───── */
-.sticky { position: sticky; }
-.top-0 { top: 0; }
-.z-10 { z-index: 10; }
+.venue-app .sticky { position: sticky; }
+.venue-app .top-0 { top: 0; }
+.venue-app .z-10 { z-index: 10; }
 
 /* ───── Responsive layout ───── */
 @media (min-width: 1024px) {
-  .lg\:flex-row { flex-direction: row; }
-  .lg\:w-72 { width: 288px; }
-  .lg\:border-t-0 { border-top-width: 0; }
-  .lg\:border-l { border-left-width: 1px; border-left-style: solid; }
+  .venue-app .lg\:flex-row { flex-direction: row; }
+  .venue-app .lg\:w-72 { width: 288px; }
+  .venue-app .lg\:border-t-0 { border-top-width: 0; }
+  .venue-app .lg\:border-l { border-left-width: 1px; border-left-style: solid; }
 }
 
 /* disabled */
-.disabled\:opacity-40:disabled { opacity: 0.4; }
-.disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
-.disabled\:bg-neutral-800:disabled { background-color: var(--color-border); }
-.disabled\:text-neutral-500:disabled { color: #9a9a9a; }
+.venue-app .disabled\:opacity-40:disabled { opacity: 0.4; }
+.venue-app .disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
 
 /* group-hover */
-.group:hover .group-hover\:opacity-100 { opacity: 1; }
-
-/* hover:border */
-.hover\:border-neutral-600:hover { border-color: #b0b0b0; }
+.venue-app .group:hover .group-hover\:opacity-100 { opacity: 1; }
 
 /* z-index */
-.z-30 { z-index: 30; }
-.z-50 { z-index: 50; }
+.venue-app .z-30 { z-index: 30; }
+.venue-app .z-50 { z-index: 50; }
 
 /* cursor */
-.cursor-pointer { cursor: pointer; }
-.cursor-not-allowed { cursor: not-allowed; }
-.border-none { border-style: none; }
+.venue-app .cursor-pointer { cursor: pointer; }
+.venue-app .cursor-not-allowed { cursor: not-allowed; }
 
 /* transform */
-.-translate-x-1\/2 { transform: translateX(-50%); }
+.venue-app .-translate-x-1\/2 { transform: translateX(-50%); }
 
-/* Override Bootstrap button defaults */
-button:not(.btn):not(.navbar-toggler) {
+/* ───── Scoped button reset (only inside venue-app) ───── */
+.venue-app button:not(.btn):not(.venue-btn) {
   border: none;
   background: none;
   color: inherit;
   padding: 0;
   font: inherit;
+  cursor: pointer;
 }
 
-/* ───── Shake animation for max-selection rejection ───── */
+/* ───── Venue button primitives ───── */
+.venue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.venue-btn-default {
+  background-color: var(--venue-surface-raised);
+  color: var(--venue-text-secondary);
+  border: 1px solid var(--venue-border);
+}
+.venue-btn-default:hover {
+  background-color: var(--venue-border);
+  color: var(--venue-text);
+}
+
+.venue-btn-primary {
+  background-color: var(--venue-primary);
+  color: #fff;
+  border: 1px solid transparent;
+}
+.venue-btn-primary:hover {
+  background-color: var(--venue-primary-hover);
+}
+
+.venue-btn-ghost {
+  background: transparent;
+  color: var(--venue-text-secondary);
+}
+.venue-btn-ghost:hover {
+  background-color: var(--venue-surface-raised);
+  color: var(--venue-text);
+}
+
+.venue-btn-danger {
+  background: transparent;
+  color: var(--venue-danger);
+}
+.venue-btn-danger:hover {
+  background-color: var(--venue-danger-dim);
+}
+
+.venue-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ───── Section headers ───── */
+.venue-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--venue-text-muted);
+}
+
+/* ───── Stage ───── */
+.venue-stage {
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 24px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.4em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.venue-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ───── Seat cell ───── */
+.venue-seat {
+  width: 24px;
+  height: 28px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  cursor: pointer;
+}
+.venue-seat:hover {
+  transform: scale(1.12);
+}
+.venue-seat.selected {
+  box-shadow: 0 0 0 2px #fff;
+}
+.venue-seat:disabled {
+  cursor: not-allowed;
+}
+
+/* ───── Venue card (sidebar) ───── */
+.venue-card {
+  border-radius: 8px;
+  border: 1px solid var(--venue-border);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--venue-bg);
+}
+.venue-card:hover {
+  border-color: var(--venue-surface-raised);
+  background: var(--venue-surface);
+}
+.venue-card.active {
+  border-color: var(--venue-accent);
+  border-left-width: 3px;
+  background: var(--venue-accent-dim);
+  box-shadow: 0 2px 8px -2px rgba(245, 158, 11, 0.15);
+}
+
+/* ───── Shake animation ───── */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-3px); }
@@ -267,6 +429,12 @@ button:not(.btn):not(.navbar-toggler) {
   80% { transform: translateX(3px); }
 }
 
-.shake {
+.venue-app .shake {
   animation: shake 0.35s ease-in-out;
+}
+
+/* ───── Focus visible ───── */
+.venue-app :focus-visible {
+  outline: 2px solid var(--venue-primary);
+  outline-offset: 2px;
 }

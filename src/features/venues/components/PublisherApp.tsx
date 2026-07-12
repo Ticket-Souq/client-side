@@ -199,16 +199,16 @@ function PublisherInner({
   );
 
   return (
-    <div className="flex-grow-1 w-100 d-flex flex-column bg-neutral-950 text-neutral-100">
-      <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-2 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur shadow-sm">
-        <span className="text-xs uppercase tracking-widest text-amber-400 font-semibold">
+    <div className="venue-app flex-grow-1 w-100 d-flex flex-column bg-venue-950 text-venue-100">
+      <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-2 border-b border-venue-800 bg-venue-900/80 backdrop-blur shadow-sm">
+        <span className="text-xs uppercase tracking-widest text-accent font-semibold">
           Publisher
         </span>
-        <span className="text-sm text-neutral-400">
+        <span className="text-sm text-venue-400">
           {publisher.name ?? publisher.id}
         </span>
         <button
-          className="px-2 py-1.5 text-xs rounded-md bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 leading-none"
+          className="venue-btn venue-btn-ghost"
           onClick={() => setVenuesOpen((v) => !v)}
           title={venuesOpen ? "Hide venues" : "Show venues"}
         >
@@ -218,7 +218,7 @@ function PublisherInner({
         <button
           onClick={handlePublish}
           disabled={publishing || !editingId}
-          className="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-sm font-medium disabled:opacity-50"
+          className="venue-btn venue-btn-primary"
         >
           {publishing ? "Saving…" : templates.length === 0 ? "Publish" : "Save as Template"}
         </button>
@@ -226,7 +226,7 @@ function PublisherInner({
           <button
             onClick={() => handleUnpublish(editingId)}
             disabled={publishing}
-            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-sm disabled:opacity-50"
+            className="venue-btn venue-btn-danger"
           >
             Unpublish
           </button>
@@ -234,7 +234,7 @@ function PublisherInner({
         {onSignOut && (
           <button
             onClick={onSignOut}
-            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-sm"
+            className="venue-btn venue-btn-default"
           >
             Sign out
           </button>
@@ -247,26 +247,29 @@ function PublisherInner({
         </div>
 
         {venuesOpen && (
-          <aside className="w-60 border-l border-neutral-800 bg-neutral-900 p-4 overflow-auto shadow-lg">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-neutral-800">
-              <h3 className="text-xs uppercase tracking-widest text-neutral-500">
+          <aside className="w-60 border-l border-venue-800 bg-venue-900 p-4 overflow-auto shadow-lg">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-venue-800">
+              <h3 className="text-xs uppercase tracking-widest text-venue-500">
                 My venues
               </h3>
               <button
                 onClick={handleNewVenue}
-                className="text-xs px-2 py-1 rounded-md bg-neutral-800 hover:bg-neutral-700 transition-all"
+                className="venue-btn venue-btn-primary"
               >
                 + New
               </button>
             </div>
             {venues.length === 0 && (
-              <div className="rounded-lg border border-dashed border-neutral-700 p-6 text-center">
-                <p className="text-xs text-neutral-500">
-                  Nothing published yet.
+              <div className="rounded-lg border border-dashed border-venue-700 p-6 text-center">
+                <p className="text-sm text-venue-300 mb-2">
+                  No venues yet
                 </p>
-                <p className="text-xs text-neutral-600 mt-1">
-                  Create a venue and publish a template.
-                </p>
+                <button
+                  onClick={handleNewVenue}
+                  className="venue-btn venue-btn-primary"
+                >
+                  Create your first venue
+                </button>
               </div>
             )}
             <ul className="space-y-2">
@@ -274,18 +277,14 @@ function PublisherInner({
                 <li
                   key={v.id}
                   onClick={() => handleLoadVenue(v.id)}
-                  className={`cursor-pointer rounded-lg border p-3 text-sm transition-all ${
-                    editingId === v.id
-                      ? "border-amber-500/30 bg-amber-900/15 border-l-2 border-amber-500 shadow-sm"
-                      : "border-neutral-800 bg-neutral-950 hover:border-neutral-700 hover:bg-neutral-900/50"
-                  }`}
+                  className={`venue-card ${editingId === v.id ? "active" : ""}`}
                 >
                   <div className="font-medium truncate">{v.name}</div>
-                  <div className="text-xs text-neutral-500 mt-1 flex gap-2">
-                    <span>{v.type}</span>
+                  <div className="text-xs text-venue-400 mt-1 flex gap-2">
+                    <span className="capitalize">{v.type === "SEAT_BASED" ? "Seat map" : "Zone map"}</span>
                     {v.address && (
                       <>
-                        <span className="text-neutral-700">·</span>
+                        <span className="text-venue-500">·</span>
                         <span className="truncate">{v.address}</span>
                       </>
                     )}
@@ -297,19 +296,19 @@ function PublisherInner({
         )}
 
         {editingId !== null && (
-          <aside className="w-72 border-l border-neutral-800 bg-neutral-900 p-4 overflow-auto shadow-lg">
-            <div className="mb-4 pb-3 border-b border-neutral-800">
+          <aside className="w-72 border-l border-venue-800 bg-venue-900 p-4 overflow-auto shadow-lg">
+            <div className="mb-4 pb-3 border-b border-venue-800">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs uppercase tracking-widest text-neutral-500">
+                <h3 className="text-xs uppercase tracking-widest text-venue-500">
                   Templates
                 </h3>
-                <span className="text-[10px] text-neutral-500">
+                <span className="text-[10px] text-venue-500">
                   {templates.length}
                 </span>
               </div>
               {templates.length === 0 && (
-                <p className="text-[11px] text-neutral-500">
-                  No templates yet. Click "Publish" above.
+                <p className="text-xs text-venue-400">
+                  No templates yet. Publish your first layout.
                 </p>
               )}
               <ul className="space-y-1">
@@ -318,8 +317,8 @@ function PublisherInner({
                     key={t.id}
                     className={`flex items-center gap-1 rounded px-2 py-1.5 text-xs cursor-pointer transition-all ${
                       selectedTemplateId === t.id
-                        ? "bg-amber-900/15 border-l-2 border-amber-500"
-                        : "hover:bg-neutral-800"
+                        ? "bg-accent-dim border-l-2 border-accent"
+                        : "hover:bg-venue-800"
                     }`}
                   >
                     <span
@@ -334,7 +333,7 @@ function PublisherInner({
                         e.stopPropagation();
                         handleDeleteTemplate(t.id);
                       }}
-                      className="text-neutral-500 hover:text-red-400 text-xs px-1"
+                      className="text-venue-500 hover:text-danger text-xs px-1"
                       title="Delete template"
                     >
                       ×
@@ -389,25 +388,25 @@ function VenueFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-neutral-900 border border-neutral-700 rounded-lg p-6 w-96 shadow-2xl">
-        <h2 className="text-sm font-semibold text-neutral-100 mb-4">
-          Venue details
+      <div className="bg-venue-900 border border-venue-700 rounded-lg p-8 w-[440px] shadow-2xl">
+        <h2 className="text-lg font-semibold text-venue-100 mb-5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+          Create venue
         </h2>
         <input
-          className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100 placeholder-neutral-500 mb-2"
+          className="w-full px-3 py-2 rounded bg-venue-800 border border-venue-700 text-sm text-venue-100 placeholder-venue-500 mb-3"
           placeholder="Venue name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoFocus
         />
         <input
-          className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100 placeholder-neutral-500 mb-2"
+          className="w-full px-3 py-2 rounded bg-venue-800 border border-venue-700 text-sm text-venue-100 placeholder-venue-500 mb-3"
           placeholder="Address"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
         />
         <select
-          className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100 mb-4"
+          className="w-full px-3 py-2 rounded bg-venue-800 border border-venue-700 text-sm text-venue-100 mb-5"
           value={type}
           onChange={(e) => setType(e.target.value as VenueType)}
         >
@@ -417,13 +416,13 @@ function VenueFormModal({
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="px-3 py-1.5 text-xs rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
+            className="venue-btn venue-btn-default"
           >
             Cancel
           </button>
           <button
             onClick={() => onSave({ name, address, type })}
-            className="btn px-4 py-2 text-sm rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+            className="venue-btn venue-btn-primary"
           >
             Save
           </button>
@@ -441,13 +440,13 @@ export function LockedShell({
   message: string;
 }) {
   return (
-    <div className="flex-grow-1 w-100 d-flex align-items-center justify-content-center bg-neutral-950 text-neutral-100">
+    <div className="venue-app flex-grow-1 w-100 d-flex align-items-center justify-content-center bg-venue-950 text-venue-100">
       <div className="max-w-sm text-center px-6">
-        <div className="text-xs uppercase tracking-widest text-neutral-500 mb-2">
+        <div className="text-xs uppercase tracking-widest text-venue-500 mb-2">
           {title}
         </div>
-        <p className="text-sm text-neutral-300">{message}</p>
-        <p className="text-xs text-neutral-500 mt-4">
+        <p className="text-sm text-venue-300">{message}</p>
+        <p className="text-xs text-venue-500 mt-4">
           Wire your own auth guard and pass the user into this component.
         </p>
       </div>
