@@ -70,7 +70,7 @@ function makeDefaultMap(): SeatMap {
   return renumber({
     id: uuid(),
     name: "New venue",
-    mode: "seat",
+    mode: "SEAT_BASED",
     stage: { label: "STAGE", color: "#7f1d1d", position: "top" },
     categories: cats,
     rows,

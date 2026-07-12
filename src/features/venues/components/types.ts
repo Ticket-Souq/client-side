@@ -44,9 +44,12 @@ export interface VerticalAisle {
 export interface SeatMap {
   id: string;
   name: string;
-  mode: 'seat';
+  mode: MapMode;
   stage: Stage;
   categories: Category[];
   rows: Row[];
   verticalAisles: VerticalAisle[];
 }
+
+
+type MapMode = "SEAT_BASED" | "ZONE_BASED";

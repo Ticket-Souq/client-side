@@ -97,7 +97,7 @@ function PublisherInner({
     setPublishing(true);
     try {
       if (editingId) {
-        await updateVenue(editingId, map);
+        await updateVenue(editingId, map, publisher.id);
         alert(`Updated "${map.name}"`);
       } else {
         const venue = await createVenue(map, publisher.id);
@@ -114,7 +114,7 @@ function PublisherInner({
   const handleUnpublish = useCallback(
     async (id: string) => {
       try {
-        await deleteVenue(id);
+        await deleteVenue(id, publisher.id);
         if (editingId === id) {
           setEditingId(null);
         }

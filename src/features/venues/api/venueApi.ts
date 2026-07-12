@@ -1,6 +1,7 @@
 import type { SeatMap } from "../components/types";
 
-const BASE = "/api/v1/venue";
+const BASE = "http://localhost:8081/api/v1/venue";
+const orgID= "550e8400-e29b-41d4-a716-446655440000";
 
 export interface VenueResponse {
   id: string;
@@ -13,7 +14,7 @@ export interface VenueResponse {
 }
 
 export async function createVenue(map: SeatMap, orgId: string): Promise<VenueResponse> {
-  const body = JSON.stringify({ name: map.name, mode: map.mode, layout: map, orgId });
+  const body = JSON.stringify({ name: map.name, type: map.mode, layout: map, orgId:orgID});
   const res = await fetch(BASE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
