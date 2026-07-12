@@ -3,6 +3,7 @@ import type {
   CreateVenueRequest,
   UpdateVenueRequest,
   VenueTemplate,
+  PaginatedResponse,
 } from "../components/types";
 
 const BASE = "http://localhost:8081/api/v1/venue";
@@ -33,19 +34,20 @@ export async function getVenueById(id: string): Promise<Venue> {
 
 export async function listVenuesByOrg(
   orgId: string,
-  page?: number,
-  size?: number,
-): Promise<Venue[]> {
-  const params = new URLSearchParams({ orgId });
-  if (page !== undefined) params.set("page", String(page));
-  if (size !== undefined) params.set("size", String(size));
+  page: number,
+  size: number,
+): Promise<PaginatedResponse<Venue>> {
+  const params = new URLSearchParams({
+    orgId,
+    page: String(page),
+    size: String(size),
+  });
   const res = await fetch(`${BASE}?${params}`);
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`GET ${BASE} ${res.status}: ${text}`);
   }
-  const body = await res.json();
-  return body.content ?? body;
+  return res.json();
 }
 
 export async function updateVenue(

@@ -40,12 +40,19 @@ export function SeatMapCreator() {
   const { state } = useVenue();
   const { map, mode, zoom } = state;
   useKeys();
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
 
   return (
     <div className="h-100 w-100 flex flex-col bg-neutral-950 text-neutral-100 overflow-hidden">
-      <TopBar />
+      <TopBar
+        leftOpen={leftOpen}
+        rightOpen={rightOpen}
+        onToggleLeft={() => setLeftOpen((v) => !v)}
+        onToggleRight={() => setRightOpen((v) => !v)}
+      />
       <div className="flex-1 min-h-0 flex">
-        <LeftPanel />
+        {leftOpen && <LeftPanel />}
         <main className="flex-1 min-w-0 min-h-0 overflow-auto bg-neutral-950">
           <div
             className="min-w-max px-8 py-6"
@@ -66,7 +73,7 @@ export function SeatMapCreator() {
             <StatsBar />
           </div>
         </main>
-        <RightPanel />
+        {rightOpen && <RightPanel />}
       </div>
       {mode === "preview" && <BookingSummary />}
     </div>
@@ -75,7 +82,18 @@ export function SeatMapCreator() {
 
 /* -------------------- Top bar -------------------- */
 
-function TopBar() {
+function TopBar({
+  leftOpen,
+  rightOpen,
+  onToggleLeft,
+  onToggleRight,
+}: {
+  leftOpen: boolean;
+  rightOpen: boolean;
+  onToggleLeft: () => void;
+  onToggleRight: () => void;
+}) {
+  const btnIcon = "px-2 py-1.5 text-xs rounded-md bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 leading-none";
   const { state, dispatch } = useVenue();
   const { map, mode, zoom, history } = state;
   const canUndo = history.past.length > 0;
@@ -125,6 +143,20 @@ function TopBar() {
       <button className={btn} onClick={() => dispatch({ type: "SET_ZOOM", zoom: 1 })}>Fit</button>
 
       <div className="flex-1" />
+      <button
+        className={btnIcon}
+        onClick={onToggleLeft}
+        title={leftOpen ? "Hide categories" : "Show categories"}
+      >
+        ⊞
+      </button>
+      <button
+        className={btnIcon}
+        onClick={onToggleRight}
+        title={rightOpen ? "Hide templates" : "Show templates"}
+      >
+        ☰
+      </button>
       <button className={btnPrimary} onClick={exportJson}>Export JSON</button>
       <button className={btn} onClick={() => confirm("Reset to a fresh map?") && dispatch({ type: "RESET" })}>
         Reset

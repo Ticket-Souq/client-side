@@ -15,6 +15,8 @@ import {
 } from "../api/venueApi";
 import type { Venue, VenueTemplate, VenueType, SeatMap } from "../components/types";
 
+const ORG_ID = "550e8400-e29b-41d4-a716-446655440000";
+
 export interface Publisher {
   id: string;
   name?: string;
@@ -60,15 +62,17 @@ function PublisherInner({
     address: "",
     type: "SEAT_BASED" as VenueType,
   });
+  const [venuesOpen, setVenuesOpen] = useState(true);
+  const [showVenueModal, setShowVenueModal] = useState(false);
 
   const fetchVenues = useCallback(async () => {
     try {
-      const list = await listVenuesByOrg(publisher.id);
-      setVenues(list);
+      const res = await listVenuesByOrg(ORG_ID, 0, 50);
+      setVenues(res.content);
     } catch {
       setVenues([]);
     }
-  }, [publisher.id]);
+  }, []);
 
   useEffect(() => {
     fetchVenues();
@@ -107,54 +111,35 @@ function PublisherInner({
     setEditingId(null);
     setTemplates([]);
     setSelectedTemplateId(null);
-    dispatch({ type: "LOAD_MAP", map: makeDefaultMap() });
-  }, [dispatch]);
+    setShowVenueModal(true);
+  }, []);
 
   const handlePublish = useCallback(async () => {
+    if (!editingId) return;
     setPublishing(true);
     try {
-      if (editingId) {
-        await updateVenue(editingId, {
-          name: venueMeta.name || undefined,
-          address: venueMeta.address || undefined,
-          type: venueMeta.type,
-        });
+      await updateVenue(editingId, {
+        name: venueMeta.name || undefined,
+        address: venueMeta.address || undefined,
+        type: venueMeta.type,
+      });
 
-        const template = await createVenueTemplate(
-          editingId,
-          JSON.stringify(map),
-        );
-        setSelectedTemplateId(template.id);
+      const template = await createVenueTemplate(
+        editingId,
+        JSON.stringify(map),
+      );
+      setSelectedTemplateId(template.id);
 
-        const list = await listVenueTemplates(editingId);
-        setTemplates(list);
-        alert(`Saved "${venueMeta.name || map.name}"`);
-      } else {
-        const venue = await createVenue({
-          orgId: publisher.id,
-          name: venueMeta.name || map.name,
-          address: venueMeta.address,
-          type: venueMeta.type,
-        });
-
-        const template = await createVenueTemplate(
-          venue.id,
-          JSON.stringify(map),
-        );
-        setEditingId(venue.id);
-        setSelectedTemplateId(template.id);
-
-        const list = await listVenueTemplates(venue.id);
-        setTemplates(list);
-        alert(`Published "${venue.name}"`);
-      }
+      const list = await listVenueTemplates(editingId);
+      setTemplates(list);
       await fetchVenues();
+      alert(`Saved "${venueMeta.name || map.name}"`);
     } catch (e) {
       alert("Failed to publish: " + (e as Error).message);
     } finally {
       setPublishing(false);
     }
-  }, [map, publisher.id, fetchVenues, editingId, venueMeta]);
+  }, [map, fetchVenues, editingId, venueMeta]);
 
   const handleUnpublish = useCallback(
     async (id: string) => {
@@ -222,13 +207,20 @@ function PublisherInner({
         <span className="text-sm text-neutral-400">
           {publisher.name ?? publisher.id}
         </span>
+        <button
+          className="px-2 py-1.5 text-xs rounded-md bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 leading-none"
+          onClick={() => setVenuesOpen((v) => !v)}
+          title={venuesOpen ? "Hide venues" : "Show venues"}
+        >
+          ◫
+        </button>
         <div className="flex-1" />
         <button
           onClick={handlePublish}
-          disabled={publishing}
+          disabled={publishing || !editingId}
           className="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-sm font-medium disabled:opacity-50"
         >
-          {publishing ? "Saving…" : editingId ? "Save as Template" : "Publish"}
+          {publishing ? "Saving…" : templates.length === 0 ? "Publish" : "Save as Template"}
         </button>
         {editingId && (
           <button
@@ -253,96 +245,9 @@ function PublisherInner({
         <div className="flex-1 min-w-0 overflow-hidden">
           <SeatMapCreator />
         </div>
-        <aside className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-neutral-800 bg-neutral-900 p-4 overflow-auto shadow-lg">
-          {editingId !== null && (
-            <>
-              <div className="mb-4 pb-3 border-b border-neutral-800">
-                <h3 className="text-xs uppercase tracking-widest text-neutral-500 mb-2">
-                  Venue details
-                </h3>
-                <input
-                  className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100 placeholder-neutral-500 mb-1.5"
-                  placeholder="Venue name"
-                  value={venueMeta.name}
-                  onChange={(e) =>
-                    setVenueMeta((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                />
-                <input
-                  className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100 placeholder-neutral-500 mb-1.5"
-                  placeholder="Address"
-                  value={venueMeta.address}
-                  onChange={(e) =>
-                    setVenueMeta((prev) => ({
-                      ...prev,
-                      address: e.target.value,
-                    }))
-                  }
-                />
-                <select
-                  className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100"
-                  value={venueMeta.type}
-                  onChange={(e) =>
-                    setVenueMeta((prev) => ({
-                      ...prev,
-                      type: e.target.value as VenueType,
-                    }))
-                  }
-                >
-                  <option value="SEAT_BASED">Seat Based</option>
-                  <option value="ZONE_BASED">Zone Based</option>
-                </select>
-              </div>
 
-              <div className="mb-4 pb-3 border-b border-neutral-800">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xs uppercase tracking-widest text-neutral-500">
-                    Templates
-                  </h3>
-                  <span className="text-[10px] text-neutral-500">
-                    {templates.length}
-                  </span>
-                </div>
-                {templates.length === 0 && (
-                  <p className="text-[11px] text-neutral-500">
-                    No templates yet. Click "Save as Template" above.
-                  </p>
-                )}
-                <ul className="space-y-1">
-                  {templates.map((t, i) => (
-                    <li
-                      key={t.id}
-                      className={`flex items-center gap-1 rounded px-2 py-1.5 text-xs cursor-pointer transition-all ${
-                        selectedTemplateId === t.id
-                          ? "bg-amber-900/15 border-l-2 border-amber-500"
-                          : "hover:bg-neutral-800"
-                      }`}
-                    >
-                      <span
-                        className="flex-1 truncate"
-                        onClick={() => handleLoadTemplate(t.id)}
-                        title="Load this template"
-                      >
-                        Template {i + 1}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteTemplate(t.id);
-                        }}
-                        className="text-neutral-500 hover:text-red-400 text-xs px-1"
-                        title="Delete template"
-                      >
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
-
-          <div>
+        {venuesOpen && (
+          <aside className="w-60 border-l border-neutral-800 bg-neutral-900 p-4 overflow-auto shadow-lg">
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-neutral-800">
               <h3 className="text-xs uppercase tracking-widest text-neutral-500">
                 My venues
@@ -388,8 +293,141 @@ function PublisherInner({
                 </li>
               ))}
             </ul>
-          </div>
-        </aside>
+          </aside>
+        )}
+
+        {editingId !== null && (
+          <aside className="w-72 border-l border-neutral-800 bg-neutral-900 p-4 overflow-auto shadow-lg">
+            <div className="mb-4 pb-3 border-b border-neutral-800">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs uppercase tracking-widest text-neutral-500">
+                  Templates
+                </h3>
+                <span className="text-[10px] text-neutral-500">
+                  {templates.length}
+                </span>
+              </div>
+              {templates.length === 0 && (
+                <p className="text-[11px] text-neutral-500">
+                  No templates yet. Click "Publish" above.
+                </p>
+              )}
+              <ul className="space-y-1">
+                {templates.map((t, i) => (
+                  <li
+                    key={t.id}
+                    className={`flex items-center gap-1 rounded px-2 py-1.5 text-xs cursor-pointer transition-all ${
+                      selectedTemplateId === t.id
+                        ? "bg-amber-900/15 border-l-2 border-amber-500"
+                        : "hover:bg-neutral-800"
+                    }`}
+                  >
+                    <span
+                      className="flex-1 truncate"
+                      onClick={() => handleLoadTemplate(t.id)}
+                      title="Load this template"
+                    >
+                      Template {i + 1}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTemplate(t.id);
+                      }}
+                      className="text-neutral-500 hover:text-red-400 text-xs px-1"
+                      title="Delete template"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+        )}
+      </div>
+
+      {showVenueModal && (
+        <VenueFormModal
+          initial={venueMeta}
+          onSave={async (meta) => {
+            setShowVenueModal(false);
+            setPublishing(true);
+            try {
+              const venue = await createVenue({ orgId: ORG_ID, ...meta });
+              setVenueMeta(meta);
+              setEditingId(venue.id);
+              dispatch({ type: "LOAD_MAP", map: makeDefaultMap() });
+              setTemplates([]);
+              setSelectedTemplateId(null);
+              await fetchVenues();
+            } catch (e) {
+              alert("Failed to create venue: " + (e as Error).message);
+            } finally {
+              setPublishing(false);
+            }
+          }}
+          onCancel={() => setShowVenueModal(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function VenueFormModal({
+  initial,
+  onSave,
+  onCancel,
+}: {
+  initial: { name: string; address: string; type: VenueType };
+  onSave: (data: { name: string; address: string; type: VenueType }) => void;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState(initial.name);
+  const [address, setAddress] = useState(initial.address);
+  const [type, setType] = useState(initial.type);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-neutral-900 border border-neutral-700 rounded-lg p-6 w-96 shadow-2xl">
+        <h2 className="text-sm font-semibold text-neutral-100 mb-4">
+          Venue details
+        </h2>
+        <input
+          className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100 placeholder-neutral-500 mb-2"
+          placeholder="Venue name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoFocus
+        />
+        <input
+          className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100 placeholder-neutral-500 mb-2"
+          placeholder="Address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+        <select
+          className="w-full px-2 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-100 mb-4"
+          value={type}
+          onChange={(e) => setType(e.target.value as VenueType)}
+        >
+          <option value="SEAT_BASED">Seat Based</option>
+          <option value="ZONE_BASED">Zone Based</option>
+        </select>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onCancel}
+            className="px-3 py-1.5 text-xs rounded bg-neutral-800 hover:bg-neutral-700 border border-neutral-700"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave({ name, address, type })}
+            className="btn px-4 py-2 text-sm rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+          >
+            Save
+          </button>
+        </div>
       </div>
     </div>
   );
