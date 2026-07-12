@@ -53,3 +53,42 @@ export interface SeatMap {
 
 
 type MapMode = "SEAT_BASED" | "ZONE_BASED";
+
+/* ---------- Venue metadata API types ---------- */
+
+export type VenueType = "SEAT_BASED" | "ZONE_BASED";
+
+export interface Venue {
+  id: string;
+  orgId: string;
+  name: string;
+  address: string;
+  type: VenueType;
+}
+
+export interface CreateVenueRequest {
+  orgId: string;
+  name: string;
+  address: string;
+  type: VenueType;
+}
+
+export interface UpdateVenueRequest {
+  name?: string;
+  address?: string;
+  type?: VenueType;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  size: number;
+  number: number;
+}
+
+export interface VenueTemplate {
+  id: string;
+  layout: string; // JSON-serialized SeatMap
+}

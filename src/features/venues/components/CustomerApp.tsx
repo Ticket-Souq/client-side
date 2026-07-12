@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, Fragment } from "react";
 import "./seat-map.css";
-import { listVenues, getVenue, type VenueResponse } from "../api/venueApi";
-import type { Category, SeatMap, VerticalAisle } from "./types";
+import { listVenuesByOrg, listVenueTemplates, getVenueTemplate } from "../api/venueApi";
+import type { Venue, Category, SeatMap, VerticalAisle } from "./types";
 import { LockedShell } from "./PublisherApp";
 
 export interface Customer {
@@ -33,20 +33,23 @@ function CustomerInner({
   customer: Customer;
   onSignOut?: () => void;
 }) {
-  const [venues, setVenues] = useState<VenueResponse[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [openVenue, setOpenVenue] = useState<SeatMap | null>(null);
 
   useEffect(() => {
-    listVenues(customer.id)
+    listVenuesByOrg(customer.id)
       .then(setVenues)
       .catch(() => setVenues([]));
   }, [customer.id]);
 
   const openMap = async (id: string) => {
     try {
-      const venue = await getVenue(id);
-      if (venue.layout && venue.layout.rows) {
-        setOpenVenue(venue.layout);
+      const templates = await listVenueTemplates(id);
+      if (templates.length === 0) return;
+      const template = await getVenueTemplate(id, templates[0].id);
+      const parsed = JSON.parse(template.layout) as SeatMap;
+      if (parsed && parsed.rows) {
+        setOpenVenue(parsed);
       }
     } catch {
       // ignore
@@ -96,7 +99,7 @@ function BrowseList({
   venues,
   onOpen,
 }: {
-  venues: VenueResponse[];
+  venues: Venue[];
   onOpen: (id: string) => void;
 }) {
   if (venues.length === 0) {
@@ -110,35 +113,23 @@ function BrowseList({
     <div className="max-w-5xl mx-auto p-6">
       <h2 className="text-lg font-semibold mb-4">Available events</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {venues.map((v) => {
-          const seats = v.layout?.rows?.reduce(
-            (n, r) => n + r.cells.filter((c) => c.type === "seat").length,
-            0,
-          ) ?? 0;
-          return (
-            <button
-              key={v.id}
-              onClick={() => onOpen(v.id)}
-              className="text-left rounded-lg border border-neutral-800 bg-neutral-900 hover:border-neutral-600 p-4 transition"
-            >
-              <div className="font-semibold">{v.name}</div>
-              <div className="text-xs text-neutral-500 mt-1">
-                {seats} seats
+        {venues.map((v) => (
+          <button
+            key={v.id}
+            onClick={() => onOpen(v.id)}
+            className="text-left rounded-lg border border-neutral-800 bg-neutral-900 hover:border-neutral-600 p-4 transition"
+          >
+            <div className="font-semibold">{v.name}</div>
+            <div className="text-xs text-neutral-500 mt-1">
+              {v.type}
+            </div>
+            {v.address && (
+              <div className="text-xs text-neutral-600 mt-1 truncate">
+                {v.address}
               </div>
-              <div className="mt-3 flex gap-1 flex-wrap">
-                {v.layout?.categories?.slice(0, 4).map((c) => (
-                  <span
-                    key={c.id}
-                    className="text-[10px] px-1.5 py-0.5 rounded"
-                    style={{ backgroundColor: c.color + "33", color: c.color }}
-                  >
-                    {c.name} ${c.price}
-                  </span>
-                ))}
-              </div>
-            </button>
-          );
-        })}
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );

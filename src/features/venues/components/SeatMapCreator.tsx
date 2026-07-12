@@ -834,7 +834,7 @@ import { v4 as uuid } from "uuid";
 import type { Stage } from "./types";
 
 const makeSeatTemplate = (id: string, name: string, stage: Stage, cats: Category[], rows: Row[]): SeatMap =>
-  renumber({ id, name, mode: "seat", stage, categories: cats, rows, verticalAisles: [] });
+  renumber({ id, name, mode: "SEAT_BASED", stage, categories: cats, rows, verticalAisles: [] });
 
 function baseCats(): Category[] {
   return [

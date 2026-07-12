@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./seat-map.css";
-import { getVenue } from "../api/venueApi";
+import { listVenueTemplates, getVenueTemplate } from "../api/venueApi";
 import type { SeatMap, Category } from "./types";
 
 interface SeatPickerProps {
@@ -31,21 +31,30 @@ export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    getVenue(venueId)
-      .then((venue) => {
+    (async () => {
+      try {
+        const templates = await listVenueTemplates(venueId);
         if (cancelled) return;
-        if (venue.layout && venue.layout.rows) {
-          setMap(venue.layout);
+        if (templates.length === 0) {
+          setError("No templates available for this venue");
+          setLoading(false);
+          return;
+        }
+        const template = await getVenueTemplate(venueId, templates[0].id);
+        if (cancelled) return;
+        const parsed = JSON.parse(template.layout) as SeatMap;
+        if (parsed && parsed.rows) {
+          setMap(parsed);
         } else {
-          setError("Venue layout not available");
+          setError("Invalid template layout");
         }
         setLoading(false);
-      })
-      .catch((e) => {
+      } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : "Failed to load venue");
         setLoading(false);
-      });
+      }
+    })();
     return () => { cancelled = true; };
   }, [venueId]);
 
