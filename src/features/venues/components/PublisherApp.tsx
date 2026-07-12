@@ -118,15 +118,10 @@ function PublisherInner({
     if (!editingId) return;
     setPublishing(true);
     try {
-      await updateVenue(editingId, {
-        name: venueMeta.name || undefined,
-        address: venueMeta.address || undefined,
-        type: venueMeta.type,
-      });
-
+      const layoutMap = { ...map, id: crypto.randomUUID() };
       const template = await createVenueTemplate(
         editingId,
-        JSON.stringify(map),
+        JSON.stringify(layoutMap),
       );
       setSelectedTemplateId(template.id);
 
