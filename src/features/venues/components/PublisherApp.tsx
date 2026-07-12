@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PanelLeft, X, Plus, Trash2, LogOut } from "lucide-react";
 import "./seat-map.css";
 import { SeatMapCreator } from "./SeatMapCreator";
 import { useVenue, VenueProvider, makeDefaultMap } from "../context/VenueContext";
@@ -207,7 +208,7 @@ function PublisherInner({
           onClick={() => setVenuesOpen((v) => !v)}
           title={venuesOpen ? "Hide venues" : "Show venues"}
         >
-          ◫
+          <PanelLeft size={14} />
         </button>
         <div className="flex-1" />
         <button
@@ -215,7 +216,7 @@ function PublisherInner({
           disabled={publishing || !editingId}
           className="venue-btn venue-btn-primary"
         >
-          {publishing ? "Saving…" : templates.length === 0 ? "Publish" : "Save as Template"}
+          {publishing ? "Saving…" : templates.length === 0 ? "Publish layout" : "Save new version"}
         </button>
         {editingId && (
           <button
@@ -223,7 +224,7 @@ function PublisherInner({
             disabled={publishing}
             className="venue-btn venue-btn-danger"
           >
-            Unpublish
+            <Trash2 size={14} /> Delete venue
           </button>
         )}
         {onSignOut && (
@@ -231,7 +232,7 @@ function PublisherInner({
             onClick={onSignOut}
             className="venue-btn venue-btn-default"
           >
-            Sign out
+            <LogOut size={14} /> Sign out
           </button>
         )}
       </header>
@@ -251,7 +252,7 @@ function PublisherInner({
                 onClick={handleNewVenue}
                 className="venue-btn venue-btn-primary"
               >
-                + New
+                <Plus size={14} /> New venue
               </button>
             </div>
             {venues.length === 0 && (
@@ -328,10 +329,10 @@ function PublisherInner({
                         e.stopPropagation();
                         handleDeleteTemplate(t.id);
                       }}
-                      className="text-venue-500 hover:text-danger text-xs px-1"
+                      className="text-venue-500 hover:text-danger px-1 flex items-center justify-center"
                       title="Delete template"
                     >
-                      ×
+                      <X size={12} />
                     </button>
                   </li>
                 ))}
@@ -419,7 +420,7 @@ function VenueFormModal({
             onClick={() => onSave({ name, address, type })}
             className="venue-btn venue-btn-primary"
           >
-            Save
+            Create venue
           </button>
         </div>
       </div>

@@ -1,35 +1,35 @@
-/* ───── Venue design tokens (scoped, no global overrides) ───── */
+/* ───── Venue design tokens (light theme, matches theme.css) ───── */
 .venue-app {
-  --venue-bg: #111113;
-  --venue-surface: #1a1a1d;
-  --venue-surface-raised: #232326;
-  --venue-border: #2e2e32;
-  --venue-border-subtle: #252528;
-  --venue-text: #e8e8ec;
-  --venue-text-secondary: #8a8a92;
-  --venue-text-muted: #5c5c66;
+  --venue-bg: #F7F7F7;
+  --venue-surface: #FFFFFF;
+  --venue-surface-raised: #F0F0F0;
+  --venue-border: #E8E8E8;
+  --venue-border-subtle: #F0F0F0;
+  --venue-text: #1F1F1F;
+  --venue-text-secondary: #6F6F6F;
+  --venue-text-muted: #9A9A9A;
 
   /* primary: indigo — actions, toggles, focus rings */
   --venue-primary: #6366f1;
-  --venue-primary-hover: #818cf8;
-  --venue-primary-dim: rgba(99, 102, 241, 0.15);
+  --venue-primary-hover: #4f46e5;
+  --venue-primary-dim: rgba(99, 102, 241, 0.08);
 
-  /* accent: warm amber — selection, highlights */
-  --venue-accent: #f59e0b;
-  --venue-accent-dim: rgba(245, 158, 11, 0.12);
+  /* accent: warm gold — selection, highlights (matches --color-accent from theme.css) */
+  --venue-accent: #e2a30f;
+  --venue-accent-dim: rgba(226, 163, 15, 0.08);
 
   /* positive: emerald — available, success */
-  --venue-positive: #34d399;
-  --venue-positive-dim: rgba(52, 211, 153, 0.12);
+  --venue-positive: #059669;
+  --venue-positive-dim: rgba(5, 150, 105, 0.08);
 
   /* danger: red — delete, blocked */
-  --venue-danger: #f87171;
-  --venue-danger-dim: rgba(248, 113, 113, 0.1);
+  --venue-danger: #dc2626;
+  --venue-danger-dim: rgba(220, 38, 38, 0.06);
 
   /* neutral seat colors */
-  --venue-reserved: #6b7280;
-  --venue-blocked: #374151;
-  --venue-sold: #111827;
+  --venue-reserved: #9CA3AF;
+  --venue-blocked: #D1D5DB;
+  --venue-sold: #374151;
 
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--venue-text);
@@ -40,41 +40,41 @@
 .venue-app .bg-venue-900 { background-color: var(--venue-surface); }
 .venue-app .bg-venue-800 { background-color: var(--venue-surface-raised); }
 .venue-app .bg-venue-700 { background-color: var(--venue-border); }
-.venue-app .bg-venue-900\/80 { background-color: rgba(26, 26, 29, 0.8); }
-.venue-app .bg-venue-900\/95 { background-color: rgba(26, 26, 29, 0.95); }
+.venue-app .bg-venue-900\/80 { background-color: rgba(255, 255, 255, 0.8); }
+.venue-app .bg-venue-900\/95 { background-color: rgba(255, 255, 255, 0.95); }
 .venue-app .bg-primary { background-color: var(--venue-primary); }
 .venue-app .bg-primary-hover { background-color: var(--venue-primary-hover); }
 .venue-app .bg-transparent { background-color: transparent; }
-.venue-app .bg-white\/10 { background-color: rgba(255, 255, 255, 0.06); }
-.venue-app .bg-white\/20 { background-color: rgba(255, 255, 255, 0.1); }
+.venue-app .bg-white\/10 { background-color: rgba(0, 0, 0, 0.04); }
+.venue-app .bg-white\/20 { background-color: rgba(0, 0, 0, 0.06); }
 .venue-app .bg-black\/30 { background-color: rgba(0, 0, 0, 0.3); }
 
 /* hover background variants */
 .venue-app .hover\:bg-venue-700:hover { background-color: var(--venue-border); }
 .venue-app .hover\:bg-primary-hover:hover { background-color: var(--venue-primary-hover); }
-.venue-app .hover\:bg-white\/20:hover { background-color: rgba(255, 255, 255, 0.1); }
+.venue-app .hover\:bg-white\/20:hover { background-color: rgba(0, 0, 0, 0.06); }
 
 /* ───── Text colors ───── */
 .venue-app .text-venue-100 { color: var(--venue-text); }
-.venue-app .text-venue-200 { color: #d0d0d6; }
+.venue-app .text-venue-200 { color: #3F3F46; }
 .venue-app .text-venue-300 { color: var(--venue-text-secondary); }
 .venue-app .text-venue-400 { color: var(--venue-text-muted); }
-.venue-app .text-venue-500 { color: #48484f; }
+.venue-app .text-venue-500 { color: #B0B0B0; }
 .venue-app .text-white { color: #fff; }
 .venue-app .text-white\/80 { color: rgba(255, 255, 255, 0.8); }
 .venue-app .text-white\/95 { color: rgba(255, 255, 255, 0.95); }
 .venue-app .text-primary { color: var(--venue-primary); }
 .venue-app .text-primary-light { color: var(--venue-primary-hover); }
 .venue-app .text-accent { color: var(--venue-accent); }
-.venue-app .text-accent-light { color: #fcd34b; }
+.venue-app .text-accent-light { color: #C88D0C; }
 .venue-app .text-positive { color: var(--venue-positive); }
-.venue-app .text-positive-light { color: #6ee7b7; }
+.venue-app .text-positive-light { color: #047857; }
 .venue-app .text-danger { color: var(--venue-danger); }
-.venue-app .text-sky { color: #38bdf8; }
+.venue-app .text-sky { color: #0284c7; }
 
 /* hover text variants */
 .venue-app .hover\:text-danger:hover { color: var(--venue-danger); }
-.venue-app .hover\:text-venue-200:hover { color: #d0d0d6; }
+.venue-app .hover\:text-venue-200:hover { color: #3F3F46; }
 
 /* ───── Border ───── */
 .venue-app .border { border-width: 1px; border-style: solid; border-color: currentColor; }
@@ -83,7 +83,7 @@
 .venue-app .border-t { border-top-width: 1px; border-top-style: solid; }
 .venue-app .border-venue-800 { border-color: var(--venue-border) !important; }
 .venue-app .border-venue-700 { border-color: var(--venue-surface-raised) !important; }
-.venue-app .border-venue-600 { border-color: #3a3a40 !important; }
+.venue-app .border-venue-600 { border-color: #D1D5DB !important; }
 .venue-app .border-primary { border-color: var(--venue-primary) !important; }
 .venue-app .border-accent { border-color: var(--venue-accent) !important; }
 .venue-app .border-dashed { border-style: dashed !important; }

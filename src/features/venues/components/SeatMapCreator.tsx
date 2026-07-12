@@ -1,4 +1,19 @@
 import { useEffect, useMemo, useState, Fragment } from "react";
+import {
+  Undo2,
+  Redo2,
+  Pencil,
+  Play,
+  ZoomOut,
+  ZoomIn,
+  PanelLeft,
+  PanelRight,
+  ArrowUpDown,
+  ArrowRight,
+  X,
+  MoreHorizontal,
+  Plus,
+} from "lucide-react";
 import "./seat-map.css";
 import { useVenue } from "../context/VenueContext";
 import type { Category, Cell, Row, SeatMap, VerticalAisle } from "./types";
@@ -116,28 +131,28 @@ function TopBar({
         onChange={(e) => dispatch({ type: "SET_NAME", name: e.target.value })}
       />
       <div className="w-px h-6 bg-venue-800" />
-      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "UNDO" })} disabled={!canUndo}>↶ Undo</button>
-      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "REDO" })} disabled={!canRedo}>↷ Redo</button>
+      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "UNDO" })} disabled={!canUndo}><Undo2 size={14} /> Undo</button>
+      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "REDO" })} disabled={!canRedo}><Redo2 size={14} /> Redo</button>
       <div className="w-px h-6 bg-venue-800" />
       <div className="inline-flex rounded-md overflow-hidden border border-venue-700">
         <button
           className={`px-3 py-1.5 text-xs ${mode === "edit" ? "bg-primary text-white" : "bg-venue-800 text-venue-300"}`}
           onClick={() => dispatch({ type: "SET_MODE", mode: "edit" })}
         >
-          ✎ Edit
+          <Pencil size={12} /> Edit
         </button>
         <button
           className={`px-3 py-1.5 text-xs ${mode === "preview" ? "bg-primary text-white" : "bg-venue-800 text-venue-300"}`}
           onClick={() => dispatch({ type: "SET_MODE", mode: "preview" })}
         >
-          ▶ Preview
+          <Play size={12} /> Preview
         </button>
       </div>
       <div className="w-px h-6 bg-venue-800" />
-      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom - 0.1 })}>−</button>
+      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom - 0.1 })}><ZoomOut size={14} /></button>
       <span className="text-xs text-venue-400 w-10 text-center">{Math.round(zoom * 100)}%</span>
-      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom + 0.1 })}>+</button>
-      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: 1 })}>Fit</button>
+      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom + 0.1 })}><ZoomIn size={14} /></button>
+      <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: 1 })}>Reset zoom</button>
 
       <div className="flex-1" />
       <button
@@ -145,18 +160,18 @@ function TopBar({
         onClick={onToggleLeft}
         title={leftOpen ? "Hide categories" : "Show categories"}
       >
-        ⊞
+        <PanelLeft size={14} />
       </button>
       <button
         className="venue-btn venue-btn-ghost"
         onClick={onToggleRight}
         title={rightOpen ? "Hide templates" : "Show templates"}
       >
-        ☰
+        <PanelRight size={14} />
       </button>
-      <button className="venue-btn venue-btn-primary" onClick={exportJson}>Export JSON</button>
+      <button className="venue-btn venue-btn-primary" onClick={exportJson}>Export layout</button>
       <button className="venue-btn venue-btn-danger" onClick={() => confirm("Reset to a fresh map?") && dispatch({ type: "RESET" })}>
-        Reset
+        Reset layout
       </button>
     </header>
   );
@@ -205,7 +220,7 @@ function StageBar() {
             className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded"
             onClick={() => dispatch({ type: "SET_STAGE", patch: { position: stage.position === "top" ? "bottom" : "top" } })}
           >
-            ↕ Move
+            <ArrowUpDown size={12} /> Move
           </button>
         </>
       )}
@@ -248,14 +263,14 @@ function RowView({ row, index }: { row: Row; index: number }) {
   if (row.aisle) {
     return (
       <div className="group flex items-center gap-2 py-2">
-        <div className="w-8 text-xs text-venue-500 text-center">→</div>
+        <div className="w-8 text-xs text-venue-500 text-center"><ArrowRight size={12} /></div>
         <div className="flex-1 border-t border-dashed border-venue-700" />
         {mode === "edit" && (
           <button
-            className="opacity-0 group-hover:opacity-100 text-xs text-venue-400 hover:text-danger"
+            className="opacity-0 group-hover:opacity-100 text-xs text-venue-400 hover:text-danger flex items-center gap-1"
             onClick={() => d({ type: "REMOVE_ROW", rowId: row.id })}
           >
-            ✕ aisle
+            <X size={12} /> aisle
           </button>
         )}
       </div>
@@ -326,17 +341,17 @@ function RowView({ row, index }: { row: Row; index: number }) {
         <div className="flex items-center gap-1">
           <button
             title="Rename"
-            className="text-xs w-6 h-6 rounded border border-venue-700 bg-venue-800 hover:bg-venue-700"
+            className="text-xs w-6 h-6 rounded border border-venue-700 bg-venue-800 hover:bg-venue-700 flex items-center justify-center"
             onClick={() => setRenaming(true)}
           >
-            ✎
+            <Pencil size={12} />
           </button>
           <button
             title="Row menu"
-            className="text-xs w-6 h-6 rounded border border-venue-700 bg-venue-800 hover:bg-venue-700"
+            className="text-xs w-6 h-6 rounded border border-venue-700 bg-venue-800 hover:bg-venue-700 flex items-center justify-center"
             onClick={(e) => setMenu({ x: e.clientX, y: e.clientY })}
           >
-            ≡
+            <MoreHorizontal size={12} />
           </button>
         </div>
       )}
@@ -344,10 +359,10 @@ function RowView({ row, index }: { row: Row; index: number }) {
       <div className="flex items-center gap-1 flex-wrap">
         {row.cells.length === 0 && mode === "edit" && (
           <button
-            className="text-xs px-2 py-1 rounded border border-dashed border-venue-700 text-venue-500 hover:text-venue-200"
+            className="text-xs px-2 py-1 rounded border border-dashed border-venue-700 text-venue-500 hover:text-venue-200 flex items-center gap-1"
             onClick={() => d({ type: "APPEND_SEAT", rowId: row.id, cellType: "seat" })}
           >
-            + first seat
+            <Plus size={12} /> Add first seat
           </button>
         )}
         {row.cells.map((c, i) => (
@@ -361,10 +376,10 @@ function RowView({ row, index }: { row: Row; index: number }) {
         {mode === "edit" && row.cells.length > 0 && (
           <button
             title="Add seat"
-            className="ml-1 w-6 h-6 rounded border border-venue-700 bg-venue-800 hover:bg-venue-700 text-venue-300 text-sm"
+            className="ml-1 w-6 h-6 rounded border border-venue-700 bg-venue-800 hover:bg-venue-700 text-venue-300 flex items-center justify-center"
             onClick={() => d({ type: "APPEND_SEAT", rowId: row.id, cellType: "seat" })}
           >
-            +
+            <Plus size={12} />
           </button>
         )}
       </div>
@@ -390,11 +405,11 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
         <div className="w-6 h-7" />
         {mode === "edit" && (
           <button
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 text-[10px] text-venue-500 hover:text-danger"
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 text-venue-500 hover:text-danger flex items-center justify-center"
             onClick={() => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id })}
             title="Remove space"
           >
-            ✕
+            <X size={10} />
           </button>
         )}
       </div>
@@ -494,18 +509,18 @@ function VerticalAisleGap({ aisle }: { aisle: VerticalAisle }) {
     <div className="relative group">
       <div className="w-8 h-7" />
       {mode === "edit" && (
-        <button
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 text-[10px] text-venue-500 hover:text-danger"
-          onClick={() => d({ type: "REMOVE_VERTICAL_AISLE", id: aisle.id })}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setMenu({ x: e.clientX, y: e.clientY });
-          }}
-          title="Remove vertical aisle"
-        >
-          ✕
-        </button>
+          <button
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 text-venue-500 hover:text-danger flex items-center justify-center"
+            onClick={() => d({ type: "REMOVE_VERTICAL_AISLE", id: aisle.id })}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setMenu({ x: e.clientX, y: e.clientY });
+            }}
+            title="Remove vertical aisle"
+          >
+            <X size={10} />
+          </button>
       )}
       {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} />}
     </div>
@@ -549,19 +564,19 @@ function AddRowInline() {
         className="venue-btn venue-btn-primary"
         onClick={() => dispatch({ type: "ADD_ROW", kind: "seated", opts: { count, categoryId: catId } })}
       >
-        + Seated row
+        <Plus size={14} /> Add seated row
       </button>
       <button
         className="venue-btn venue-btn-default"
         onClick={() => dispatch({ type: "ADD_ROW", kind: "empty" })}
       >
-        + Empty row
+        <Plus size={14} /> Add empty row
       </button>
       <button
         className="venue-btn venue-btn-default"
         onClick={() => dispatch({ type: "ADD_ROW", kind: "aisle" })}
       >
-        + Aisle
+        <Plus size={14} /> Add aisle
       </button>
     </div>
   );
@@ -582,7 +597,7 @@ function LeftPanel() {
             className="venue-btn venue-btn-default"
             onClick={() => dispatch({ type: "ADD_CATEGORY" })}
           >
-            + Add
+            <Plus size={14} /> Add category
           </button>
         </div>
         <div className="mt-2 space-y-2">
@@ -601,11 +616,11 @@ function LeftPanel() {
                     className="flex-1 bg-venue-800 border border-venue-700 rounded px-2 py-1 text-xs"
                   />
                   <button
-                    className="text-xs text-venue-500 hover:text-danger"
+                    className="text-venue-500 hover:text-danger flex items-center justify-center"
                     onClick={() => dispatch({ type: "REMOVE_CATEGORY", id: c.id })}
                     title="Remove"
                   >
-                    ✕
+                    <X size={14} />
                   </button>
                 </div>
                 <div className="flex items-center gap-2 mt-1.5">
@@ -622,7 +637,7 @@ function LeftPanel() {
                     disabled={selection.size === 0}
                     onClick={() => dispatch({ type: "ASSIGN_CATEGORY", ids: Array.from(selection), categoryId: c.id })}
                   >
-                    Assign ({selection.size})
+                    Apply to {selection.size} seats
                   </button>
               </div>
             </div>
@@ -839,10 +854,10 @@ function BookingSummary() {
             <span className="flex items-center gap-2">
               <span>${cat?.price?.toFixed(2) ?? "0.00"}</span>
               <button
-                className="text-venue-500 hover:text-danger"
+                className="text-venue-500 hover:text-danger flex items-center justify-center"
                 onClick={() => dispatch({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "available" })}
               >
-                ✕
+                <X size={12} />
               </button>
             </span>
           </div>

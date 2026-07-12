@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from "react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import "./seat-map.css";
 import { listVenuesByOrg, listVenueTemplates, getVenueTemplate } from "../api/venueApi";
 import type { Venue, Category, SeatMap, VerticalAisle } from "./types";
@@ -69,17 +70,17 @@ function CustomerInner({
         {openVenue && (
           <button
             onClick={() => setOpenVenue(null)}
-            className="px-3 py-1.5 rounded bg-venue-800 hover:bg-venue-700 text-sm"
+            className="venue-btn venue-btn-default"
           >
-            ← All events
+            <ArrowLeft size={14} /> All events
           </button>
         )}
         {onSignOut && (
           <button
             onClick={onSignOut}
-            className="px-3 py-1.5 rounded bg-venue-800 hover:bg-venue-700 text-sm"
+            className="venue-btn venue-btn-default"
           >
-            Sign out
+            <LogOut size={14} /> Sign out
           </button>
         )}
       </header>
