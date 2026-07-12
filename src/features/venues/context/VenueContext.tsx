@@ -32,9 +32,9 @@ function renumber(map: SeatMap): SeatMap {
 }
 
 const defaultCategories = (): Category[] => [
-  { id: uuid(), name: "Standard", color: "#3b82f6", price: 25 },
-  { id: uuid(), name: "Premium", color: "#a855f7", price: 45 },
-  { id: uuid(), name: "VIP", color: "#f59e0b", price: 80 },
+  { id: uuid(), name: "Standard", color: "#3b82f6" },
+  { id: uuid(), name: "Premium", color: "#a855f7" },
+  { id: uuid(), name: "VIP", color: "#f59e0b" },
 ];
 
 function makeSeat(categoryId?: string): Cell {
@@ -174,7 +174,6 @@ export function venueReducer(state: VenueState, action: VenueAction): VenueState
         id: uuid(),
         name: `Category ${state.map.categories.length + 1}`,
         color: COLORS[state.map.categories.length % COLORS.length],
-        price: 30,
       };
       return {
         ...state,

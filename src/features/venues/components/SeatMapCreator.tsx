@@ -134,21 +134,6 @@ function TopBar({
       <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "UNDO" })} disabled={!canUndo}><Undo2 size={14} /> Undo</button>
       <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "REDO" })} disabled={!canRedo}><Redo2 size={14} /> Redo</button>
       <div className="w-px h-6 bg-venue-800" />
-      <div className="inline-flex rounded-md overflow-hidden border border-venue-700">
-        <button
-          className={`px-3 py-1.5 text-xs ${mode === "edit" ? "bg-primary text-white" : "bg-venue-800 text-venue-300"}`}
-          onClick={() => dispatch({ type: "SET_MODE", mode: "edit" })}
-        >
-          <Pencil size={12} /> Edit
-        </button>
-        <button
-          className={`px-3 py-1.5 text-xs ${mode === "preview" ? "bg-primary text-white" : "bg-venue-800 text-venue-300"}`}
-          onClick={() => dispatch({ type: "SET_MODE", mode: "preview" })}
-        >
-          <Play size={12} /> Preview
-        </button>
-      </div>
-      <div className="w-px h-6 bg-venue-800" />
       <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom - 0.1 })}><ZoomOut size={14} /></button>
       <span className="text-xs text-venue-400 w-10 text-center">{Math.round(zoom * 100)}%</span>
       <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom + 0.1 })}><ZoomIn size={14} /></button>
@@ -483,7 +468,7 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
         }}
         className="w-6 h-7 rounded text-[10px] font-semibold text-white/95 flex items-center justify-center transition-transform hover:scale-110 disabled:cursor-not-allowed"
         style={{ background: bg, boxShadow: border }}
-        title={`${row.label}${cell.number ?? ""}${cat ? " · " + cat.name + " $" + cat.price : ""}`}
+        title={`${row.label}${cell.number ?? ""}${cat ? " · " + cat.name : ""}`}
       >
         {cell.number}
       </button>
@@ -624,15 +609,7 @@ function LeftPanel() {
                   </button>
                 </div>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="text-[10px] text-venue-500">Price $</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={c.price}
-                    onChange={(e) => dispatch({ type: "UPDATE_CATEGORY", id: c.id, patch: { price: Number(e.target.value) || 0 } })}
-                    className="w-20 bg-venue-800 border border-venue-700 rounded px-2 py-0.5 text-xs"
-                  />
-                  <button
+                   <button
                     className="ml-auto venue-btn venue-btn-default"
                     disabled={selection.size === 0}
                     onClick={() => dispatch({ type: "ASSIGN_CATEGORY", ids: Array.from(selection), categoryId: c.id })}
@@ -796,7 +773,6 @@ function StatsBar() {
     let reserved = 0;
     let blocked = 0;
     const perCat: Record<string, number> = {};
-    let potential = 0;
     for (const r of map.rows) {
       for (const c of r.cells) {
         if (c.type !== "seat") continue;
@@ -807,12 +783,10 @@ function StatsBar() {
         else available++;
         if (c.categoryId) {
           perCat[c.categoryId] = (perCat[c.categoryId] ?? 0) + 1;
-          const cat = map.categories.find((x) => x.id === c.categoryId);
-          if (cat) potential += cat.price;
         }
       }
     }
-    return { total, available, sold, reserved, blocked, perCat, potential };
+    return { total, available, sold, reserved, blocked, perCat };
   }, [map]);
   return (
     <div className="mt-6 flex flex-wrap gap-3 text-xs text-venue-400 border-t border-venue-800 pt-3">
@@ -821,7 +795,6 @@ function StatsBar() {
       <span>Sold: <b className="text-venue-100">{stats.sold}</b></span>
       <span>Reserved: <b className="text-accent-light">{stats.reserved}</b></span>
       <span>Blocked: <b className="text-venue-500">{stats.blocked}</b></span>
-      <span className="ml-auto">Potential revenue: <b className="text-positive-light">${stats.potential.toFixed(2)}</b></span>
     </div>
   );
 }
@@ -840,7 +813,6 @@ function BookingSummary() {
     }
     return arr;
   }, [map]);
-  const total = sold.reduce((s, x) => s + (x.cat?.price ?? 0), 0);
   if (!sold.length) return null;
   return (
     <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 min-w-[420px] max-w-[600px] rounded-lg border border-venue-700 bg-venue-900/95 backdrop-blur px-4 py-3 shadow-2xl">
@@ -851,21 +823,18 @@ function BookingSummary() {
             <span>
               Seat <b>{row.label}{cell.number}</b> {cat && <span className="text-venue-400">· {cat.name}</span>}
             </span>
-            <span className="flex items-center gap-2">
-              <span>${cat?.price?.toFixed(2) ?? "0.00"}</span>
-              <button
-                className="text-venue-500 hover:text-danger flex items-center justify-center"
-                onClick={() => dispatch({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "available" })}
-              >
-                <X size={12} />
-              </button>
-            </span>
+            <button
+              className="text-venue-500 hover:text-danger flex items-center justify-center"
+              onClick={() => dispatch({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "available" })}
+            >
+              <X size={12} />
+            </button>
           </div>
         ))}
       </div>
       <div className="mt-2 pt-2 border-t border-venue-800 flex items-center justify-between text-sm">
         <span className="text-venue-400">Total</span>
-        <span className="font-bold text-positive-light">${total.toFixed(2)}</span>
+        <span className="font-bold text-positive-light">{sold.length} seat(s)</span>
       </div>
     </div>
   );
@@ -882,9 +851,9 @@ const makeSeatTemplate = (id: string, name: string, stage: Stage, cats: Category
 
 function baseCats(): Category[] {
   return [
-    { id: uuid(), name: "Standard", color: "#3b82f6", price: 25 },
-    { id: uuid(), name: "Premium", color: "#a855f7", price: 45 },
-    { id: uuid(), name: "VIP", color: "#f59e0b", price: 80 },
+    { id: uuid(), name: "Standard", color: "#3b82f6" },
+    { id: uuid(), name: "Premium", color: "#a855f7" },
+    { id: uuid(), name: "VIP", color: "#f59e0b" },
   ];
 }
 function buildTheater(): SeatMap {

@@ -15,7 +15,6 @@ export interface SeatObject {
   status: "available" | "taken";
   categoryId: string;
   categoryColor: string;
-  price: number;
 }
 
 const MAX_SELECTION = 5;
@@ -74,7 +73,6 @@ export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
           status: cell.status === "available" ? "available" : "taken",
           categoryId: cat?.id ?? "",
           categoryColor: cat?.color ?? "#3b82f6",
-          price: cat?.price ?? 0,
         });
       });
     }
@@ -169,7 +167,7 @@ export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
               className="w-3 h-3 rounded-sm"
               style={{ backgroundColor: c.color }}
             />
-            {c.name} · ${c.price}
+            {c.name}
           </span>
         ))}
         <span className="flex items-center gap-1.5 text-neutral-500">
@@ -209,7 +207,7 @@ export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
                     title={
                       isTaken
                         ? "Taken"
-                        : `${seat.rowLabel}${seat.colNumber} — $${seat.price}`
+                        : `${seat.rowLabel}${seat.colNumber}`
                     }
                     className={`w-7 h-7 rounded text-[9px] font-medium flex items-center justify-center transition select-none ${
                       isTaken

@@ -185,12 +185,12 @@ function BookingView({
     for (const row of map.rows) {
       for (const c of row.cells) {
         if (c.type === "seat" && selected.has(c.id)) {
-          t += catById.get(c.categoryId ?? "")?.price ?? 0;
+          t += 1;
         }
       }
     }
     return t;
-  }, [selected, map, catById]);
+  }, [selected, map]);
 
   return (
     <div className="p-6">
@@ -220,7 +220,7 @@ function BookingView({
                         ) : (
                           <button
                             onClick={() => toggle(c.id, false)}
-                            title={`${catById.get(c.categoryId ?? "")?.name ?? "Seat"} — $${catById.get(c.categoryId ?? "")?.price ?? 0}`}
+                            title={`${catById.get(c.categoryId ?? "")?.name ?? "Seat"}`}
                             className={`w-6 h-6 rounded text-[9px] font-medium flex items-center justify-center transition ${
                               selected.has(c.id) ? "ring-2 ring-white text-white" : "hover:brightness-125"
                             }`}
@@ -249,7 +249,7 @@ function BookingView({
           {map.categories.map((c) => (
             <span key={c.id} className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: c.color }} />
-              {c.name} · ${c.price}
+              {c.name}
             </span>
           ))}
         </div>
@@ -257,8 +257,7 @@ function BookingView({
         <div className="text-sm">
           <span className="text-venue-400">
             {selected.size} seat{selected.size === 1 ? "" : "s"}
-          </span>{" "}
-          <span className="font-semibold ml-2">${total.toFixed(2)}</span>
+          </span>
         </div>
         <div className="text-xs text-venue-500 italic">
           Booking API not yet available

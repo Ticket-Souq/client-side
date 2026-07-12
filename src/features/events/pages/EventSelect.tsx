@@ -34,7 +34,7 @@ export default function EventSelect() {
     );
   }
 
-  const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+  const total = selectedSeats.length;
 
   return (
     <div className="min-vh-100 d-flex flex-column">
@@ -86,7 +86,7 @@ export default function EventSelect() {
                 {selectedSeats.length} seat{selectedSeats.length > 1 ? "s" : ""} selected
               </span>
               <span className="fw-bold" style={{ fontSize: "18px", color: "var(--color-accent)" }}>
-                ${total.toFixed(2)}
+                {total} seat{total === 1 ? "" : "s"}
               </span>
             </div>
             <div className="text-secondary-custom" style={{ fontSize: "12px" }}>
