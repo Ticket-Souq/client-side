@@ -1,5 +1,154 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
+@import './shared/theme.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ───── Background helpers ───── */
+.bg-hero-brown {
+  background-color: var(--color-hero-brown) !important;
+}
+
+.bg-noise {
+  position: relative;
+}
+
+.bg-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(#000 0.00001%, transparent 0.00002%) 50% 50% / 150px 150px;
+  opacity: 0.035;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* ───── Buttons ───── */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 8px;
+  padding: 10px 20px;
+  transition: all 0.15s ease;
+}
+
+.btn-accent {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.btn-accent:hover {
+  background-color: #c88d0c;
+  border-color: #c88d0c;
+  color: var(--color-text) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(226, 163, 15, 0.35);
+}
+
+.btn-accent:active {
+  transform: translateY(0);
+}
+
+.btn-outline-accent {
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent) !important;
+  background: transparent;
+}
+
+.btn-outline-accent:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text) !important;
+}
+
+/* ───── Cards ───── */
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -6px rgba(0,0,0,0.10);
+}
+
+.shadow-card {
+  box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.06);
+}
+
+/* ───── Focus ───── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ───── Navbar ───── */
+.nav-bar-shadow {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 20px -4px rgba(226, 163, 15, 0.12);
+}
+
+.navbar-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  position: relative;
+}
+
+.navbar-gold-links .navbar-nav .nav-link,
+.navbar-gold-links .navbar-nav .nav-link.active {
+  color: var(--color-accent) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--color-accent);
+  border-radius: 1px;
+}
+
+/* ───── Hero strips ───── */
+.hero-strip {
+  background: linear-gradient(135deg, var(--color-hero-brown), var(--color-hero-blue));
+  position: relative;
+  overflow: hidden;
+}
+
+/* ───── Misc utilities ───── */
+.text-secondary-custom {
+  color: var(--color-text-secondary);
 }

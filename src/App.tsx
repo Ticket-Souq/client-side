@@ -25,7 +25,6 @@ import OrgDashboard from './features/organizations/pages/Dashboard'
 import EventManagement from './features/organizations/pages/EventManagement'
 import EventCreate from './features/organizations/pages/EventCreate'
 import VenueTemplates from './features/organizations/pages/VenueTemplates'
-import VenueTemplateCreate from './features/organizations/pages/VenueTemplateCreate'
 import TeamManagement from './features/organizations/pages/TeamManagement'
 import QRValidation from './features/organizations/pages/QRValidation'
 import OrgSettings from './features/organizations/pages/OrgSettings'
@@ -74,7 +73,6 @@ function App() {
         <Route path="events" element={<EventManagement />} />
         <Route path="events/create" element={<EventCreate />} />
         <Route path="venues" element={<VenueTemplates />} />
-        <Route path="venues/create" element={<VenueTemplateCreate />} />
         <Route path="team" element={<TeamManagement />} />
         <Route path="validate" element={<QRValidation />} />
         <Route path="settings" element={<OrgSettings />} />

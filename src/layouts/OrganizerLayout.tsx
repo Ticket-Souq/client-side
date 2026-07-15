@@ -3,8 +3,8 @@ import { NavLink, Outlet } from 'react-router-dom'
 export default function OrganizerLayout() {
   return (
     <div className="min-vh-100 d-flex flex-column">
-      <nav className="navbar navbar-expand navbar-dark bg-dark px-4">
-        <NavLink to="/org" className="navbar-brand fw-bold" style={{ color: '#e94560' }}>
+      <nav className="navbar navbar-expand navbar-light bg-white nav-bar-shadow px-4">
+        <NavLink to="/org" className="navbar-brand fw-bold" style={{ color: '#E2A30F' }}>
           TicketSouq
         </NavLink>
         <ul className="navbar-nav ms-auto align-items-center gap-2">
@@ -29,7 +29,7 @@ export default function OrganizerLayout() {
             </NavLink>
           </li>
           <li className="nav-item">
-            <NavLink to="/" className="nav-link btn btn-outline-light btn-sm px-3">
+            <NavLink to="/" className="nav-link btn btn-outline-accent btn-sm px-3">
               Switch to Customer
             </NavLink>
           </li>
