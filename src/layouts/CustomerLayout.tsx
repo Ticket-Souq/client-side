@@ -3,13 +3,13 @@ import { NavLink, Outlet } from 'react-router-dom'
 export default function CustomerLayout() {
   return (
     <div className="min-vh-100 d-flex flex-column">
-      <nav className="navbar navbar-expand navbar-dark bg-dark px-4">
-        <NavLink to="/" className="navbar-brand fw-bold" style={{ color: '#e94560' }}>
+      <nav className="navbar navbar-expand navbar-light bg-white nav-bar-shadow px-4">
+        <NavLink to="/" className="navbar-brand fw-bold" style={{ color: '#E2A30F' }}>
           TicketSouq
         </NavLink>
         <ul className="navbar-nav ms-auto align-items-center gap-2">
           <li className="nav-item">
-            <NavLink to="/events" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <NavLink to="/events" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               Events
             </NavLink>
           </li>
@@ -19,7 +19,7 @@ export default function CustomerLayout() {
             </NavLink>
           </li>
           <li className="nav-item">
-            <NavLink to="/org" className="nav-link btn btn-outline-light btn-sm px-3">
+            <NavLink to="/org" className="nav-link btn btn-outline-accent btn-sm px-3">
               Switch to Organizer
             </NavLink>
           </li>
