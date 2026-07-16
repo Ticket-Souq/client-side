@@ -9,8 +9,10 @@ import Login from './features/auth/pages/Login'
 import Register from './features/auth/pages/Register'
 import OrganizationRegister from './features/auth/pages/OrganizationRegister'
 import ForgotPassword from './features/auth/pages/ForgotPassword'
+import EmailVerification from './features/auth/pages/EmailVerification'
+import ChangePassword from './features/auth/pages/ChangePassword'
 
-import EventList from './features/events/pages/EventList'
+import Home from './features/home/pages/Home'
 import EventDetail from './features/events/pages/EventDetail'
 import EventSelect from './features/events/pages/EventSelect'
 
@@ -31,18 +33,18 @@ import OrgSettings from './features/organizations/pages/OrgSettings'
 import OrgNotifications from './features/organizations/pages/OrgNotifications'
 
 import AdminDashboard from './features/admin/pages/Dashboard'
+import Logs from './features/admin/pages/Logs'
+import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import OrganizationApproval from './features/admin/pages/OrganizationApproval'
 import UserManagement from './features/admin/pages/UserManagement'
 
 import Profile from './features/profile/pages/Profile'
 import Notifications from './features/notifications/pages/Notifications'
+import Reservations from './features/reservations/pages/Reservations'
 
 function App() {
   return (
     <Routes>
-      {/* Public */}
-      <Route index element={<Navigate to="/events" replace />} />
-
       {/* Auth */}
       <Route path="auth" element={<AuthLayout />}>
         <Route index element={<Navigate to="login" replace />} />
@@ -50,11 +52,14 @@ function App() {
         <Route path="register" element={<Register />} />
         <Route path="register/organization" element={<OrganizationRegister />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="verify-email" element={<EmailVerification />} />
+        <Route path="change-password" element={<ChangePassword />} />
       </Route>
 
       {/* Customer */}
       <Route path="/" element={<CustomerLayout />}>
-        <Route path="events" element={<EventList />} />
+        <Route index element={<Home />} />
+        <Route path="events" element={<Home />} />
         <Route path="events/:eventId" element={<EventDetail />} />
         <Route path="events/:eventId/select" element={<EventSelect />} />
         <Route path="booking/checkout" element={<Checkout />} />
@@ -64,6 +69,7 @@ function App() {
         <Route path="tickets/:ticketId" element={<TicketDetail />} />
         <Route path="profile" element={<Profile />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="reservations" element={<Reservations />} />
       </Route>
 
       {/* Organization */}
@@ -83,7 +89,9 @@ function App() {
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="organizations" element={<OrganizationApproval />} />
+        <Route path="logs" element={<Logs />} />
+        <Route path="organizations" element={<OrganizationsManagement />} />
+        <Route path="approvals" element={<OrganizationApproval />} />
         <Route path="users" element={<UserManagement />} />
       </Route>
 
