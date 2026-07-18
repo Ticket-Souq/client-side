@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 
 export default function CustomerLayout() {
+
   return (
     <div className="min-vh-100 d-flex flex-column">
       <nav className="navbar navbar-expand navbar-light bg-white nav-bar-shadow px-4">
