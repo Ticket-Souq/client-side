@@ -16,7 +16,9 @@ import EmailVerification from './features/auth/pages/EmailVerification'
 import ChangePassword from './features/auth/pages/ChangePassword'
 
 import Home from './features/home/pages/Home'
-import EventDetail from './features/events/pages/EventDetail'
+import CustomerEvents from './features/events/pages/CustomerEvents'
+import CustomerEventDetail from './features/events/pages/CustomerEventDetail'
+import ZonePurchase from './features/events/pages/ZonePurchase'
 import EventSelect from './features/events/pages/EventSelect'
 import Outlets from './features/events/pages/Outlets'
 import Contact from './features/events/pages/Contact'
@@ -38,6 +40,7 @@ import OrgSettings from './features/organizations/pages/OrgSettings'
 import OrgNotifications from './features/organizations/pages/OrgNotifications'
 
 import AdminDashboard from './features/admin/pages/Dashboard'
+import AdminEvents from './features/admin/pages/AdminEvents'
 import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import OrganizationApproval from './features/admin/pages/OrganizationApproval'
@@ -90,8 +93,9 @@ function App() {
       {/* Customer */}
       <Route path="customer" element={<CustomerLayout />}>
         <Route index element={<Home />} />
-        <Route path="events" element={<Home />} />
-        <Route path="events/:eventId" element={<EventDetail />} />
+        <Route path="events" element={<CustomerEvents />} />
+        <Route path="events/:eventId" element={<CustomerEventDetail />} />
+        <Route path="events/:eventId/zone-purchase" element={<ZonePurchase />} />
         <Route path="events/:eventId/select" element={<EventSelect />} />
         <Route path="outlets" element={<Outlets />} />
         <Route path="contact" element={<Contact />} />
@@ -126,6 +130,7 @@ function App() {
         <Route path="events" element={<EventOversight />} />
         <Route path="venues" element={<VenueOversight />} />
         <Route path="monitoring" element={<SystemMonitoring />} />
+        <Route path="events" element={<AdminEvents />} />
         <Route path="logs" element={<Logs />} />
         <Route path="organizations" element={<OrganizationsManagement />} />
         <Route path="approvals" element={<OrganizationApproval />} />

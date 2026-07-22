@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { mockEvents } from "../data/mockEvents";
+import { MOCK_EVENTS_DETAIL } from "../data/mockEvents";
 import { SeatPicker } from "../../venues/components/SeatPicker";
 import type { SeatObject } from "../../venues/components/SeatPicker";
 
@@ -9,7 +9,7 @@ export default function EventSelect() {
   const navigate = useNavigate();
 
   const event = useMemo(
-    () => mockEvents.find((e) => e.id === eventId),
+    () => MOCK_EVENTS_DETAIL.find((e) => e.id === eventId),
     [eventId],
   );
 
@@ -27,8 +27,10 @@ export default function EventSelect() {
     return (
       <div className="container py-5 text-center text-secondary-custom">
         <h2>Event not found</h2>
+
         <button className="btn btn-accent mt-3" onClick={() => navigate("/customer/events")}>
           ← Back to events
+
         </button>
       </div>
     );
@@ -52,7 +54,7 @@ export default function EventSelect() {
             }}
             onClick={() => navigate(`/customer/events/${event.id}`)}
           >
-            ← Back
+            &larr; Back
           </button>
           <div>
             <h1
@@ -62,7 +64,7 @@ export default function EventSelect() {
               {event.title}
             </h1>
             <p className="mb-0" style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px" }}>
-              {event.venueName} — Select your seat
+              {event.venueName} &mdash; Select your seat
             </p>
           </div>
         </div>
