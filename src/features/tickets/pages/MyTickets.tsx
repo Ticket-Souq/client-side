@@ -1,14 +1,16 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../shared/components'
-import { useReservations } from '../hooks/useTickets'
+import { useTickets } from '../hooks/useTickets'
 import ReservationCard from '../components/ReservationCard'
 import styles from '../styles/tickets.module.css'
 
 export default function MyTickets() {
   const navigate = useNavigate()
-  const { reservations, loading, error, retry } = useReservations()
+  const { groups, loading, error, retry } = useTickets()
 
-  const upcoming = reservations.filter((r) => r.status === 'confirmed' || r.status === 'pending').length
+  const upcomingCount = groups.filter((g) =>
+    g.tickets.some((t) => !t.consumed && t.reservationStatus === 'ACTIVE')
+  ).length
 
   if (loading) {
     return (
@@ -29,7 +31,7 @@ export default function MyTickets() {
     )
   }
 
-  if (reservations.length === 0) {
+  if (groups.length === 0) {
     return (
       <div className={`wrap ${styles.page}`}>
         <div className={styles.empty}>
@@ -47,20 +49,15 @@ export default function MyTickets() {
     <div className={`wrap ${styles.page}`}>
       <section className={styles.pageHead}>
         <h1 className={styles.pageTitle}>My Tickets</h1>
-        {upcoming > 0 && <span className={styles.notifCount}>{upcoming} upcoming</span>}
+        {upcomingCount > 0 && <span className={styles.notifCount}>{upcomingCount} upcoming</span>}
       </section>
 
       <div className={styles.reservationList} role="list">
-        {reservations.map((r) => (
+        {groups.map((g) => (
           <ReservationCard
-            key={r.id}
-            eventTitle={r.eventTitle}
-            date={r.date}
-            venue={r.venue}
-            ticketCount={r.ticketCount}
-            totalPrice={r.totalPrice}
-            status={r.status}
-            onViewTickets={() => navigate(`/customer/tickets/${r.id}`)}
+            key={g.eventTitle}
+            group={g}
+            onViewTickets={() => navigate(`/customer/tickets/${g.tickets[0].id}`)}
           />
         ))}
       </div>

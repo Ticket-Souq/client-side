@@ -1,24 +1,22 @@
 import { Badge } from '../../../shared/components'
-import type { TicketStatus } from '../types/ticket.types'
+import type { DisplayStatus } from '../types/ticket.types'
 
-const statusVariant: Record<TicketStatus, 'green' | 'orange' | 'soft' | 'red' | 'ink'> = {
+const statusVariant: Record<DisplayStatus, 'green' | 'orange' | 'soft' | 'red' | 'ink'> = {
   confirmed: 'green',
-  pending: 'orange',
   used: 'soft',
   expired: 'red',
   cancelled: 'ink',
 }
 
-const statusLabel: Record<TicketStatus, string> = {
-  confirmed: 'Confirmed',
-  pending: 'Pending',
+const statusLabel: Record<DisplayStatus, string> = {
+  confirmed: 'Active',
   used: 'Used',
   expired: 'Expired',
   cancelled: 'Cancelled',
 }
 
 interface Props {
-  status: TicketStatus
+  status: DisplayStatus
 }
 
 export default function TicketStatusBadge({ status }: Props) {

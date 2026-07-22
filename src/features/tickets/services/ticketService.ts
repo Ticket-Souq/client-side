@@ -1,35 +1,50 @@
 import { authFetch } from '../../../shared/auth'
 import { API } from '../../../shared/api'
 import { parseError } from '../../../shared/apiError'
-import { mockReservations } from '../data/mockTickets'
-import type { Reservation } from '../types/ticket.types'
+import { mockTickets } from '../data/mockTickets'
+import type { TicketResponse } from '../types/ticket.types'
 
-export async function getReservations(): Promise<Reservation[]> {
+export async function getMyTickets(): Promise<TicketResponse[]> {
   try {
-    const res = await authFetch(API.reservations.list)
+    const res = await authFetch(API.tickets.list)
     if (!res.ok) {
       const err = await parseError(res)
-      console.warn('API error fetching reservations, using mock data:', err.message)
-      return mockReservations
+      console.warn('API error fetching tickets, using mock data:', err.message)
+      return mockTickets
     }
     return res.json()
   } catch {
-    console.warn('Network error fetching reservations, using mock data')
-    return mockReservations
+    console.warn('Network error fetching tickets, using mock data')
+    return mockTickets
   }
 }
 
-export async function getReservationById(id: string): Promise<Reservation | null> {
+export async function getTicketById(id: string): Promise<TicketResponse | null> {
   try {
-    const res = await authFetch(`${API.reservations.list}/${id}`)
+    const res = await authFetch(API.tickets.byId(id))
     if (!res.ok) {
       const err = await parseError(res)
-      console.warn('API error fetching reservation detail, using mock data:', err.message)
-      return mockReservations.find(r => r.id === id) ?? null
+      console.warn('API error fetching ticket, falling back to mock:', err.message)
+      return mockTickets.find(t => t.id === id) ?? null
     }
     return res.json()
   } catch {
-    console.warn('Network error fetching reservation detail, using mock data')
-    return mockReservations.find(r => r.id === id) ?? null
+    console.warn('Network error fetching ticket, falling back to mock')
+    return mockTickets.find(t => t.id === id) ?? null
+  }
+}
+
+export async function getTicketsByReservation(reservationId: string): Promise<TicketResponse[]> {
+  try {
+    const res = await authFetch(API.tickets.byReservation(reservationId))
+    if (!res.ok) {
+      const err = await parseError(res)
+      console.warn('API error fetching reservation tickets, using mock data:', err.message)
+      return mockTickets
+    }
+    return res.json()
+  } catch {
+    console.warn('Network error fetching reservation tickets, using mock data')
+    return mockTickets
   }
 }

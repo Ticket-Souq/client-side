@@ -1,13 +1,25 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '../../../shared/components'
-import { useReservation } from '../hooks/useTickets'
+import { useTickets } from '../hooks/useTickets'
 import ReservationGroup from '../components/ReservationGroup'
 import styles from '../styles/tickets.module.css'
 
 export default function TicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>()
   const navigate = useNavigate()
-  const { reservation, loading, error, retry } = useReservation(ticketId)
+  const { tickets, loading, error, retry } = useTickets()
+
+  const ticket = ticketId ? tickets.find(t => t.id === ticketId) : null
+  const group = ticket
+    ? {
+        eventTitle: ticket.eventTitle,
+        eventStartDate: ticket.eventStartDate,
+        eventFinishDate: ticket.eventFinishDate,
+        eventPosterUrl: ticket.eventPosterUrl,
+        eventStatus: ticket.eventStatus,
+        tickets: tickets.filter(t => t.eventTitle === ticket.eventTitle),
+      }
+    : null
 
   if (loading) {
     return (
@@ -28,7 +40,7 @@ export default function TicketDetail() {
     )
   }
 
-  if (!reservation) {
+  if (!ticket || !group) {
     return (
       <div className={`wrap ${styles.detailPage}`}>
         <div className={styles.empty}>
@@ -53,13 +65,7 @@ export default function TicketDetail() {
         ← Back to My Tickets
       </Button>
 
-      <ReservationGroup
-        eventTitle={reservation.eventTitle}
-        date={reservation.date}
-        venue={reservation.venue}
-        status={reservation.status}
-        tickets={reservation.tickets}
-      />
+      <ReservationGroup group={group} />
     </div>
   )
 }

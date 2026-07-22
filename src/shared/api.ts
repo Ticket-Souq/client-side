@@ -28,4 +28,9 @@ export const API = {
   reservations: {
     list: `${BASE_URL}/api/v1/reservations`,
   },
+  tickets: {
+    list: `${BASE_URL}/api/v1/tickets`,
+    byId: (id: string) => `${BASE_URL}/api/v1/tickets/${id}`,
+    byReservation: (reservationId: string) => `${BASE_URL}/api/v1/tickets?reservationId=${reservationId}`,
+  },
 };
