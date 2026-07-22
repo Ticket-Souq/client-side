@@ -1,20 +1,35 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { useState } from 'react'
+import { Outlet, Link } from 'react-router-dom'
+import { getAccessToken } from '../shared/auth'
+import SideDrawer from '../features/home/components/SideDrawer'
 
 export default function AuthLayout() {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const isAuth = !!getAccessToken();
+
   return (
     <div className="min-vh-100 d-flex flex-column">
-      <nav className="navbar navbar-expand navbar-dark bg-hero-brown bg-noise px-4">
-        <NavLink to="/" className="navbar-brand fw-bold" style={{ color: '#E2A30F' }}>
+      {isAuth && <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />}
+      <nav className="navbar navbar-expand navbar-light bg-white nav-bar-shadow px-4">
+        {isAuth ? (
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="btn p-0 border-0 me-3"
+            style={{ fontSize: '22px', lineHeight: 1, color: 'var(--color-text)' }}
+            aria-label="Open menu"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M3 6h18" />
+              <path d="M3 12h18" />
+              <path d="M3 18h18" />
+            </svg>
+          </button>
+        ) : (
+          <div className="me-3" style={{ width: '22px' }} />
+        )}
+        <Link to="/" className="navbar-brand fw-bold" style={{ color: '#E2A30F' }}>
           TicketSouq
-        </NavLink>
-        <ul className="navbar-nav ms-auto align-items-center gap-2">
-          <li className="nav-item">
-            <NavLink to="/auth/login" className="nav-link">Login</NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink to="/auth/register" className="nav-link">Register</NavLink>
-          </li>
-        </ul>
+        </Link>
       </nav>
       <main className="flex-grow-1 d-flex flex-column">
         <Outlet />
