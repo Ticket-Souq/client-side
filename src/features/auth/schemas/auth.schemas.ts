@@ -1,4 +1,4 @@
-import type { FieldRule } from '../../../shared/validation';
+  import type { FieldRule } from '../../../shared/validation';
 
 export const emailRules: FieldRule = {
   required: true,
