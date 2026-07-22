@@ -1,0 +1,36 @@
+.members-page{padding:46px 0 69px;}
+
+.members-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px;}
+.members-title{font-size:25px;font-weight:600;margin:0;}
+.members-back{font-size:15px;font-weight:500;color:var(--text-secondary);text-decoration:none;}
+.members-back:hover{color:var(--ink);}
+
+.search-bar{display:flex;gap:14px;align-items:center;margin-bottom:28px;}
+.search-bar .form-input{flex:1;}
+
+.tabs{display:flex;gap:9px;margin-bottom:28px;}
+.tab{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:9px 21px;border-radius:999px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text-secondary);transition:all 150ms ease;}
+.tab:hover{border-color:var(--ink);color:var(--ink);}
+.tab.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
+
+.text-link{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.05em;color:var(--text-secondary);cursor:pointer;text-decoration:none;}
+.text-link:hover{color:var(--ink);}
+
+.toggle{cursor:pointer;}
+.toggle-track{display:inline-block;width:48px;height:26px;background:var(--border);border-radius:999px;position:relative;transition:background 150ms ease;vertical-align:middle;}
+.toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:var(--white);border-radius:50%;transition:transform 150ms ease;}
+.toggle.active .toggle-track{background:var(--yellow);}
+.toggle.active .toggle-track::after{transform:translateX(22px);}
+
+.badge-yellow{background:var(--yellow);color:var(--ink);}
+.badge-soft{background:#f0efe8;color:var(--ink-soft);}
+.badge-green{background:#e8f5e9;color:#2e7d32;}
+.badge-red{background:#ffebee;color:#c62828;}
+
+.creds-card{margin-top:18px;}
+.creds-card summary{cursor:pointer;font-size:16px;font-weight:600;padding:5px 0;outline:none;}
+.creds-card summary::-webkit-details-marker{color:var(--text-secondary);}
+.creds-row{display:flex;align-items:center;gap:23px;padding:18px 0 0;flex-wrap:wrap;}
+.creds-field{display:flex;flex-direction:column;gap:2px;}
+.creds-field .creds-label{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-secondary);}
+.creds-field .creds-value{font-family:'IBM Plex Mono',monospace;font-size:16px;color:var(--ink);}

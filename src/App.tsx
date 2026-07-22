@@ -34,8 +34,13 @@ import OrgDashboard from './features/organizations/pages/Dashboard'
 import EventManagement from './features/organizations/pages/EventManagement'
 import EventCreate from './features/organizations/pages/EventCreate'
 import VenueTemplates from './features/organizations/pages/VenueTemplates'
+import VenueManagement from './features/organizations/pages/VenueManagement'
+import OrgManagement from './features/organizations/pages/OrgManagement'
 import TeamManagement from './features/organizations/pages/TeamManagement'
+import Analytics from './features/organizations/pages/Analytics'
 import QRValidation from './features/organizations/pages/QRValidation'
+import OrgRefunds from './features/organizations/pages/Refunds'
+import OrgProfile from './features/organizations/pages/Profile'
 import OrgSettings from './features/organizations/pages/OrgSettings'
 import OrgNotifications from './features/organizations/pages/OrgNotifications'
 
@@ -48,6 +53,7 @@ import OrganizationsManagement from './features/admin/pages/OrganizationsManagem
 import OrganizationApproval from './features/admin/pages/OrganizationApproval'
 import UserManagement from './features/admin/pages/UserManagement'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
+import AdminSettings from './features/admin/pages/AdminSettings'
 import Profile from './features/profile/pages/Profile'
 import Settings from './features/profile/pages/Settings'
 import Notifications from './features/notifications/pages/Notifications'
@@ -116,9 +122,14 @@ function App() {
         <Route path="dashboard" element={<OrgDashboard />} />
         <Route path="events" element={<EventManagement />} />
         <Route path="events/create" element={<EventCreate />} />
-        <Route path="venues" element={<VenueTemplates />} />
+        <Route path="venues" element={<VenueManagement />} />
+        <Route path="venue-templates" element={<VenueTemplates />} />
+        <Route path="organization" element={<OrgManagement />} />
         <Route path="team" element={<TeamManagement />} />
+        <Route path="analytics" element={<Analytics />} />
         <Route path="validate" element={<QRValidation />} />
+        <Route path="refunds" element={<OrgRefunds />} />
+        <Route path="profile" element={<OrgProfile />} />
         <Route path="settings" element={<OrgSettings />} />
         <Route path="notifications" element={<OrgNotifications />} />
       </Route>
@@ -136,7 +147,7 @@ function App() {
         <Route path="users" element={<UserManagement />} />
         <Route path="refunds" element={<AdminRefunds />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="settings" element={<Settings />} />
+        <Route path="settings" element={<AdminSettings />} />
         <Route path="notifications" element={<Notifications />} />
       </Route>
 

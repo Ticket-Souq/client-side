@@ -38,7 +38,7 @@ const FOOTER_COLS = {
       links: [
         { label: 'Events', href: '/org/events' },
         { label: 'Venues', href: '/org/venues' },
-        { label: 'Templates', href: '/org/venues' },
+        { label: 'Templates', href: '/org/venue-templates' },
       ],
     },
     {

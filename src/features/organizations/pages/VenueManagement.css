@@ -1,0 +1,6 @@
+.venue-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.venue-meta .badge{font-size:10px;padding:4px 10px;height:auto;}
+.table-actions{display:flex;gap:16px;white-space:nowrap;}
+.table-actions a{font-size:14px;font-weight:500;}
+.action-link{font-size:15px;font-weight:500;color:var(--ink-soft);text-decoration:none;cursor:pointer;}
+.action-link:hover{color:var(--ink);}

@@ -6,10 +6,11 @@ import { LayoutShell } from '../shared/components/layout/LayoutShell'
 import type { NavLink } from '../shared/components/types'
 
 const NAV_LINKS: NavLink[] = [
-  { label: 'Dashboard', href: '/org/dashboard' },
   { label: 'Events', href: '/org/events' },
   { label: 'Venues', href: '/org/venues' },
-  { label: 'Organization', href: '/org/team' },
+  { label: 'Organization', href: '/org/organization' },
+  { label: 'Dashboard', href: '/org/dashboard' },
+  { label: 'Profile', href: '/org/profile' },
 ]
 
 export default function OrganizerLayout() {

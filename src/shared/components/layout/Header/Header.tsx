@@ -16,7 +16,7 @@ const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
   organizer: [
     { label: 'Events', href: '/org/events' },
     { label: 'Venues', href: '/org/venues' },
-    { label: 'Organization', href: '/org/team' },
+    { label: 'Organization', href: '/org/organization' },
     { label: 'Dashboard', href: '/org/dashboard' },
   ],
   admin: [
@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ role, links, avatarInitials = 'A
             {unreadCount > 0 && <span className={badgeStyles.badge}>{unreadCount}</span>}
           </Link>
           <Link to={settingsPath} className="btn btn-ghost">Settings</Link>
-          <Link to="/customer/profile"><Avatar initials={avatarInitials} size="sm" /></Link>
+          <Link to={`/${role}/profile`}><Avatar initials={avatarInitials} size="sm" /></Link>
         </div>
       </div>
     </header>
