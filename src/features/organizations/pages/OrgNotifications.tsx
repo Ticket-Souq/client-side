@@ -1,3 +1,5 @@
+import Notifications from '../../notifications/pages/Notifications'
+
 export default function OrgNotifications() {
-  return <div className="container py-5"><h2>Organization Notifications</h2></div>
+  return <Notifications role="organizer" />
 }

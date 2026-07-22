@@ -7,9 +7,12 @@ import type { NavLink } from '../shared/components/types'
 
 const NAV_LINKS: NavLink[] = [
   { label: 'Dashboard', href: '/admin/dashboard' },
+  { label: 'Events', href: '/admin/events' },
+  { label: 'Venues', href: '/admin/venues' },
   { label: 'Organizations', href: '/admin/organizations' },
+  { label: 'Monitoring', href: '/admin/monitoring' },
   { label: 'Audit Logs', href: '/admin/logs' },
-  { label: 'Users', href: '/admin/users' },
+  { label: 'Profile', href: '/admin/profile' },
 ]
 
 export default function AdminLayout() {

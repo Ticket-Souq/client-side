@@ -15,7 +15,7 @@ import ResetPassword from './features/auth/pages/ResetPassword'
 import EmailVerification from './features/auth/pages/EmailVerification'
 import ChangePassword from './features/auth/pages/ChangePassword'
 
-import Home from './features/home/pages/Home'
+import CustomerDashboard from './features/home/pages/Dashboard'
 import CustomerEvents from './features/events/pages/CustomerEvents'
 import CustomerEventDetail from './features/events/pages/CustomerEventDetail'
 import ZonePurchase from './features/events/pages/ZonePurchase'
@@ -41,14 +41,13 @@ import OrgNotifications from './features/organizations/pages/OrgNotifications'
 
 import AdminDashboard from './features/admin/pages/Dashboard'
 import AdminEvents from './features/admin/pages/AdminEvents'
+import VenueOversight from './features/admin/pages/VenueOversight'
+import AdminRefunds from './features/admin/pages/AdminRefunds'
 import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import OrganizationApproval from './features/admin/pages/OrganizationApproval'
 import UserManagement from './features/admin/pages/UserManagement'
-import EventOversight from './features/admin/pages/EventOversight'
-import VenueOversight from './features/admin/pages/VenueOversight'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
-
 import Profile from './features/profile/pages/Profile'
 import Settings from './features/profile/pages/Settings'
 import Notifications from './features/notifications/pages/Notifications'
@@ -92,7 +91,8 @@ function App() {
 
       {/* Customer */}
       <Route path="customer" element={<CustomerLayout />}>
-        <Route index element={<Home />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<CustomerDashboard />} />
         <Route path="events" element={<CustomerEvents />} />
         <Route path="events/:eventId" element={<CustomerEventDetail />} />
         <Route path="events/:eventId/zone-purchase" element={<ZonePurchase />} />
@@ -127,14 +127,17 @@ function App() {
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="events" element={<EventOversight />} />
+        <Route path="events" element={<AdminEvents />} />
         <Route path="venues" element={<VenueOversight />} />
         <Route path="monitoring" element={<SystemMonitoring />} />
-        <Route path="events" element={<AdminEvents />} />
         <Route path="logs" element={<Logs />} />
         <Route path="organizations" element={<OrganizationsManagement />} />
         <Route path="approvals" element={<OrganizationApproval />} />
         <Route path="users" element={<UserManagement />} />
+        <Route path="refunds" element={<AdminRefunds />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="notifications" element={<Notifications />} />
       </Route>
 
       {/* Catch-all */}

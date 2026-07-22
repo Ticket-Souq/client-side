@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { HeaderProps } from '../../types'
 import { Avatar } from '../../display/Avatar/Avatar'
+import { NotificationService } from '../../../../features/notifications/services/notificationService'
 import styles from './Header.module.css'
+import badgeStyles from '../../../../features/notifications/notifications.module.css'
 
 const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
   customer: [
@@ -42,6 +44,11 @@ export const Header: React.FC<HeaderProps> = ({ role, links, avatarInitials = 'A
   const navLinks = links.length > 0 ? links : (ROLE_LINKS[role] || ROLE_LINKS.customer)
   const notificationsPath = NOTIFICATIONS_PATH[role] || '/customer/notifications'
   const settingsPath = SETTINGS_PATH[role] || '/customer/settings'
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    NotificationService.getUnreadCount(role).then(setUnreadCount).catch(() => {})
+  }, [role])
 
   return (
     <header className={styles.header}>
@@ -62,7 +69,10 @@ export const Header: React.FC<HeaderProps> = ({ role, links, avatarInitials = 'A
           ))}
         </nav>
         <div className={styles.actions}>
-          <Link to={notificationsPath} className="btn btn-ghost">Notifications</Link>
+          <Link to={notificationsPath} className="btn btn-ghost" style={{ position: 'relative' }}>
+            Notifications
+            {unreadCount > 0 && <span className={badgeStyles.badge}>{unreadCount}</span>}
+          </Link>
           <Link to={settingsPath} className="btn btn-ghost">Settings</Link>
           <Link to="/customer/profile"><Avatar initials={avatarInitials} size="sm" /></Link>
         </div>
