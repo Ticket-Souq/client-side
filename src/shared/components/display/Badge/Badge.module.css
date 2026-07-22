@@ -1,0 +1,20 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 500;
+  height: 28px;
+  white-space: nowrap;
+}
+.yellow { background: #ffc629; color: #15150f; }
+.ink { background: #15150f; color: #ffffff; }
+.soft { background: #f0efe8; color: #726f63; }
+.green { background: #e8f5e9; color: #2e7d32; }
+.red { background: #ffebee; color: #c62828; }
+.orange { background: #fff3e0; color: #e65100; }

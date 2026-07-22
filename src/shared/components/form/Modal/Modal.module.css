@@ -1,0 +1,33 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.content {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 36px;
+  width: 100%;
+  max-width: 540px;
+  position: relative;
+}
+.title { font-size: 22px; font-weight: 600; margin: 0 0 24px; }
+.close {
+  position: absolute;
+  top: 18px; right: 18px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  color: #726f63;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.actions { display: flex; gap: 14px; justify-content: flex-end; margin-top: 28px; }

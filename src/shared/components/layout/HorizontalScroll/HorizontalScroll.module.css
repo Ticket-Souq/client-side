@@ -1,0 +1,9 @@
+.scroll {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  padding: 4px 4px 14px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }

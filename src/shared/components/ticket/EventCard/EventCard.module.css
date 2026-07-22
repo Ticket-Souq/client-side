@@ -1,0 +1,70 @@
+/* Scroll variant (hover-reveal ecard) */
+.scrollCard {
+  position: relative;
+  flex: 0 0 340px;
+  height: 230px;
+  border-radius: 14px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  cursor: pointer;
+  background: #efece1;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.artWrap {
+  position: absolute;
+  inset: 0;
+}
+.corner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #15150f;
+  z-index: 2;
+}
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 60%;
+  background: linear-gradient(to top, rgba(10,10,7,0.94) 20%, rgba(10,10,7,0));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 22px;
+  transform: translateY(14px);
+  opacity: 0;
+  transition: transform 260ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease;
+  pointer-events: none;
+}
+.scrollCard:hover .overlay { transform: translateY(0); opacity: 1; }
+.scrollCard:hover .artWrap { filter: brightness(0.85) saturate(1.05); }
+.evTitle { color: #ffffff; font-size: 17px; font-weight: 600; margin: 0 0 8px; }
+.evMeta { color: rgba(255,255,255,0.7); font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.02em; }
+
+/* Grid variant (always-visible card) */
+.gridCard {
+  background: #ffffff;
+  border: 1px solid #eae7dc;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.gridCard:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.gridBody { padding: 18px 21px 21px; }
+.gridBody :global(.badge) { margin-bottom: 9px; }
+.gridTitle { font-size: 18px; font-weight: 600; color: #15150f; margin: 0 0 5px; }
+.gridMeta { font-size: 15px; color: #726f63; margin: 0 0 9px; }
+.gridPrice { font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 600; color: #15150f; margin: 0 0 16px; }
