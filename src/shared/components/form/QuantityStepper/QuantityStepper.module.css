@@ -1,0 +1,30 @@
+.qtyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #eae7dc;
+  background: #ffffff;
+  font-size: 18px;
+  color: #15150f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease;
+  font-family: 'Inter', sans-serif;
+  line-height: 1;
+}
+.btn:hover { background: #fff6d9; }
+.value { font-size: 18px; font-weight: 600; color: #15150f; min-width: 24px; text-align: center; }
+.label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #726f63; }

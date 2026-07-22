@@ -1,0 +1,24 @@
+.tableWrap { overflow-x: auto; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.table th {
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #726f63;
+  padding: 14px 20px;
+  border-bottom: 1px solid #eae7dc;
+  font-weight: 500;
+}
+.table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eae7dc;
+  color: #15150f;
+}
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: #fafaf7; }

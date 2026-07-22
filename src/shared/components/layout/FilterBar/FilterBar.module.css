@@ -1,0 +1,13 @@
+.bar {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.bar :global(.form-input),
+.bar :global(.form-select) { width: auto; min-width: 200px; }
+@media (max-width: 860px) {
+  .bar :global(.form-input),
+  .bar :global(.form-select) { width: 100%; }
+}
