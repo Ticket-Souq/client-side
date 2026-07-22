@@ -7,8 +7,8 @@ import AdminLayout from './layouts/AdminLayout'
 
 import Login from './features/auth/pages/Login'
 import Register from './features/auth/pages/Register'
-import OrganizationRegister from './features/auth/pages/OrganizationRegister'
 import ForgotPassword from './features/auth/pages/ForgotPassword'
+import ResetPassword from './features/auth/pages/ResetPassword'
 import EmailVerification from './features/auth/pages/EmailVerification'
 import ChangePassword from './features/auth/pages/ChangePassword'
 
@@ -50,8 +50,8 @@ function App() {
         <Route index element={<Navigate to="login" replace />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        <Route path="register/organization" element={<OrganizationRegister />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
         <Route path="verify-email" element={<EmailVerification />} />
         <Route path="change-password" element={<ChangePassword />} />
       </Route>

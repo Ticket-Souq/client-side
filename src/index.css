@@ -2,6 +2,19 @@
 @import './shared/theme.css';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
 
+/* ticketsmarche design tokens */
+:root {
+  --white: #ffffff;
+  --ink: #15150f;
+  --ink-soft: #3c3b34;
+  --text-secondary: #726f63;
+  --border: #eae7dc;
+  --yellow: #ffc629;
+  --yellow-deep: #e0a600;
+  --yellow-pale: #fff6d9;
+  --radius: 14px;
+}
+
 html {
   scroll-behavior: smooth;
 }

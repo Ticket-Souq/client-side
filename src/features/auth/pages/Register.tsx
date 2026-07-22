@@ -1,87 +1,135 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { API } from "../../../shared/api";
-import { validate } from "../../../shared/validation";
-import type { FieldRule } from "../../../shared/validation";
-import LoadingOverlay from "../../../shared/LoadingOverlay";
-import ErrorPopup from "../../../shared/ErrorPopup";
-import { parseError, type ErrorData } from "../../../shared/apiError";
-import { fetchWithTimeout } from "../../../shared/fetchWithTimeout";
-import PasswordField from "../components/PasswordField.tsx";
-import HeroBanner from "../components/HeroBanner.tsx";
-import AuthCard from "../components/AuthCard.tsx";
-import TextField from "../components/TextField.tsx";
-
-const nameRules: FieldRule = { required: true, minLength: 3, maxLength: 50 };
-const emailRules: FieldRule = { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, patternMessage: "Enter a valid email" };
-const pwdRules: FieldRule = { required: true, minLength: 8 };
+import { useState, useCallback } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { fetchWithTimeout } from '../../../shared/fetchWithTimeout';
+import { parseError } from '../../../shared/apiError';
+import LoadingOverlay from '../../../shared/LoadingOverlay';
+import ErrorPopup from '../../../shared/ErrorPopup';
+import AuthCard from '../components/AuthCard';
+import AuthCardHeader from '../components/AuthCardHeader';
+import AuthTextField from '../components/AuthTextField';
+import AuthPasswordField from '../components/AuthPasswordField';
+import AuthSubmitButton from '../components/AuthSubmitButton';
+import AuthTabs from '../components/AuthTabs';
+import { useAuthForm } from '../hooks/useAuthForm';
+import { emailRules, passwordRules, nameRules, orgNameRules } from '../schemas/auth.schemas';
+import type { AuthTabType } from '../types/auth.types';
+import { API } from '../../../shared/api';
 
 export default function Register() {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<ErrorData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [nTouched, setNTouched] = useState(false);
-  const [eTouched, setETouched] = useState(false);
-  const [pTouched, setPTouched] = useState(false);
+  const [tab, setTab] = useState<AuthTabType>('customer');
 
-  const nErr = nTouched ? validate(name, nameRules) : null;
-  const eErr = eTouched ? validate(email, emailRules) : null;
-  const pErr = pTouched ? validate(password, pwdRules) : null;
+  const baseFields = [
+    { name: 'email', rules: emailRules },
+    { name: 'password', rules: passwordRules },
+    { name: 'confirmPassword', rules: passwordRules },
+  ];
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setNTouched(true);
-    setETouched(true);
-    setPTouched(true);
-    if (validate(name, nameRules) || validate(email, emailRules) || validate(password, pwdRules)) return;
+  const customerFields = [{ name: 'name', rules: nameRules }, ...baseFields];
+  const orgFields = [
+    { name: 'orgName', rules: orgNameRules },
+    { name: 'name', rules: nameRules },
+    ...baseFields,
+  ];
 
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await fetchWithTimeout(API.auth.register, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-      if (!res.ok) throw await parseError(res);
-      navigate(`/auth/verify-email?email=${encodeURIComponent(email)}`);
-    } catch (err: any) {
-      setError(err.status ? err : { status: 0, error: "Error", message: err.message });
-      setLoading(false);
-    }
-  };
+  const fields = tab === 'customer' ? customerFields : orgFields;
+
+  const { values, errors, handleChange, handleBlur, handleSubmit, loading, error, setError } =
+    useAuthForm({
+      fields,
+      onSubmit: async (vals) => {
+        if (vals.password !== vals.confirmPassword) {
+          throw { status: 422, error: 'Validation Error', message: 'Passwords do not match' };
+        }
+
+        const payload: Record<string, string> = {
+          name: vals.name,
+          email: vals.email,
+          password: vals.password,
+        };
+        if (tab === 'organization') {
+          payload.OrganizationName = vals.orgName;
+        }
+
+        const res = await fetchWithTimeout(API.auth.register, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw await parseError(res);
+        navigate(`/auth/verify-email?email=${encodeURIComponent(vals.email)}`);
+      },
+    });
+
+  const handleTabChange = useCallback(
+    (newTab: AuthTabType) => {
+      setTab(newTab);
+    },
+    []
+  );
 
   return (
-    <div className="min-vh-100 d-flex flex-column">
-      {loading && <LoadingOverlay message="Creating your account…" />}
+    <>
+      {loading && <LoadingOverlay message="Creating your account..." />}
       <ErrorPopup error={error} onClose={() => setError(null)} />
-      <HeroBanner title="Create Account" subtitle="Join TicketSouq as a customer" />
-      <AuthCard
-        footer={
-          <>
-            <p className="text-center mb-1" style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>
-              Registering an organization?{" "}
-              <Link to="/auth/register/organization" style={{ color: "var(--color-accent)", fontWeight: 600 }}>Register as Organization</Link>
-            </p>
-            <p className="text-center mb-0" style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>
-              Already have an account?{" "}
-              <Link to="/auth/login" style={{ color: "var(--color-accent)", fontWeight: 600 }}>Sign in</Link>
-            </p>
-          </>
-        }
-      >
-        <form onSubmit={handleSubmit}>
-          <TextField label="Name" placeholder="Your full name" value={name} onChange={(v) => { setName(v); if (nTouched) setNTouched(true); }} onBlur={() => setNTouched(true)} error={nErr} />
-          <TextField label="Email" type="email" placeholder="you@example.com" value={email} onChange={(v) => { setEmail(v); if (eTouched) setETouched(true); }} onBlur={() => setETouched(true)} error={eErr} />
-          <PasswordField label="Password" placeholder="At least 8 characters" value={password} onChange={(v) => { setPassword(v); if (pTouched) setPTouched(true); }} onBlur={() => setPTouched(true)} error={pErr} />
-          <button type="submit" className="btn btn-accent w-100 py-2 fw-semibold" style={{ fontSize: "15px" }} disabled={loading}>
-            {loading ? "Creating account…" : "Create Account"}
-          </button>
+      <AuthCard>
+        <AuthCardHeader
+          eyebrow="Get started"
+          title="Create your account"
+        />
+        <AuthTabs active={tab} onChange={handleTabChange} />
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {tab === 'organization' && (
+            <AuthTextField
+              label="Organization name"
+              placeholder="Your organization name"
+              value={values.orgName || ''}
+              onChange={(v) => handleChange('orgName', v)}
+              onBlur={() => handleBlur('orgName')}
+              error={errors.orgName}
+            />
+          )}
+          <AuthTextField
+            label="Full name"
+            placeholder="John Doe"
+            value={values.name || ''}
+            onChange={(v) => handleChange('name', v)}
+            onBlur={() => handleBlur('name')}
+            error={errors.name}
+          />
+          <AuthTextField
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            value={values.email}
+            onChange={(v) => handleChange('email', v)}
+            onBlur={() => handleBlur('email')}
+            error={errors.email}
+          />
+          <AuthPasswordField
+            label="Password"
+            value={values.password}
+            onChange={(v) => handleChange('password', v)}
+            onBlur={() => handleBlur('password')}
+            error={errors.password}
+          />
+          <AuthPasswordField
+            label="Confirm password"
+            value={values.confirmPassword || ''}
+            onChange={(v) => handleChange('confirmPassword', v)}
+            onBlur={() => handleBlur('confirmPassword')}
+            error={errors.confirmPassword}
+          />
+          <AuthSubmitButton loading={loading} loadingText="Creating account...">
+            Create account
+          </AuthSubmitButton>
         </form>
+        <div className="auth-card-footer">
+          <p>
+            Already have an account? <Link to="/auth/login">Sign in</Link>
+          </p>
+        </div>
       </AuthCard>
-    </div>
+    </>
   );
 }
