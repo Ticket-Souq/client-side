@@ -1,0 +1,16 @@
+.profile-page{padding:37px 0 74px;}
+.profile-card{display:flex;gap:32px;align-items:flex-start;}
+.profile-card-main{flex:1;}
+.profile-name{font-size:25px;font-weight:600;margin:0 0 5px;}
+.profile-detail{font-size:16px;color:var(--ink-soft);margin:0 0 2px;}
+.profile-detail strong{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-secondary);font-weight:500;}
+.profile-meta{display:flex;gap:18px;align-items:center;margin:18px 0 23px;}
+.profile-meta span{font-size:15px;color:var(--text-secondary);}
+.profile-actions{display:flex;gap:14px;align-items:center;}
+.danger-card{margin-top:18px;border-color:#ffcdd2;}
+.danger-title{font-size:18px;font-weight:600;color:#c62828;margin:0;}
+.danger-text{font-size:16px;color:var(--text-secondary);margin:9px 0 18px;line-height:1.5;}
+@media (max-width:600px){
+  .profile-card{flex-direction:column;align-items:center;text-align:center;}
+  .profile-actions{justify-content:center;}
+}

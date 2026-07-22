@@ -54,6 +54,7 @@ import OrganizationApproval from './features/admin/pages/OrganizationApproval'
 import UserManagement from './features/admin/pages/UserManagement'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
 import AdminSettings from './features/admin/pages/AdminSettings'
+import AdminProfile from './features/admin/pages/AdminProfile'
 import Profile from './features/profile/pages/Profile'
 import Settings from './features/profile/pages/Settings'
 import Notifications from './features/notifications/pages/Notifications'
@@ -146,7 +147,7 @@ function App() {
         <Route path="approvals" element={<OrganizationApproval />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="refunds" element={<AdminRefunds />} />
-        <Route path="profile" element={<Profile />} />
+        <Route path="profile" element={<AdminProfile />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="notifications" element={<Notifications />} />
       </Route>

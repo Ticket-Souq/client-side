@@ -39,11 +39,18 @@ const SETTINGS_PATH: Record<string, string> = {
   admin: '/admin/settings',
 }
 
+const PROFILE_PATH: Record<string, string> = {
+  customer: '/customer/profile',
+  organizer: '/org/profile',
+  admin: '/admin/profile',
+}
+
 export const Header: React.FC<HeaderProps> = ({ role, links, avatarInitials = 'AN' }) => {
   const location = useLocation()
   const navLinks = links.length > 0 ? links : (ROLE_LINKS[role] || ROLE_LINKS.customer)
   const notificationsPath = NOTIFICATIONS_PATH[role] || '/customer/notifications'
   const settingsPath = SETTINGS_PATH[role] || '/customer/settings'
+  const profilePath = PROFILE_PATH[role] || '/customer/profile'
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
@@ -74,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({ role, links, avatarInitials = 'A
             {unreadCount > 0 && <span className={badgeStyles.badge}>{unreadCount}</span>}
           </Link>
           <Link to={settingsPath} className="btn btn-ghost">Settings</Link>
-          <Link to={`/${role}/profile`}><Avatar initials={avatarInitials} size="sm" /></Link>
+          <Link to={profilePath}><Avatar initials={avatarInitials} size="sm" /></Link>
         </div>
       </div>
     </header>

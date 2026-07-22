@@ -1,0 +1,13 @@
+.profile-admin-page{padding:37px 0 74px;}
+.admin-profile-card{padding:37px 41px;}
+.profile-header{display:flex;gap:32px;align-items:flex-start;}
+.profile-details{display:flex;flex-direction:column;gap:7px;}
+.profile-name{font-size:25px;font-weight:600;margin:0;}
+.profile-email{font-size:16px;color:var(--text-secondary);margin:0;}
+.profile-member{font-size:14px;color:var(--text-secondary);margin:7px 0 0;}
+.profile-links{display:flex;gap:14px;flex-wrap:wrap;}
+@media (max-width:600px){
+  .profile-header{flex-direction:column;align-items:center;text-align:center;}
+  .profile-links{justify-content:center;}
+  .admin-profile-card{padding:28px 23px;}
+}
