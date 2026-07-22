@@ -1,0 +1,66 @@
+import type { Reservation } from '../types/ticket.types'
+
+export const mockReservations: Reservation[] = [
+  {
+    id: 'res-1',
+    eventTitle: 'Jazz Night Under the Stars',
+    date: 'Aug 15, 2026 · 8:00 PM',
+    venue: 'Grand Hall Amphitheatre',
+    ticketCount: 2,
+    totalPrice: 'EGP 3,000',
+    status: 'confirmed',
+    tickets: [
+      {
+        id: 'tkt-1a',
+        type: 'seat',
+        tier: 'VIP',
+        tierVariant: 'yellow',
+        row: 'A',
+        seat: '12',
+        price: 'EGP 1,500',
+        ticketCode: 'TKT-JAZZ-VIP-A12',
+      },
+      {
+        id: 'tkt-1b',
+        type: 'seat',
+        tier: 'VIP',
+        tierVariant: 'yellow',
+        row: 'A',
+        seat: '13',
+        price: 'EGP 1,500',
+        ticketCode: 'TKT-JAZZ-VIP-A13',
+      },
+    ],
+  },
+  {
+    id: 'res-2',
+    eventTitle: 'Tech Talks 2026',
+    date: 'Oct 5, 2026 · 9:00 AM',
+    venue: 'Convention Hall A',
+    ticketCount: 2,
+    totalPrice: 'EGP 1,300',
+    status: 'confirmed',
+    tickets: [
+      {
+        id: 'tkt-2a',
+        type: 'zone',
+        tier: 'GA Floor',
+        tierVariant: 'soft',
+        row: 'GA Floor',
+        seat: '—',
+        price: 'EGP 650',
+        ticketCode: 'TKT-TECH-GAF-01',
+      },
+      {
+        id: 'tkt-2b',
+        type: 'zone',
+        tier: 'GA Floor',
+        tierVariant: 'soft',
+        row: 'GA Floor',
+        seat: '—',
+        price: 'EGP 650',
+        ticketCode: 'TKT-TECH-GAF-02',
+      },
+    ],
+  },
+]

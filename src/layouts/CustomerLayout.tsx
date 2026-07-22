@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { getAccessToken } from '../shared/auth'
 import SideDrawer from '../features/home/components/SideDrawer'
@@ -51,7 +51,9 @@ export default function CustomerLayout() {
         </div>
       )}
       <LayoutShell role="customer" navLinks={isAuth ? NAV_LINKS : []}>
-        <Outlet />
+        <Suspense fallback={<div className="text-center py-5" style={{ color: '#726f63' }}>Loading…</div>}>
+          <Outlet />
+        </Suspense>
       </LayoutShell>
     </>
   )

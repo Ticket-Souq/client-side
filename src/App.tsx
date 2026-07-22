@@ -1,3 +1,4 @@
+import { lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 import CustomerLayout from './layouts/CustomerLayout'
@@ -24,8 +25,8 @@ import Checkout from './features/booking/pages/Checkout'
 import PaymentSuccess from './features/booking/pages/PaymentSuccess'
 import PaymentCancel from './features/booking/pages/PaymentCancel'
 
-import MyTickets from './features/tickets/pages/MyTickets'
-import TicketDetail from './features/tickets/pages/TicketDetail'
+const MyTickets = lazy(() => import('./features/tickets/pages/MyTickets'))
+const TicketDetail = lazy(() => import('./features/tickets/pages/TicketDetail'))
 
 import OrgDashboard from './features/organizations/pages/Dashboard'
 import EventManagement from './features/organizations/pages/EventManagement'

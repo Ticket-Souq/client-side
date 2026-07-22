@@ -1,0 +1,332 @@
+/* ─── Base ─── */
+.page {
+  padding: 46px 36px 69px;
+}
+
+/* ─── Page Header ─── */
+.pageHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 37px;
+}
+
+.pageTitle {
+  font-size: 32px;
+  font-weight: 600;
+  color: #15150f;
+  margin: 0;
+}
+
+.notifCount {
+  font-size: 14px;
+  font-weight: 500;
+  color: #15150f;
+  background: #ffc629;
+  border-radius: 999px;
+  padding: 4px 14px;
+}
+
+/* ─── Reservation List ─── */
+.reservationList {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+}
+
+/* ─── Reservation Card ─── */
+.resCard {
+  background: #fff;
+  border: 1px solid #eae7dc;
+  border-radius: 14px;
+}
+
+.resCardBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 32px;
+  gap: 24px;
+}
+
+.resInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.resEvent {
+  font-size: 21px;
+  font-weight: 600;
+  color: #15150f;
+  margin: 0 0 8px;
+}
+
+.resMeta {
+  display: flex;
+  gap: 23px;
+  font-size: 15px;
+  color: #726f63;
+  margin-bottom: 12px;
+}
+
+.resSummary {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.resSeats {
+  font-size: 16px;
+  color: #3c3b34;
+}
+
+.resTotal {
+  font-size: 18px;
+  font-weight: 600;
+  color: #15150f;
+  font-family: 'Inter', sans-serif;
+}
+
+.resAction {
+  flex-shrink: 0;
+}
+
+/* ─── Detail Page ─── */
+.detailPage {
+  padding: 41px 36px 69px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 28px;
+}
+
+/* ─── Detail Header ─── */
+.ticketGroup {
+  margin-bottom: 48px;
+}
+
+.detailHead {
+  margin-bottom: 32px;
+}
+
+.detailEvent {
+  font-size: 28px;
+  font-weight: 600;
+  color: #15150f;
+  margin: 0 0 10px;
+}
+
+.detailMeta {
+  display: flex;
+  gap: 23px;
+  font-size: 16px;
+  color: #726f63;
+  align-items: center;
+}
+
+/* ─── Tickets Grid ─── */
+.ticketsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 23px;
+}
+
+/* ─── Ticket Card ─── */
+.ticketCardDetail {
+  background: #fff;
+  border: 1px solid #eae7dc;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* ─── Art Band ─── */
+.ticketArtBand {
+  height: 55px;
+  background: linear-gradient(135deg, #1a1a14, #2d2d24);
+  position: relative;
+  overflow: hidden;
+}
+
+.beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 1px;
+  background: rgba(255, 198, 41, 0.1);
+  transform: rotate(-20deg);
+  transform-origin: left center;
+}
+
+.beam:nth-child(1) { top: 20%; }
+.beam:nth-child(2) { top: 50%; }
+.beam:nth-child(3) { top: 75%; }
+
+/* ─── Ticket Body ─── */
+.ticketBody {
+  display: flex;
+  padding: 23px 28px;
+  gap: 28px;
+}
+
+.ticketLeft {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ticketLabel {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #726f63;
+  margin-top: 8px;
+}
+
+.ticketLabel:first-of-type {
+  margin-top: 12px;
+}
+
+.ticketValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: #15150f;
+}
+
+.ticketRight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ticketCode {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: #726f63;
+  text-align: center;
+}
+
+/* ─── Stub Notches ─── */
+.ticketStubNotch {
+  position: relative;
+  height: 0;
+}
+
+.stubNotchTop,
+.stubNotchBottom {
+  position: absolute;
+  width: 23px;
+  height: 12px;
+  border: 1px solid #eae7dc;
+  background: #fff;
+}
+
+.stubNotchTop {
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 0 0 999px 999px;
+  border-top: none;
+}
+
+.stubNotchBottom {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(50%);
+  border-radius: 999px 999px 0 0;
+  border-bottom: none;
+}
+
+/* ─── Loading / Error / Empty ─── */
+.loading {
+  text-align: center;
+  padding: 60px 0;
+  color: #726f63;
+}
+
+.error {
+  text-align: center;
+  padding: 60px 0;
+  color: #dc2626;
+}
+
+.error button {
+  margin-top: 16px;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 0;
+  color: #726f63;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #15150f;
+  margin: 0 0 8px;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 860px) {
+  .page {
+    padding: 36px 24px 60px;
+  }
+
+  .detailPage {
+    padding: 32px 24px 60px;
+  }
+
+  .resCardBody {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px 24px;
+  }
+
+  .resAction {
+    align-self: stretch;
+  }
+
+  .resAction button,
+  .resAction a {
+    width: 100%;
+  }
+
+  .resMeta {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .resSummary {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .ticketsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ticketBody {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .ticketLeft {
+    align-items: center;
+  }
+
+  .detailMeta {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+}
