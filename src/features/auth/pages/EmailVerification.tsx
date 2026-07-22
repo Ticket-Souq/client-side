@@ -24,7 +24,7 @@ export default function EmailVerification() {
   const [sendLoading, setSendLoading] = useState(false);
   const autoSent = useRef(false);
 
-  const { values, errors, handleChange, handleBlur, handleSubmit, loading, error, setError } =
+  const { values, errors, handleChange, handleSubmit, loading, error, setError } =
     useAuthForm({
       fields: [{ name: 'token', rules: requiredRules }],
       onSubmit: async (vals) => {

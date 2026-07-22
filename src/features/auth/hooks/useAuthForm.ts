@@ -1,7 +1,7 @@
 import { useState, useCallback, type FormEvent } from 'react';
 import { validate } from '../../../shared/validation';
 import type { FieldRule } from '../../../shared/validation';
-import { parseError, type ErrorData } from '../../../shared/apiError';
+import type { ErrorData } from '../../../shared/apiError';
 
 interface FieldConfig {
   name: string;

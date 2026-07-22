@@ -38,8 +38,8 @@ function CustomerInner({
   const [openVenue, setOpenVenue] = useState<SeatMap | null>(null);
 
   useEffect(() => {
-    listVenuesByOrg(customer.id)
-      .then(setVenues)
+    listVenuesByOrg(customer.id, 0, 100)
+      .then((res) => setVenues(res.content))
       .catch(() => setVenues([]));
   }, [customer.id]);
 
@@ -179,18 +179,6 @@ function BookingView({
       return next;
     });
   };
-
-  const total = useMemo(() => {
-    let t = 0;
-    for (const row of map.rows) {
-      for (const c of row.cells) {
-        if (c.type === "seat" && selected.has(c.id)) {
-          t += 1;
-        }
-      }
-    }
-    return t;
-  }, [selected, map]);
 
   return (
     <div className="p-6">

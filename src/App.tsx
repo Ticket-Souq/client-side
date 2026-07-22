@@ -5,6 +5,8 @@ import OrganizerLayout from './layouts/OrganizerLayout'
 import AuthLayout from './layouts/AuthLayout'
 import AdminLayout from './layouts/AdminLayout'
 
+import Landing from './features/home/pages/Landing'
+
 import Login from './features/auth/pages/Login'
 import Register from './features/auth/pages/Register'
 import ForgotPassword from './features/auth/pages/ForgotPassword'
@@ -15,6 +17,8 @@ import ChangePassword from './features/auth/pages/ChangePassword'
 import Home from './features/home/pages/Home'
 import EventDetail from './features/events/pages/EventDetail'
 import EventSelect from './features/events/pages/EventSelect'
+import Outlets from './features/events/pages/Outlets'
+import Contact from './features/events/pages/Contact'
 
 import Checkout from './features/booking/pages/Checkout'
 import PaymentSuccess from './features/booking/pages/PaymentSuccess'
@@ -37,14 +41,26 @@ import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import OrganizationApproval from './features/admin/pages/OrganizationApproval'
 import UserManagement from './features/admin/pages/UserManagement'
+import EventOversight from './features/admin/pages/EventOversight'
+import VenueOversight from './features/admin/pages/VenueOversight'
+import SystemMonitoring from './features/admin/pages/SystemMonitoring'
 
 import Profile from './features/profile/pages/Profile'
+import Settings from './features/profile/pages/Settings'
 import Notifications from './features/notifications/pages/Notifications'
 import Reservations from './features/reservations/pages/Reservations'
+
+import Unauthorized401 from './features/errors/pages/Unauthorized401'
+import Forbidden403 from './features/errors/pages/Forbidden403'
+import NotFound404 from './features/errors/pages/NotFound404'
+import ServerError500 from './features/errors/pages/ServerError500'
 
 function App() {
   return (
     <Routes>
+      {/* Landing (public, root) */}
+      <Route path="/" element={<Landing />} />
+
       {/* Auth */}
       <Route path="auth" element={<AuthLayout />}>
         <Route index element={<Navigate to="login" replace />} />
@@ -56,12 +72,29 @@ function App() {
         <Route path="change-password" element={<ChangePassword />} />
       </Route>
 
+      {/* Error pages */}
+      <Route path="401" element={<AuthLayout />}>
+        <Route index element={<Unauthorized401 />} />
+      </Route>
+      <Route path="403" element={<AuthLayout />}>
+        <Route index element={<Forbidden403 />} />
+      </Route>
+      <Route path="404" element={<AuthLayout />}>
+        <Route index element={<NotFound404 />} />
+      </Route>
+      <Route path="500" element={<AuthLayout />}>
+        <Route index element={<ServerError500 />} />
+      </Route>
+
       {/* Customer */}
-      <Route path="/" element={<CustomerLayout />}>
+      <Route path="customer" element={<CustomerLayout />}>
         <Route index element={<Home />} />
         <Route path="events" element={<Home />} />
         <Route path="events/:eventId" element={<EventDetail />} />
         <Route path="events/:eventId/select" element={<EventSelect />} />
+        <Route path="outlets" element={<Outlets />} />
+        <Route path="contact" element={<Contact />} />
+        <Route path="settings" element={<Settings />} />
         <Route path="booking/checkout" element={<Checkout />} />
         <Route path="booking/success" element={<PaymentSuccess />} />
         <Route path="booking/cancel" element={<PaymentCancel />} />
@@ -89,6 +122,9 @@ function App() {
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="events" element={<EventOversight />} />
+        <Route path="venues" element={<VenueOversight />} />
+        <Route path="monitoring" element={<SystemMonitoring />} />
         <Route path="logs" element={<Logs />} />
         <Route path="organizations" element={<OrganizationsManagement />} />
         <Route path="approvals" element={<OrganizationApproval />} />

@@ -1,0 +1,611 @@
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid #eae7dc;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  color: #15150f;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ffc629;
+  display: inline-block;
+}
+
+.navLinks {
+  display: flex;
+  gap: 36px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.navLinks a {
+  color: #3c3b34;
+  position: relative;
+  padding: 4px 0;
+  text-decoration: none;
+}
+
+.navLinks a:hover {
+  color: #15150f;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 150ms ease, background 150ms ease;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btnPrimary {
+  background: #ffc629;
+  color: #15150f;
+}
+
+.btnPrimary:hover {
+  background: #e0a600;
+}
+
+.btnGhost {
+  background: transparent;
+  color: #15150f;
+  font-weight: 500;
+}
+
+.btnGhost:hover {
+  color: #726f63;
+}
+
+.heroSection {
+  padding: 56px 0 72px;
+}
+
+.heroEyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #726f63;
+  margin: 0 0 20px;
+}
+
+.ticketCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  min-height: 460px;
+  background: #15150f;
+  border-radius: 20px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ticketArt {
+  position: relative;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(255, 198, 41, 0.55), transparent 45%),
+    radial-gradient(circle at 75% 70%, rgba(255, 198, 41, 0.28), transparent 50%),
+    linear-gradient(135deg, #1c1c14, #0d0d09 70%);
+}
+
+.ticketArt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 34px);
+}
+
+.beam {
+  position: absolute;
+  width: 2px;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(rgba(255, 198, 41, 0.5), transparent);
+}
+
+.beam:nth-child(1) { left: 22%; }
+.beam:nth-child(2) { left: 58%; }
+.beam:nth-child(3) { left: 81%; }
+
+.ticketMainContent {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  bottom: 36px;
+  color: #ffffff;
+}
+
+.ticketTag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255, 198, 41, 0.16);
+  color: #ffc629;
+  border: 1px solid rgba(255, 198, 41, 0.4);
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+
+.ticketTitle {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  line-height: 0.95;
+  margin: 0 0 14px;
+  max-width: 560px;
+}
+
+.ticketMeta {
+  display: flex;
+  gap: 28px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.ticketMeta span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticketStub {
+  position: relative;
+  background: #1c1c14;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 28px;
+  color: #ffffff;
+}
+
+.ticketStub::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 2px dashed rgba(255, 255, 255, 0.22);
+}
+
+.stubNotch {
+  position: absolute;
+  left: -14px;
+  width: 28px;
+  height: 28px;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+.stubNotchTop {
+  top: -14px;
+}
+
+.stubNotchBottom {
+  bottom: -14px;
+}
+
+.stubRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stubLabel {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.stubValue {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.stubPrice {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  color: #ffc629;
+  margin: 0;
+}
+
+.stubCta {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.rowSection {
+  padding: 52px 0;
+}
+
+.rowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.rowTitle {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.rowSeeall {
+  font-size: 13px;
+  font-weight: 600;
+  color: #726f63;
+  text-decoration: none;
+}
+
+.rowSeeall:hover {
+  color: #15150f;
+}
+
+.rowSeeallArrow {
+  margin-left: 4px;
+}
+
+.hscroll {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 4px 4px 12px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+.ecard {
+  position: relative;
+  flex: 0 0 220px;
+  height: 290px;
+  border-radius: 14px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  cursor: pointer;
+  background: #efece1;
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+}
+
+.corner {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: #15150f;
+  z-index: 2;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 60%;
+  background: linear-gradient(to top, rgba(10, 10, 7, 0.94) 20%, rgba(10, 10, 7, 0));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px;
+  transform: translateY(14px);
+  opacity: 0;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+  pointer-events: none;
+}
+
+.ecard:hover .overlay {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.ecard:hover .art {
+  filter: brightness(0.85) saturate(1.05);
+}
+
+.art {
+  transition: filter 260ms ease;
+}
+
+.evTitle {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.evMeta {
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.artWaves {
+  background: radial-gradient(circle at 70% 20%, #ffd766, #e0a600 60%, #15150f 130%);
+}
+
+.artWaves::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(21, 21, 15, 0.18) 2px, transparent 2px);
+  background-size: 16px 16px;
+}
+
+.artBeams {
+  background: linear-gradient(200deg, #15150f, #3a3626);
+}
+
+.artBeams::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(70deg, rgba(255, 198, 41, 0.35) 0 3px, transparent 3px 26px);
+}
+
+.artGrid {
+  background: linear-gradient(160deg, #1c1c14, #0d0d09);
+}
+
+.artGrid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 198, 41, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 198, 41, 0.18) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.artConfetti {
+  background: linear-gradient(160deg, #fff6d9, #ffdb70);
+}
+
+.artConfetti::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(rgba(21, 21, 15, 0.15) 3px, transparent 3px),
+    radial-gradient(rgba(255, 255, 255, 0.6) 3px, transparent 3px);
+  background-size: 30px 30px, 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+.portalSection {
+  padding: 52px 0;
+  text-align: center;
+}
+
+.portalSectionTitle {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.portalSectionDesc {
+  font-size: 14px;
+  color: #726f63;
+  margin: 0 0 32px;
+}
+
+.portalGrid {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.portalCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #eae7dc;
+  border-radius: 14px;
+  padding: 28px 24px;
+  width: 240px;
+  cursor: pointer;
+  transition: border-color 200ms ease, transform 150ms ease;
+  text-decoration: none;
+}
+
+.portalCard:hover {
+  border-color: #ffc629;
+  transform: translateY(-4px);
+}
+
+.portalIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff6d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.portalName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #15150f;
+  margin-bottom: 6px;
+}
+
+.portalDesc {
+  font-size: 12px;
+  color: #726f63;
+  line-height: 1.4;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.portalBtn {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffc629;
+}
+
+.portalCard:hover .portalBtn {
+  color: #e0a600;
+}
+
+.siteFooter {
+  border-top: 1px solid #eae7dc;
+  padding: 48px 0;
+  margin-top: 40px;
+}
+
+.footGrid {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+
+.footCols {
+  display: flex;
+  gap: 64px;
+}
+
+.footCol h4 {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #726f63;
+  margin: 0 0 14px;
+  font-weight: 600;
+}
+
+.footCol a {
+  display: block;
+  font-size: 14px;
+  color: #3c3b34;
+  margin-bottom: 10px;
+  text-decoration: none;
+}
+
+.footCol a:hover {
+  color: #15150f;
+}
+
+.footBottom {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid #eae7dc;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #726f63;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+@media (max-width: 860px) {
+  .ticketCard {
+    grid-template-columns: 1fr;
+  }
+
+  .ticketStub {
+    border-top: 2px dashed rgba(255, 255, 255, 0.22);
+  }
+
+  .ticketStub::before {
+    display: none;
+  }
+
+  .ticketTitle {
+    font-size: 44px;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .wrap {
+    padding: 0 20px;
+  }
+
+  .footCols {
+    gap: 36px;
+    flex-wrap: wrap;
+  }
+
+  .footBottom {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}

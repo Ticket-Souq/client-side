@@ -7,7 +7,6 @@ import {
   createVenue,
   getVenueById,
   listVenuesByOrg,
-  updateVenue,
   deleteVenue,
   listVenueTemplates,
   createVenueTemplate,

@@ -1,53 +1,59 @@
 import { useState } from 'react'
-import { Outlet, Link, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { getAccessToken } from '../shared/auth'
 import SideDrawer from '../features/home/components/SideDrawer'
+import { LayoutShell } from '../shared/components/layout/LayoutShell'
+import type { NavLink } from '../shared/components/types'
+
+const NAV_LINKS: NavLink[] = [
+  { label: 'Dashboard', href: '/org/dashboard' },
+  { label: 'Events', href: '/org/events' },
+  { label: 'Venues', href: '/org/venues' },
+  { label: 'Organization', href: '/org/team' },
+]
 
 export default function OrganizerLayout() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const navigate = useNavigate();
-  const isAuth = !!getAccessToken();
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const navigate = useNavigate()
+  const isAuth = !!getAccessToken()
 
   return (
-    <div className="min-vh-100 d-flex flex-column">
-      {isAuth && <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />}
-      <nav className="navbar navbar-expand navbar-light bg-white nav-bar-shadow px-4">
-        {isAuth ? (
+    <>
+      {isAuth && (
+        <>
+          <div className="d-lg-none">
+            <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+          </div>
+          <div className="d-lg-none position-fixed" style={{ top: 22, left: 16, zIndex: 60 }}>
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="btn p-0 border-0"
+              style={{ fontSize: '22px', lineHeight: 1, color: 'var(--ink, #15150f)' }}
+              aria-label="Open menu"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M3 6h18" />
+                <path d="M3 12h18" />
+                <path d="M3 18h18" />
+              </svg>
+            </button>
+          </div>
+        </>
+      )}
+      {!isAuth && (
+        <div className="d-lg-none position-fixed" style={{ top: 22, right: 16, zIndex: 60 }}>
           <button
-            onClick={() => setDrawerOpen(true)}
-            className="btn p-0 border-0 me-3"
-            style={{ fontSize: '22px', lineHeight: 1, color: 'var(--color-text)' }}
-            aria-label="Open menu"
+            onClick={() => navigate('/auth/login')}
+            className="btn btn-primary btn-sm fw-semibold px-3 border-0"
+            style={{ fontSize: '13px', background: '#ffc629', color: '#15150f', borderRadius: '999px', height: '36px' }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M3 6h18" />
-              <path d="M3 12h18" />
-              <path d="M3 18h18" />
-            </svg>
+            Sign In
           </button>
-        ) : (
-          <div className="me-3" style={{ width: '22px' }} />
-        )}
-        <Link to="/" className="navbar-brand fw-bold" style={{ color: '#E2A30F' }}>
-          TicketSouq
-        </Link>
-        {!isAuth && (
-          <ul className="navbar-nav ms-auto align-items-center">
-            <li className="nav-item">
-              <button
-                onClick={() => navigate('/auth/login')}
-                className="btn btn-accent btn-sm fw-semibold px-3 border-0"
-                style={{ fontSize: '13px' }}
-              >
-                Sign In
-              </button>
-            </li>
-          </ul>
-        )}
-      </nav>
-      <main className="flex-grow-1 d-flex flex-column">
+        </div>
+      )}
+      <LayoutShell role="organizer" navLinks={isAuth ? NAV_LINKS : []}>
         <Outlet />
-      </main>
-    </div>
+      </LayoutShell>
+    </>
   )
 }

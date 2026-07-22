@@ -25,13 +25,13 @@ export default function PaymentCancel() {
       <div className="d-flex gap-3 justify-content-center">
         <button
           className="btn btn-accent px-4"
-          onClick={() => navigate("/booking/checkout", { state })}
+          onClick={() => navigate("/customer/booking/checkout", { state })}
         >
           Try Again
         </button>
         <button
           className="btn btn-outline-accent px-4"
-          onClick={() => navigate("/events")}
+          onClick={() => navigate("/customer/events")}
         >
           Browse Events
         </button>

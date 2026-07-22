@@ -40,13 +40,13 @@ export default function PaymentSuccess() {
       <div className="d-flex gap-3 justify-content-center">
         <button
           className="btn btn-accent px-4"
-          onClick={() => navigate("/tickets")}
+          onClick={() => navigate("/customer/tickets")}
         >
           View My Tickets
         </button>
         <button
           className="btn btn-outline-accent px-4"
-          onClick={() => navigate("/events")}
+          onClick={() => navigate("/customer/events")}
         >
           Browse Events
         </button>

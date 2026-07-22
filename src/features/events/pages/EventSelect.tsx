@@ -27,7 +27,7 @@ export default function EventSelect() {
     return (
       <div className="container py-5 text-center text-secondary-custom">
         <h2>Event not found</h2>
-        <button className="btn btn-accent mt-3" onClick={() => navigate("/events")}>
+        <button className="btn btn-accent mt-3" onClick={() => navigate("/customer/events")}>
           ← Back to events
         </button>
       </div>
@@ -50,7 +50,7 @@ export default function EventSelect() {
               padding: "6px 14px",
               fontSize: "13px",
             }}
-            onClick={() => navigate(`/events/${event.id}`)}
+            onClick={() => navigate(`/customer/events/${event.id}`)}
           >
             ← Back
           </button>
@@ -96,7 +96,7 @@ export default function EventSelect() {
               className="btn btn-accent w-100 mt-3 py-2 fw-semibold"
               style={{ fontSize: "15px" }}
               onClick={() =>
-                navigate("/booking/checkout", {
+                navigate("/customer/booking/checkout", {
                   state: {
                     seats: selectedSeats,
                     eventId: event.id,

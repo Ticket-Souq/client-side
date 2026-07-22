@@ -16,7 +16,7 @@ export default function EventDetail() {
       <div className="container py-5 text-center text-secondary-custom">
         <h2>Event not found</h2>
         <p className="mt-2">This event doesn't exist or has been removed.</p>
-        <button className="btn btn-accent mt-3" onClick={() => navigate("/events")}>
+        <button className="btn btn-accent mt-3" onClick={() => navigate("/customer/events")}>
           ← Back to events
         </button>
       </div>
@@ -139,7 +139,7 @@ export default function EventDetail() {
               <button
                 className="btn btn-accent w-100 py-2 fw-semibold"
                 style={{ fontSize: "15px" }}
-                onClick={() => navigate(`/events/${event.id}/select`)}
+                onClick={() => navigate(`/customer/events/${event.id}/select`)}
               >
                 Select Seats
               </button>

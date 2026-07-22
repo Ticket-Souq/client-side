@@ -3,7 +3,6 @@ import {
   Undo2,
   Redo2,
   Pencil,
-  Play,
   ZoomOut,
   ZoomIn,
   PanelLeft,
@@ -109,7 +108,7 @@ function TopBar({
   onToggleRight: () => void;
 }) {
   const { state, dispatch } = useVenue();
-  const { map, mode, zoom, history } = state;
+  const { map, zoom, history } = state;
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
 

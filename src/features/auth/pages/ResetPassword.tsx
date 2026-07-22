@@ -14,7 +14,6 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
-  const email = searchParams.get('email') ?? '';
 
   const { values, errors, handleChange, handleBlur, handleSubmit, loading, error, setError } =
     useAuthForm({

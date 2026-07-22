@@ -10,7 +10,7 @@ export default function EventCard({ event }: EventCardProps) {
 
   return (
     <div
-      onClick={() => navigate(`/events/${event.id}`)}
+      onClick={() => navigate(`/customer/events/${event.id}`)}
       className="card h-100 border-0 shadow"
       style={{ cursor: "pointer" }}
     >

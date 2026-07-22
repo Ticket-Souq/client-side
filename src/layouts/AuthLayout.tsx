@@ -58,7 +58,7 @@ function AuthFooter() {
         <div className="auth-foot-cols">
           <div className="auth-foot-col">
             <h4>Discover</h4>
-            <Link to="/events">Events</Link>
+            <Link to="/customer/events">Events</Link>
             <a href="#">Outlets</a>
             <a href="#">Categories</a>
           </div>

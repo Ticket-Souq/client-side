@@ -59,7 +59,7 @@ function CheckoutForm({ seats, event, total }: { seats: SeatObject[]; event: typ
           clientSecret: payment.clientSecret,
           redirect: "if_required",
           confirmParams: {
-            return_url: `${window.location.origin}/booking/success`,
+            return_url: `${window.location.origin}/customer/booking/success`,
           },
         });
 
@@ -70,11 +70,11 @@ function CheckoutForm({ seats, event, total }: { seats: SeatObject[]; event: typ
       }
 
       if (paymentIntent?.status === "succeeded") {
-        navigate("/booking/success", {
+        navigate("/customer/booking/success", {
           state: { paymentID: payment.paymentID, seats, event, total },
         });
       } else {
-        navigate("/booking/cancel", { state: { seats, eventId: event.id } });
+        navigate("/customer/booking/cancel", { state: { seats, eventId: event.id } });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -185,7 +185,7 @@ export default function Checkout() {
         <h2>No reservation data found</h2>
         <button
           className="btn btn-accent mt-3"
-          onClick={() => navigate("/events")}
+          onClick={() => navigate("/customer/events")}
         >
           Browse Events
         </button>

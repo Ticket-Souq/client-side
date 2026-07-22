@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API } from '../../../shared/api';
 import { fetchWithTimeout } from '../../../shared/fetchWithTimeout';
@@ -42,7 +42,7 @@ export default function Login() {
         const data = await res.json();
         setTokens(data.access ?? data.accessToken ?? data.token ?? '', data.refresh ?? data.refreshToken);
         if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/events');
+        navigate('/customer/events');
       },
     });
 

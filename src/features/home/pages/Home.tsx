@@ -169,7 +169,7 @@ export default function Home() {
             <div className="row g-4">
               {results.map((event) => (
                 <div key={event.id} className="col-12 col-sm-6 col-lg-4">
-                  <EventCard event={event} onClick={() => navigate(`/events/${event.id}`)} />
+                  <EventCard event={event} onClick={() => navigate(`/customer/events/${event.id}`)} />
                 </div>
               ))}
             </div>
@@ -180,7 +180,7 @@ export default function Home() {
           <div className="row g-4">
             {sorted.map((event) => (
               <div key={event.id} className="col-12 col-sm-6 col-lg-4">
-                <EventCard event={event} onClick={() => navigate(`/events/${event.id}`)} />
+                <EventCard event={event} onClick={() => navigate(`/customer/events/${event.id}`)} />
               </div>
             ))}
           </div>

@@ -8,15 +8,15 @@ interface MenuItem {
 }
 
 const PUBLIC_MENU: MenuItem[] = [
-  { label: "Browse Events", path: "/" },
+  { label: "Browse Events", path: "/customer" },
 ];
 
 const ROLE_MENUS: Record<string, MenuItem[]> = {
   CUSTOMER: [
-    { label: "My Profile", path: "/profile" },
-    { label: "My Tickets", path: "/tickets" },
-    { label: "My Reservations", path: "/reservations" },
-    { label: "Notifications", path: "/notifications" },
+    { label: "My Profile", path: "/customer/profile" },
+    { label: "My Tickets", path: "/customer/tickets" },
+    { label: "My Reservations", path: "/customer/reservations" },
+    { label: "Notifications", path: "/customer/notifications" },
   ],
   ADMIN: [
     { label: "Logs", path: "/admin/logs" },
