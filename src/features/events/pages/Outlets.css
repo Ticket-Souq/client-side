@@ -1,0 +1,9 @@
+.outlets-page{padding-top:41px;}
+.outlet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:23px;}
+.outlet-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px;transition:box-shadow 0.2s;}
+.outlet-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+.outlet-icon{width:52px;height:52px;background:var(--yellow-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.outlet-name{font-size:18px;font-weight:600;color:var(--ink);margin:0 0 6px;}
+.outlet-location{font-size:15px;color:var(--text-secondary);margin:0 0 4px;}
+.outlet-hours{font-size:14px;color:var(--text-secondary);margin:0 0 14px;}
+@media (max-width:860px){.outlet-grid{grid-template-columns:1fr;}}

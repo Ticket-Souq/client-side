@@ -58,7 +58,6 @@ import AdminProfile from './features/admin/pages/AdminProfile'
 import Profile from './features/profile/pages/Profile'
 import Settings from './features/profile/pages/Settings'
 import Notifications from './features/notifications/pages/Notifications'
-import Reservations from './features/reservations/pages/Reservations'
 
 import Unauthorized401 from './features/errors/pages/Unauthorized401'
 import Forbidden403 from './features/errors/pages/Forbidden403'
@@ -114,7 +113,6 @@ function App() {
         <Route path="tickets/:ticketId" element={<TicketDetail />} />
         <Route path="profile" element={<Profile />} />
         <Route path="notifications" element={<Notifications />} />
-        <Route path="reservations" element={<Reservations />} />
       </Route>
 
       {/* Organization */}
