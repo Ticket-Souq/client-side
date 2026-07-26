@@ -1,33 +1,14 @@
-import { useNavigate } from 'react-router-dom'
+import { UserProfileProvider } from '../../../shared/hooks/useUserProfile'
+import { LayoutShell } from '../../../shared/components/layout/LayoutShell'
 import styles from '../styles/Landing.module.css'
 
 const artClasses = [styles.artBeams, styles.artWaves, styles.artGrid, styles.artConfetti]
 
 export default function Landing() {
-  const navigate = useNavigate()
-
   return (
-    <>
-      <header className={styles.header}>
-        <div className={`${styles.wrap} ${styles.nav}`}>
-          <a href="/landing" className={styles.logo}>
-            <span className={styles.dot} />
-            TICKET SOUQ
-          </a>
-          <nav className={styles.navLinks}>
-            <a href="/customer/events">Events</a>
-            <a href="/customer/outlets">Outlets</a>
-            <a href="/customer/contact">Contact Us</a>
-          </nav>
-          <div className={styles.navActions}>
-            <button onClick={() => navigate('/auth/login')} className={`${styles.btn} ${styles.btnPrimary}`}>
-              Sign in
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className={styles.wrap}>
+    <UserProfileProvider>
+      <LayoutShell>
+        <main className={styles.wrap}>
         <section className={styles.heroSection}>
           <p className={styles.heroEyebrow}>Featured — Cairo, this weekend</p>
           <div className={styles.ticketCard}>
@@ -158,40 +139,8 @@ export default function Landing() {
           </div>
         </section>
       </main>
-
-      <footer className={styles.siteFooter}>
-        <div className={`${styles.wrap} ${styles.footGrid}`}>
-          <span className={styles.logo}>
-            <span className={styles.dot} />
-            TICKET SOUQ
-          </span>
-          <div className={styles.footCols}>
-            <div className={styles.footCol}>
-              <h4>Discover</h4>
-              <a href="/customer/events">Events</a>
-              <a href="/customer/outlets">Outlets</a>
-              <a href="#">Categories</a>
-            </div>
-            <div className={styles.footCol}>
-              <h4>Support</h4>
-              <a href="/customer/contact">Contact us</a>
-              <a href="#">Refunds</a>
-              <a href="#">FAQ</a>
-            </div>
-            <div className={styles.footCol}>
-              <h4>Company</h4>
-              <a href="#">About</a>
-              <a href="#">Careers</a>
-              <a href="#">Terms & privacy</a>
-            </div>
-          </div>
-        </div>
-        <div className={styles.footBottom}>
-          <span>&copy; 2026 Ticket Souq</span>
-          <span>3 independent platforms, one ticket ecosystem</span>
-        </div>
-      </footer>
-    </>
+      </LayoutShell>
+    </UserProfileProvider>
   )
 }
 

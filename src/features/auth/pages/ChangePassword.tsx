@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseError } from '../../../shared/apiError';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
 import ErrorPopup from '../../../shared/ErrorPopup';
 import AuthCard from '../components/AuthCard';
@@ -27,11 +26,10 @@ export default function ChangePassword() {
         if (vals.newPassword !== vals.confirmPassword) {
           throw { status: 422, error: 'Validation Error', message: 'Passwords do not match' };
         }
-        const res = await AuthService.changePassword({
+        await AuthService.changePassword({
           currentPassword: vals.currentPassword,
           newPassword: vals.newPassword,
         });
-        if (!res.ok) throw await parseError(res);
         setSuccess(true);
         setTimeout(() => navigate('/auth/login'), 1500);
       },

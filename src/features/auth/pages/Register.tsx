@@ -1,7 +1,5 @@
 import { useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { fetchWithTimeout } from '../../../shared/fetchWithTimeout';
-import { parseError } from '../../../shared/apiError';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
 import ErrorPopup from '../../../shared/ErrorPopup';
 import AuthCard from '../components/AuthCard';
@@ -13,7 +11,7 @@ import AuthTabs from '../components/AuthTabs';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { emailRules, passwordRules, nameRules, orgNameRules } from '../schemas/auth.schemas';
 import type { AuthTabType } from '../types/auth.types';
-import { API } from '../../../shared/api';
+import { AuthService } from '../services/auth.service';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -51,12 +49,7 @@ export default function Register() {
           payload.OrganizationName = vals.orgName;
         }
 
-        const res = await fetchWithTimeout(API.auth.register, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw await parseError(res);
+        await AuthService.register(payload);
         navigate(`/auth/verify-email?email=${encodeURIComponent(vals.email)}`);
       },
     });

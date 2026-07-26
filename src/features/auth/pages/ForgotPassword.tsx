@@ -1,7 +1,4 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { fetchWithTimeout } from '../../../shared/fetchWithTimeout';
-import { parseError } from '../../../shared/apiError';
-import { API } from '../../../shared/api';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
 import ErrorPopup from '../../../shared/ErrorPopup';
 import AuthCard from '../components/AuthCard';
@@ -10,6 +7,7 @@ import AuthTextField from '../components/AuthTextField';
 import AuthSubmitButton from '../components/AuthSubmitButton';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { emailRules } from '../schemas/auth.schemas';
+import { AuthService } from '../services/auth.service';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -18,11 +16,7 @@ export default function ForgotPassword() {
     useAuthForm({
       fields: [{ name: 'email', rules: emailRules }],
       onSubmit: async (vals) => {
-        const res = await fetchWithTimeout(
-          `${API.auth.forgotPassword}?email=${encodeURIComponent(vals.email)}`,
-          { method: 'GET' }
-        );
-        if (!res.ok) throw await parseError(res);
+        await AuthService.sendForgotPasswordCode(vals.email);
         navigate(`/auth/reset-password?email=${encodeURIComponent(vals.email)}`);
       },
     });

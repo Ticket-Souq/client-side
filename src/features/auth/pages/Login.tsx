@@ -1,9 +1,5 @@
-import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { API } from '../../../shared/api';
-import { fetchWithTimeout } from '../../../shared/fetchWithTimeout';
 import { setTokens } from '../../../shared/auth';
-import { parseError } from '../../../shared/apiError';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
 import ErrorPopup from '../../../shared/ErrorPopup';
 import AuthCard from '../components/AuthCard';
@@ -11,13 +7,12 @@ import AuthCardHeader from '../components/AuthCardHeader';
 import AuthTextField from '../components/AuthTextField';
 import AuthPasswordField from '../components/AuthPasswordField';
 import AuthSubmitButton from '../components/AuthSubmitButton';
-import AuthToggle from '../components/AuthToggle';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { emailRules, requiredRules } from '../schemas/auth.schemas';
+import { AuthService } from '../services/auth.service';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [rememberMe, setRememberMe] = useState(false);
 
   const { values, errors, handleChange, handleBlur, handleSubmit, loading, error, setError } =
     useAuthForm({
@@ -26,23 +21,18 @@ export default function Login() {
         { name: 'password', rules: requiredRules },
       ],
       onSubmit: async (vals) => {
-        const res = await fetchWithTimeout(API.auth.login, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: vals.email, password: vals.password }),
-        });
-        if (!res.ok) {
-          const errData = await parseError(res);
-          if (errData.status === 403 || /verify|verified|not.*verified/i.test(errData.message)) {
+        let data;
+        try {
+          data = await AuthService.login(vals.email, vals.password);
+        } catch (err: any) {
+          if (err?.status === 403 || /verify|verified|not.*verified/i.test(err?.message)) {
             navigate(`/auth/verify-email?email=${encodeURIComponent(vals.email)}`);
             return;
           }
-          throw errData;
+          throw err;
         }
-        const data = await res.json();
-        setTokens(data.access ?? data.accessToken ?? data.token ?? '', data.refresh ?? data.refreshToken);
-        if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/customer/events');
+        setTokens(data.access, data.refresh);
+        navigate('/');
       },
     });
 
@@ -72,10 +62,7 @@ export default function Login() {
             onBlur={() => handleBlur('password')}
             error={errors.password}
           />
-          <div className="auth-checkbox-row">
-            <AuthToggle checked={rememberMe} onChange={setRememberMe} label="Remember me" />
-            <Link to="/auth/forgot-password">Forgot password?</Link>
-          </div>
+          <Link to="/auth/forgot-password" className="auth-forgot-link">Forgot password?</Link>
           <AuthSubmitButton loading={loading} loadingText="Signing in...">
             Sign in
           </AuthSubmitButton>

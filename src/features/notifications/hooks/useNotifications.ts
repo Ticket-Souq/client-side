@@ -12,7 +12,7 @@ interface UseNotificationsResult {
   refresh: () => void
 }
 
-export function useNotifications(role: 'customer' | 'admin' | 'organizer'): UseNotificationsResult {
+export function useNotifications(): UseNotificationsResult {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -21,14 +21,14 @@ export function useNotifications(role: 'customer' | 'admin' | 'organizer'): UseN
     setLoading(true)
     setError(null)
     try {
-      const data = await NotificationService.list(role)
+      const data = await NotificationService.list()
       setNotifications(data)
-    } catch (err) {
+    } catch {
       setError('Failed to load notifications')
     } finally {
       setLoading(false)
     }
-  }, [role])
+  }, [])
 
   useEffect(() => {
     fetchNotifications()
@@ -45,8 +45,8 @@ export function useNotifications(role: 'customer' | 'admin' | 'organizer'): UseN
 
   const markAllRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    NotificationService.markAllRead(role)
-  }, [role])
+    NotificationService.markAllRead()
+  }, [])
 
   return { notifications, unreadCount, loading, error, markRead, markAllRead, refresh: fetchNotifications }
 }

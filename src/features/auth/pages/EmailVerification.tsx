@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { parseError } from '../../../shared/apiError';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
 import ErrorPopup from '../../../shared/ErrorPopup';
 import AuthCard from '../components/AuthCard';
@@ -26,10 +25,9 @@ export default function EmailVerification() {
 
   const { values, errors, handleChange, handleSubmit, loading, error, setError } =
     useAuthForm({
-      fields: [{ name: 'token', rules: requiredRules }],
+      fields: [{ name: 'otp', rules: requiredRules }],
       onSubmit: async (vals) => {
-        const res = await AuthService.verifyEmail(vals.token);
-        if (!res.ok) throw await parseError(res);
+        await AuthService.verifyEmail(vals.otp);
         navigate('/auth/login');
       },
     });
@@ -39,8 +37,7 @@ export default function EmailVerification() {
       setError(null);
       setSendLoading(true);
       try {
-        const res = await AuthService.sendVerifyCode(emailAddr);
-        if (!res.ok) throw await parseError(res);
+        await AuthService.sendVerifyCode(emailAddr);
         setSent(true);
         setStep('verify');
       } catch (err: any) {
@@ -104,9 +101,9 @@ export default function EmailVerification() {
               />
             )}
             <CodeInput
-              value={values.token}
-              onChange={(v) => handleChange('token', v)}
-              error={errors.token}
+              value={values.otp}
+              onChange={(v) => handleChange('otp', v)}
+              error={errors.otp}
             />
             <AuthSubmitButton loading={loading} loadingText="Verifying...">
               Verify email

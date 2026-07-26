@@ -1,3 +1,8 @@
+export interface AuthResponse {
+  access: string;
+  refresh: string;
+}
+
 export interface RegisterData {
   name: string;
   email: string;
@@ -11,7 +16,7 @@ export interface LoginData {
 }
 
 export interface ResetPasswordData {
-  token: string;
+  otp: string;
   newPassword: string;
 }
 

@@ -41,8 +41,6 @@ import Analytics from './features/organizations/pages/Analytics'
 import QRValidation from './features/organizations/pages/QRValidation'
 import OrgRefunds from './features/organizations/pages/Refunds'
 import OrgProfile from './features/organizations/pages/Profile'
-import OrgSettings from './features/organizations/pages/OrgSettings'
-import OrgNotifications from './features/organizations/pages/OrgNotifications'
 
 import AdminDashboard from './features/admin/pages/Dashboard'
 import AdminEvents from './features/admin/pages/AdminEvents'
@@ -53,11 +51,7 @@ import OrganizationsManagement from './features/admin/pages/OrganizationsManagem
 import OrganizationApproval from './features/admin/pages/OrganizationApproval'
 import UserManagement from './features/admin/pages/UserManagement'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
-import AdminSettings from './features/admin/pages/AdminSettings'
 import AdminProfile from './features/admin/pages/AdminProfile'
-import Profile from './features/profile/pages/Profile'
-import Settings from './features/profile/pages/Settings'
-import Notifications from './features/notifications/pages/Notifications'
 
 import Unauthorized401 from './features/errors/pages/Unauthorized401'
 import Forbidden403 from './features/errors/pages/Forbidden403'
@@ -105,14 +99,11 @@ function App() {
         <Route path="events/:eventId/select" element={<EventSelect />} />
         <Route path="outlets" element={<Outlets />} />
         <Route path="contact" element={<Contact />} />
-        <Route path="settings" element={<Settings />} />
         <Route path="booking/checkout" element={<Checkout />} />
         <Route path="booking/success" element={<PaymentSuccess />} />
         <Route path="booking/cancel" element={<PaymentCancel />} />
         <Route path="tickets" element={<MyTickets />} />
         <Route path="tickets/:ticketId" element={<TicketDetail />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="notifications" element={<Notifications />} />
       </Route>
 
       {/* Organization */}
@@ -129,8 +120,6 @@ function App() {
         <Route path="validate" element={<QRValidation />} />
         <Route path="refunds" element={<OrgRefunds />} />
         <Route path="profile" element={<OrgProfile />} />
-        <Route path="settings" element={<OrgSettings />} />
-        <Route path="notifications" element={<OrgNotifications />} />
       </Route>
 
       {/* Admin */}
@@ -146,8 +135,6 @@ function App() {
         <Route path="users" element={<UserManagement />} />
         <Route path="refunds" element={<AdminRefunds />} />
         <Route path="profile" element={<AdminProfile />} />
-        <Route path="settings" element={<AdminSettings />} />
-        <Route path="notifications" element={<Notifications />} />
       </Route>
 
       {/* Catch-all */}

@@ -61,7 +61,7 @@ export interface FeaturedEventProps {
 }
 
 export interface HeaderProps {
-  role: Role
+  role?: Role
   links: NavLink[]
   avatarInitials?: string
 }

@@ -1,21 +1,8 @@
-import { useLocation } from 'react-router-dom'
 import { useNotifications } from '../hooks/useNotifications'
 import styles from '../notifications.module.css'
 
-interface Props {
-  role?: 'customer' | 'admin' | 'organizer'
-}
-
-function detectRole(pathname: string): 'customer' | 'admin' | 'organizer' {
-  if (pathname.startsWith('/admin')) return 'admin'
-  if (pathname.startsWith('/org')) return 'organizer'
-  return 'customer'
-}
-
-export default function Notifications({ role: roleProp }: Props) {
-  const location = useLocation()
-  const role = roleProp ?? detectRole(location.pathname)
-  const { notifications, unreadCount, loading, error, markRead, markAllRead } = useNotifications(role)
+export default function Notifications() {
+  const { notifications, unreadCount, loading, error, markRead, markAllRead } = useNotifications()
 
   if (loading) {
     return (

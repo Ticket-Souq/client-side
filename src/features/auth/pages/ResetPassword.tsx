@@ -1,23 +1,25 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { parseError } from '../../../shared/apiError';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
 import ErrorPopup from '../../../shared/ErrorPopup';
 import AuthCard from '../components/AuthCard';
 import AuthCardHeader from '../components/AuthCardHeader';
+import AuthTextField from '../components/AuthTextField';
 import AuthPasswordField from '../components/AuthPasswordField';
 import AuthSubmitButton from '../components/AuthSubmitButton';
+import CodeInput from '../components/CodeInput';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { AuthService } from '../services/auth.service';
-import { passwordRules } from '../schemas/auth.schemas';
+import { passwordRules, requiredRules } from '../schemas/auth.schemas';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') ?? '';
+  const email = searchParams.get('email') ?? '';
 
   const { values, errors, handleChange, handleBlur, handleSubmit, loading, error, setError } =
     useAuthForm({
       fields: [
+        { name: 'otp', rules: requiredRules },
         { name: 'newPassword', rules: passwordRules },
         { name: 'confirmPassword', rules: passwordRules },
       ],
@@ -25,11 +27,7 @@ export default function ResetPassword() {
         if (vals.newPassword !== vals.confirmPassword) {
           throw { status: 422, error: 'Validation Error', message: 'Passwords do not match' };
         }
-        const res = await AuthService.resetPassword({
-          token,
-          newPassword: vals.newPassword,
-        });
-        if (!res.ok) throw await parseError(res);
+        await AuthService.resetPassword({ otp: vals.otp, newPassword: vals.newPassword });
         navigate('/auth/login');
       },
     });
@@ -42,8 +40,14 @@ export default function ResetPassword() {
         <AuthCardHeader
           eyebrow="Password reset"
           title="Set new password"
+          description={email ? `Enter the 6-digit code sent to ${email} and your new password.` : undefined}
         />
         <form className="auth-form" onSubmit={handleSubmit}>
+          <CodeInput
+            value={values.otp}
+            onChange={(v) => handleChange('otp', v)}
+            error={errors.otp}
+          />
           <AuthPasswordField
             label="New password"
             value={values.newPassword}

@@ -41,3 +41,9 @@ export function hasRole(token: string, role: string): boolean {
   const roles = getRoles(token);
   return roles.some((r) => r === role || r === `ROLE_${role}`);
 }
+
+export function isTokenExpired(token: string): boolean {
+  const payload = parseJwt(token);
+  if (!payload?.exp) return true;
+  return payload.exp * 1000 < Date.now();
+}

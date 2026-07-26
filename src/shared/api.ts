@@ -7,6 +7,7 @@ export const API = {
     login: `${BASE_URL}/api/v1/auth/login`,
     logout: `${BASE_URL}/api/v1/auth/logout`,
     logoutAll: `${BASE_URL}/api/v1/auth/logout-all`,
+    refresh: `${BASE_URL}/api/v1/auth/refresh`,
     verifyEmail: `${BASE_URL}/api/v1/auth/email-varification`,
     forgotPassword: `${BASE_URL}/api/v1/auth/password-forgot`,
     changePassword: `${BASE_URL}/api/v1/auth/password`,
@@ -27,6 +28,9 @@ export const API = {
   },
   reservations: {
     list: `${BASE_URL}/api/v1/reservations`,
+  },
+  users: {
+    profile: `${BASE_URL}/api/v1/user/profile`,
   },
   tickets: {
     list: `${BASE_URL}/api/v1/tickets`,

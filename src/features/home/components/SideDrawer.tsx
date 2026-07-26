@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { authFetch, getAccessToken, clearTokens, getUserRoles, getUserEmail } from "../../../shared/auth";
+import { authFetch, getAccessToken, clearTokens, getUserRoles } from "../../../shared/auth";
+import { useUserProfile } from "../../../shared/hooks/useUserProfile";
 import { API } from "../../../shared/api";
 
 interface MenuItem {
@@ -8,46 +9,58 @@ interface MenuItem {
 }
 
 const PUBLIC_MENU: MenuItem[] = [
-  { label: "Browse Events", path: "/customer" },
+  { label: "Browse Events", path: "/customer/events" },
 ];
 
 const ROLE_MENUS: Record<string, MenuItem[]> = {
   CUSTOMER: [
-    { label: "My Profile", path: "/customer/profile" },
+    { label: "Browse Events", path: "/customer/events" },
     { label: "My Tickets", path: "/customer/tickets" },
-    { label: "My Reservations", path: "/customer/reservations" },
-    { label: "Notifications", path: "/customer/notifications" },
   ],
   ADMIN: [
-    { label: "Logs", path: "/admin/logs" },
+    { label: "Dashboard", path: "/admin/dashboard" },
     { label: "Organizations", path: "/admin/organizations" },
-    { label: "Organization Approve Requests", path: "/admin/approvals" },
+    { label: "Approvals", path: "/admin/approvals" },
+    { label: "Users", path: "/admin/users" },
+    { label: "Logs", path: "/admin/logs" },
+    { label: "Monitoring", path: "/admin/monitoring" },
   ],
   ORG_HEAD: [
+    { label: "Dashboard", path: "/org/dashboard" },
+    { label: "Events", path: "/org/events" },
     { label: "Create Event", path: "/org/events/create" },
-    { label: "Create Venue", path: "/org/venues" },
-    { label: "Update Event", path: "/org/events" },
-    { label: "Cancel Event", path: "/org/events" },
-    { label: "Generate Accounts", path: "/org/team" },
-    { label: "Analysis", path: "/org/dashboard" },
-    { label: "My Employees", path: "/org/team" },
+    { label: "Venues", path: "/org/venues" },
+    { label: "Organization", path: "/org/organization" },
+    { label: "Team", path: "/org/team" },
+    { label: "Analytics", path: "/org/analytics" },
+    { label: "QR Validate", path: "/org/validate" },
+    { label: "Refunds", path: "/org/refunds" },
   ],
   ORG_AGENT: [
+    { label: "Events", path: "/org/events" },
     { label: "Create Event", path: "/org/events/create" },
-    { label: "Create Venue", path: "/org/venues" },
-    { label: "Update Event", path: "/org/events" },
+    { label: "Venues", path: "/org/venues" },
+    { label: "QR Validate", path: "/org/validate" },
+  ],
+  ORG_CONSUMER: [
+    { label: "QR Validate", path: "/org/validate" },
   ],
 };
 
-function getInitials(email?: string): string {
-  if (!email) return "?";
-  const local = email.split("@")[0];
-  if (!local) return "?";
-  const parts = local.split(/[._-]/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
+function getInitials(name?: string, email?: string): string {
+  if (name) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
   }
-  return local.slice(0, 2).toUpperCase();
+  if (email) {
+    const local = email.split("@")[0];
+    if (!local) return "?";
+    const p = local.split(/[._-]/);
+    if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
+    return local.slice(0, 2).toUpperCase();
+  }
+  return "?";
 }
 
 function normaliseRole(raw: string): string {
@@ -78,7 +91,9 @@ interface SideDrawerProps {
 export default function SideDrawer({ open, onClose }: SideDrawerProps) {
   const navigate = useNavigate();
   const token = getAccessToken();
-  const email = getUserEmail();
+  const { profile } = useUserProfile();
+  const email = profile?.email ?? '';
+  const name = profile?.name ?? '';
   const roles = getUserRoles();
   const menuItems = collectMenuItems(roles);
 
@@ -182,10 +197,10 @@ export default function SideDrawer({ open, onClose }: SideDrawerProps) {
               marginBottom: "10px",
             }}
           >
-            {getInitials(email ?? undefined)}
+            {getInitials(name || undefined, email || undefined)}
           </div>
           <span style={{ fontWeight: 600, fontSize: "15px", color: "var(--color-text)" }}>
-            {email ?? "Unknown"}
+            {name || email || "Unknown"}
           </span>
           {roles.length > 0 && (
             <div className="d-flex flex-wrap gap-1 mt-1">
