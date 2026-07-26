@@ -109,7 +109,7 @@ export async function authFetch(
 ): Promise<Response> {
   // If access token is expired, try refresh first
   const access = getAccessToken();
-  if (!access || isTokenExpired(access)) {
+  if (access && isTokenExpired(access)) {
     try {
       await tryRefresh();
     } catch {
