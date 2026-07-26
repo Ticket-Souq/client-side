@@ -31,6 +31,14 @@ export const API = {
   },
   users: {
     profile: `${BASE_URL}/api/v1/user/profile`,
+    membersBatch: `${BASE_URL}/api/v1/user/members/batch`,
+  },
+  admin: {
+    organizations: `${BASE_URL}/api/v1/user/organizations`,
+    orgApprove: (id: string) => `${BASE_URL}/api/v1/user/org/${id}/approve`,
+    orgReject: (id: string) => `${BASE_URL}/api/v1/user/org/${id}/reject`,
+    orgBan: (id: string) => `${BASE_URL}/api/v1/user/org/${id}/ban`,
+    auditLogs: `${BASE_URL}/api/v1/audit`,
   },
   tickets: {
     list: `${BASE_URL}/api/v1/tickets`,

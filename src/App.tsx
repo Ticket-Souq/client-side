@@ -49,7 +49,6 @@ import AdminRefunds from './features/admin/pages/AdminRefunds'
 import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import OrganizationApproval from './features/admin/pages/OrganizationApproval'
-import UserManagement from './features/admin/pages/UserManagement'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
 import AdminProfile from './features/admin/pages/AdminProfile'
 
@@ -132,7 +131,6 @@ function App() {
         <Route path="logs" element={<Logs />} />
         <Route path="organizations" element={<OrganizationsManagement />} />
         <Route path="approvals" element={<OrganizationApproval />} />
-        <Route path="users" element={<UserManagement />} />
         <Route path="refunds" element={<AdminRefunds />} />
         <Route path="profile" element={<AdminProfile />} />
       </Route>

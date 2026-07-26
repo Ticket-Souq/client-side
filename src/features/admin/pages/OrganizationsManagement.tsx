@@ -1,81 +1,121 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { authFetch } from '../../../shared/auth'
+import { API } from '../../../shared/api'
 
-type OrgStatus = 'Pending' | 'Active' | 'Banned' | 'Suspended'
+type OrgStatus = 'PENDING' | 'APPROVED' | 'BANNED' | 'REJECTED'
 
 interface OrgRow {
   id: string
   name: string
-  head: string
-  email: string
-  events: number
+  headEmail: string
   status: OrgStatus
+  orgHeadId: string
 }
 
-const MOCK_ORGS: OrgRow[] = [
-  { id: 'org-1', name: 'Cairo Jazz Collective', head: 'Youssef Mansour', email: 'youssef@cairojazz.com', events: 8, status: 'Pending' },
-  { id: 'org-2', name: 'Alexandria Arts Initiative', head: 'Laila Gamal', email: 'laila@alexarts.org', events: 3, status: 'Pending' },
-  { id: 'org-3', name: 'Delta Music Festival', head: 'Karim Naguib', email: 'karim@deltamusic.com', events: 12, status: 'Pending' },
-  { id: 'org-4', name: 'Cairo Events Co.', head: 'Ahmed Khalil', email: 'contact@cairoevents.com', events: 24, status: 'Active' },
-  { id: 'org-5', name: 'Zamalek Theatre Group', head: 'Nadia Shokry', email: 'nadia@zamalektheatre.com', events: 6, status: 'Pending' },
-  { id: 'org-6', name: 'New Cairo Family Fest', head: 'Hisham Lotfy', email: 'hisham@ncfest.com', events: 2, status: 'Banned' },
-  { id: 'org-7', name: 'Grand Events Co.', head: 'Mona Salah', email: 'contact@grandevents.com', events: 15, status: 'Active' },
-  { id: 'org-8', name: 'Stage Masters', head: 'Omar Kamel', email: 'info@stagemasters.com', events: 7, status: 'Active' },
-]
+const STATUS_BADGE: Record<OrgStatus, string> = {
+  PENDING: 'badge badge-soft',
+  APPROVED: 'badge badge-yellow',
+  BANNED: 'badge badge-red',
+  REJECTED: 'badge badge-ink',
+}
 
-const STATUS_BADGE: Record<string, string> = {
-  Pending: 'badge badge-soft',
-  Active: 'badge badge-yellow',
-  Banned: 'badge badge-red',
-  Suspended: 'badge badge-ink',
+const STATUS_LABEL: Record<OrgStatus, string> = {
+  PENDING: 'Pending',
+  APPROVED: 'Approved',
+  BANNED: 'Banned',
+  REJECTED: 'Rejected',
 }
 
 export default function OrganizationsManagement() {
-  const [orgs, setOrgs] = useState(MOCK_ORGS)
+  const [orgs, setOrgs] = useState<OrgRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All statuses')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  const fetchOrgs = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await authFetch(API.admin.organizations)
+      if (!res.ok) throw new Error('Failed to load organizations')
+      const data: OrgRow[] = await res.json()
+      setOrgs(data)
+    } catch {
+      setError('Failed to load organizations')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchOrgs() }, [fetchOrgs])
+
+  const handleAction = async (orgId: string, action: 'approve' | 'reject' | 'ban') => {
+    setActionLoading(orgId)
+    try {
+      const url =
+        action === 'approve' ? API.admin.orgApprove(orgId) :
+        action === 'reject' ? API.admin.orgReject(orgId) :
+        API.admin.orgBan(orgId)
+      const res = await authFetch(url, { method: 'POST' })
+      if (!res.ok) throw new Error('Action failed')
+      await fetchOrgs()
+    } catch {
+      setError(`Failed to ${action} organization`)
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   const filtered = orgs.filter((o) => {
-    const matchSearch = o.name.toLowerCase().includes(search.toLowerCase())
+    const matchSearch =
+      o.name.toLowerCase().includes(search.toLowerCase()) ||
+      o.headEmail.toLowerCase().includes(search.toLowerCase())
     const matchStatus = statusFilter === 'All statuses' || o.status === statusFilter
     return matchSearch && matchStatus
   })
 
   const totalCount = orgs.length
-  const pendingCount = orgs.filter((o) => o.status === 'Pending').length
-  const bannedCount = orgs.filter((o) => o.status === 'Banned').length
-
-  const updateStatus = (id: string, newStatus: OrgStatus) => {
-    setOrgs((prev) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)))
-  }
+  const pendingCount = orgs.filter((o) => o.status === 'PENDING').length
+  const bannedCount = orgs.filter((o) => o.status === 'BANNED').length
 
   const actionButtons = (org: OrgRow) => {
+    const disabled = actionLoading === org.id
     switch (org.status) {
-      case 'Pending':
+      case 'PENDING':
         return (
           <div className="table-actions">
-            <a href="#" className="action-link approve" onClick={(e) => { e.preventDefault(); updateStatus(org.id, 'Active') }}>Approve</a>
-            <a href="#" className="action-link ban" onClick={(e) => { e.preventDefault(); updateStatus(org.id, 'Banned') }}>Reject</a>
+            <button type="button" className="action-link approve" disabled={disabled} onClick={() => handleAction(org.orgHeadId, 'approve')}>
+              {disabled ? '...' : 'Approve'}
+            </button>
+            <button type="button" className="action-link ban" disabled={disabled} onClick={() => handleAction(org.orgHeadId, 'reject')}>
+              {disabled ? '...' : 'Reject'}
+            </button>
           </div>
         )
-      case 'Active':
+      case 'APPROVED':
         return (
           <div className="table-actions">
-            <a href="#" className="action-link approve" onClick={(e) => { e.preventDefault(); updateStatus(org.id, 'Active') }}>Verify</a>
-            <a href="#" className="action-link ban" onClick={(e) => { e.preventDefault(); updateStatus(org.id, 'Suspended') }}>Suspend</a>
+            <button type="button" className="action-link ban" disabled={disabled} onClick={() => handleAction(org.orgHeadId, 'ban')}>
+              {disabled ? '...' : 'Ban'}
+            </button>
           </div>
         )
-      case 'Banned':
+      case 'BANNED':
         return (
           <div className="table-actions">
-            <a href="#" className="action-link approve" onClick={(e) => { e.preventDefault(); updateStatus(org.id, 'Active') }}>Reinstate</a>
-            <a href="#" className="action-link ban" onClick={(e) => { e.preventDefault(); updateStatus(org.id, 'Banned') }}>Ban</a>
+            <button type="button" className="action-link approve" disabled={disabled} onClick={() => handleAction(org.orgHeadId, 'approve')}>
+              {disabled ? '...' : 'Unban'}
+            </button>
           </div>
         )
-      case 'Suspended':
+      case 'REJECTED':
         return (
           <div className="table-actions">
-            <a href="#" className="action-link approve" onClick={(e) => { e.preventDefault(); updateStatus(org.id, 'Active') }}>Reinstate</a>
-            <a href="#" className="action-link ban" onClick={(e) => { e.preventDefault(); updateStatus(org.id, 'Banned') }}>Ban</a>
+            <button type="button" className="action-link approve" disabled={disabled} onClick={() => handleAction(org.orgHeadId, 'approve')}>
+              {disabled ? '...' : 'Approve'}
+            </button>
           </div>
         )
     }
@@ -108,46 +148,53 @@ export default function OrganizationsManagement() {
         />
         <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option>All statuses</option>
-          <option>Active</option>
-          <option>Pending</option>
-          <option>Banned</option>
-          <option>Suspended</option>
+          <option value="PENDING">Pending</option>
+          <option value="APPROVED">Approved</option>
+          <option value="BANNED">Banned</option>
+          <option value="REJECTED">Rejected</option>
         </select>
       </div>
 
-      <div className="card-white table-wrap">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Organization</th>
-              <th>Head</th>
-              <th>Email</th>
-              <th>Events</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((org) => (
-              <tr key={org.id}>
-                <td><strong>{org.name}</strong></td>
-                <td>{org.head}</td>
-                <td>{org.email}</td>
-                <td><span className="mono">{org.events}</span></td>
-                <td><span className={STATUS_BADGE[org.status]}>{org.status}</span></td>
-                <td className="action-cell">{actionButtons(org)}</td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
+      {loading && <p style={{ textAlign: 'center', padding: 32, color: 'var(--text-secondary)' }}>Loading…</p>}
+      {error && <p style={{ textAlign: 'center', padding: 32, color: 'var(--color-error)' }}>{error}</p>}
+
+      {!loading && !error && (
+        <div className="card-white table-wrap">
+          <table className="table" style={{ tableLayout: 'fixed', width: '100%' }}>
+            <colgroup>
+              <col />
+              <col style={{ width: 400 }} />
+              <col style={{ width: 200 }} />
+              <col style={{ width: 300 }} />
+            </colgroup>
+            <thead>
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: 32, color: 'var(--text-secondary)' }}>
-                  No organizations found
-                </td>
+                <th>Organization</th>
+                <th>Head Email</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((org) => (
+                <tr key={org.id}>
+                  <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><strong>{org.name}</strong></td>
+                  <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{org.headEmail}</td>
+                  <td><span className={STATUS_BADGE[org.status]}>{STATUS_LABEL[org.status]}</span></td>
+                  <td>{actionButtons(org)}</td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={4} style={{ textAlign: 'center', padding: 32, color: 'var(--text-secondary)' }}>
+                    No organizations found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
