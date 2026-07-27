@@ -1,60 +1,67 @@
-export type EventStatus = 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'CANCELLED' | 'REJECTED'
-export type EventMode = 'SEAT_BASED' | 'ZONE_BASED'
-export type EventVisibility = 'PUBLIC' | 'PRIVATE'
+export type BookingModel = 'SEAT' | 'ZONE' | 'MIXED'
+
+export type EventStatus = 'PUBLISHED' | 'ACTIVE' | 'CANCELLED' | 'COMPLETED'
+
+export type SeatStatus = 'AVAILABLE' | 'BOOKED' | 'BOOKED_ORGANIZER'
+
 export type DateRange = 'this_week' | 'this_month' | 'next_month' | 'all'
 
-export interface EventSummary {
+export interface CreateSectionRequest {
+  id: string | null
+  name: string
+  capacity: number | null
+  color: string
+  price: number | null
+  seats: CreateSeatRequest[]
+}
+
+export interface CreateSeatRequest {
+  id: string | null
+  lable: string
+  status: SeatStatus
+}
+
+export interface CreateEventRequest {
+  title: string
+  description: string
+  location: string
+  venueTemplateId: string | null
+  eventCategoryName: string
+  bookingModel: BookingModel
+  startDate: string
+  finishDate: string
+  sections: CreateSectionRequest[]
+}
+
+export interface SeatFullResponse {
+  id: string
+  status: SeatStatus
+}
+
+export interface SectionFullResponse {
+  id: string
+  name: string
+  capacity: number
+  remainingCapacity: number
+  color: string
+  price: number
+  seats: SeatFullResponse[]
+}
+
+export interface EventFullResponse {
   id: string
   title: string
-  posterUrl: string
-  status: EventStatus
-  startDate: string
-  endDate: string
-  category: string
-  venueName: string
-  priceFrom: number
-  currency: string
-  ticketsAvailable: number
-  ticketsSold: number
-  organizerName?: string
-  organizerId?: string
-}
-
-export interface EventDetail extends EventSummary {
   description: string
-  slug: string
-  venueId: string
-  venueAddress: string
-  mode: EventMode
-  tags: string[]
-  imageUrl: string
-  tiers: TicketTier[]
-  zones?: Zone[]
-  visibility: EventVisibility
-  lineup?: { name: string; stage: string }[]
-  duration?: string
-  doorsOpen?: string
-  capacity?: number
-}
-
-export interface TicketTier {
-  id: string
-  name: string
-  price: number
-  perks: string[]
-  available: number
-  total: number
-  active: boolean
-}
-
-export interface Zone {
-  id: string
-  name: string
-  price: number
-  spotsAvailable: number
-  spotsTotal: number
-  status: 'available' | 'limited' | 'soldout'
-  color: string
+  location: string
+  venueTemplateId: string | null
+  eventCategoryName: string
+  organization: string
+  PosterUrl: string
+  status: EventStatus
+  bookingModel: BookingModel
+  startDate: string
+  finishDate: string
+  sections: SectionFullResponse[]
 }
 
 export interface EventFilters {
@@ -65,20 +72,6 @@ export interface EventFilters {
   dateRange?: DateRange
   page?: number
   size?: number
-}
-
-export interface CreateEventRequest {
-  name: string
-  slug: string
-  description: string
-  mode: EventMode
-  venueId: string
-  venueTemplateId?: string
-  category: string
-  tags: string[]
-  startDate: string
-  endDate: string
-  visibility: EventVisibility
 }
 
 export interface PaginatedResponse<T> {
@@ -104,5 +97,4 @@ export interface EventCardResponse {
   ticketsSold?: number
   description?: string
   organizerName?: string
-  mode?: EventMode
 }

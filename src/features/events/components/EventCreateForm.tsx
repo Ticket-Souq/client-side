@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useMemo, type FormEvent } from 'react'
-import { CATEGORIES } from '../constants/categories'
-import type { CreateEventRequest, EventMode } from '../types/event.types'
+import type { CreateEventRequest, CreateSectionRequest, CreateSeatRequest, SeatStatus } from '../types/event.types'
+import { EventApi } from '../services/eventApi'
 import { listVenues, listVenueTemplates, getVenueTemplate } from '../../venues/api/venueApi'
-import type { Venue, VenueType, VenueTemplate, SeatMap } from '../../venues/components/types'
+import type { Venue, VenueTemplate, SeatMap } from '../../venues/components/types'
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Music: '🎵', Sports: '⚽', Theatre: '🎭', Conference: '🎤',
@@ -29,30 +29,102 @@ export interface SeatReservation {
   holderName: string
 }
 
+interface BuildRequestParams {
+  form: EventFormState
+  selectedVenue: Venue | null
+  selectedTemplateId: string
+  seatMap: SeatMap | null
+  categoryPrices: CategoryPrice[]
+  zoneSections: ZoneSection[]
+  reservations: SeatReservation[]
+  isSeatBased: boolean
+}
+
+function buildCreateRequest(params: BuildRequestParams): CreateEventRequest {
+  const { form, selectedVenue, selectedTemplateId, seatMap, categoryPrices, zoneSections, reservations, isSeatBased } = params
+  const reservedIds = new Set(reservations.map((r) => r.cellId))
+
+  const sections: CreateSectionRequest[] = isSeatBased && seatMap
+    ? seatMap.categories.map((cat) => {
+        const priceEntry = categoryPrices.find((p) => p.id === cat.id)
+        let capacity = 0
+        const seats: CreateSeatRequest[] = []
+        for (const row of seatMap.rows) {
+          if (row.aisle) continue
+          for (const cell of row.cells) {
+            if (cell.type === 'seat' && cell.categoryId === cat.id) {
+              capacity++
+              const isReserved = reservedIds.has(cell.id)
+              seats.push({
+                id: cell.id,
+                lable: cell.number ?? `${row.label}${cell.number ?? ''}`,
+                status: isReserved ? 'BOOKED_ORGANIZER' as SeatStatus : 'AVAILABLE' as SeatStatus,
+              })
+            }
+          }
+        }
+        return {
+          id: cat.id,
+          name: cat.name,
+          capacity,
+          color: cat.color,
+          price: priceEntry ? parseFloat(priceEntry.price) || null : null,
+          seats,
+        }
+      })
+    : zoneSections.map((z) => ({
+        id: crypto.randomUUID(),
+        name: z.name,
+        capacity: parseInt(z.capacity) || 0,
+        color: `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0')}`,
+        price: parseFloat(z.price) || null,
+        seats: [],
+      }))
+
+  return {
+    title: form.name,
+    description: form.description,
+    location: selectedVenue?.address ?? '',
+    venueTemplateId: isSeatBased ? selectedTemplateId : null,
+    eventCategoryName: form.category,
+    bookingModel: isSeatBased ? 'SEAT' : 'ZONE',
+    startDate: new Date(form.startDate).toISOString(),
+    finishDate: new Date(form.endDate).toISOString(),
+    sections,
+  }
+}
+
+interface EventFormState {
+  name: string
+  description: string
+  category: string
+  startDate: string
+  endDate: string
+}
+
 interface Props {
-  onSubmit?: (data: CreateEventRequest) => void
+  onSubmit?: (data: CreateEventRequest, posterFile: File | null) => void
   onCancel?: () => void
   loading?: boolean
 }
 
 export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
-  const [form, setForm] = useState<CreateEventRequest>({
+  const [form, setForm] = useState<EventFormState>({
     name: '',
-    slug: '',
     description: '',
-    mode: 'SEAT_BASED' as EventMode,
-    venueId: '',
     category: '',
-    tags: [],
     startDate: '',
     endDate: '',
-    visibility: 'PUBLIC',
   })
+
+  const [venueId, setVenueId] = useState('')
+  const [tags] = useState<string[]>([])
+  const [dbCategories, setDbCategories] = useState<string[]>([])
 
   const [catOpen, setCatOpen] = useState(false)
   const [catInput, setCatInput] = useState('')
   const catRef = useRef<HTMLDivElement>(null)
-  const allCategories = [...new Set([...CATEGORIES, ...form.tags])].sort()
+  const allCategories = [...new Set([...dbCategories, ...tags])].sort()
   const filteredCats = allCategories.filter((c) =>
     c.toLowerCase().includes(catInput.toLowerCase())
   )
@@ -70,10 +142,13 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
   const [categoryPrices, setCategoryPrices] = useState<CategoryPrice[]>([])
   const [zoneSections, setZoneSections] = useState<ZoneSection[]>([])
   const [reservations, setReservations] = useState<SeatReservation[]>([])
+  const [posterFile, setPosterFile] = useState<File | null>(null)
+  const [posterPreview, setPosterPreview] = useState<string>('')
+  const posterInputRef = useRef<HTMLInputElement>(null)
 
   const selectedVenue = useMemo(
-    () => venues.find((v) => v.id === form.venueId) ?? null,
-    [venues, form.venueId],
+    () => venues.find((v) => v.id === venueId) ?? null,
+    [venues, venueId],
   )
 
   const isSeatBased = selectedVenue?.type === 'SEAT_BASED'
@@ -95,8 +170,20 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
   }, [])
 
   useEffect(() => {
-    if (!form.venueId) return
-    setModeFromVenue(selectedVenue?.type)
+    let cancelled = false
+    ;(async () => {
+      try {
+        const cats = await EventApi.getCategories()
+        if (!cancelled) setDbCategories(cats)
+      } catch {
+        // silently fail
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    if (!venueId) return
     setSelectedTemplateId('')
     setSeatMap(null)
     setCategoryPrices([])
@@ -120,7 +207,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
       })()
       return () => { cancelled = true }
     }
-  }, [form.venueId])
+  }, [venueId])
 
   useEffect(() => {
     if (!selectedTemplateId || !selectedVenue) return
@@ -151,12 +238,6 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
     return () => { cancelled = true }
   }, [selectedTemplateId])
 
-  const setModeFromVenue = (type?: VenueType) => {
-    setForm((prev) => ({
-      ...prev,
-      mode: type === 'ZONE_BASED' ? 'ZONE_BASED' : 'SEAT_BASED',
-    }))
-  }
 
   useEffect(() => {
     if (!catOpen) return
@@ -181,17 +262,32 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
     }
   }
 
-  const set = (key: keyof CreateEventRequest, value: unknown) => {
+  const set = (key: keyof EventFormState, value: unknown) => {
     setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+    setPosterFile(file)
+    setPosterPreview(URL.createObjectURL(file))
   }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    onSubmit?.(form)
+    const request = buildCreateRequest({
+      form,
+      selectedVenue,
+      selectedTemplateId,
+      seatMap,
+      categoryPrices,
+      zoneSections,
+      reservations,
+      isSeatBased,
+    })
+    onSubmit?.(request, posterFile)
   }
-
-  const slugify = (text: string) =>
-    text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim()
 
   return (
     <form id="createEventForm" onSubmit={handleSubmit}>
@@ -208,10 +304,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
                 className="form-input"
                 placeholder="e.g. Nile Nights Festival"
                 value={form.name}
-                onChange={(e) => {
-                  set('name', e.target.value)
-                  set('slug', slugify(e.target.value))
-                }}
+                onChange={(e) => set('name', e.target.value)}
               />
             </div>
             <div className="form-group">
@@ -297,11 +390,18 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
           </div>
           <div style={{ flexShrink: 0, width: 220 }}>
             <label className="form-label">Poster image</label>
+            <input
+              ref={posterInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: 'none' }}
+              onChange={handlePosterChange}
+            />
             <div
               style={{
                 border: '2px dashed var(--border)',
                 borderRadius: 14,
-                padding: '32px 16px',
+                padding: posterPreview ? 0 : '32px 16px',
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'border-color 150ms ease, background 150ms ease',
@@ -312,19 +412,30 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
+                overflow: 'hidden',
               }}
-              onClick={() => {}}
+              onClick={() => posterInputRef.current?.click()}
             >
-              <div style={{ fontSize: 36, marginBottom: 8 }}>🖼️</div>
-              <p style={{ margin: 0, fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
-                Upload poster
-              </p>
-              <p style={{ margin: '4px 0 0', fontFamily: "'Inter', sans-serif", fontSize: 12, color: 'var(--text-secondary)' }}>
-                JPG, PNG or WebP
-              </p>
-              <p style={{ margin: '4px 0 0', fontFamily: "'Inter', sans-serif", fontSize: 12, color: 'var(--text-secondary)' }}>
-                Recommended 600×900px
-              </p>
+              {posterPreview ? (
+                <img
+                  src={posterPreview}
+                  alt="Poster preview"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
+                />
+              ) : (
+                <>
+                  <div style={{ fontSize: 36, marginBottom: 8 }}>🖼️</div>
+                  <p style={{ margin: 0, fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+                    Upload poster
+                  </p>
+                  <p style={{ margin: '4px 0 0', fontFamily: "'Inter', sans-serif", fontSize: 12, color: 'var(--text-secondary)' }}>
+                    JPG, PNG or WebP
+                  </p>
+                  <p style={{ margin: '4px 0 0', fontFamily: "'Inter', sans-serif", fontSize: 12, color: 'var(--text-secondary)' }}>
+                    Recommended 600×900px
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -339,8 +450,8 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
           <label className="form-label">Venue</label>
           <select
             className="form-select"
-            value={form.venueId}
-            onChange={(e) => set('venueId', e.target.value)}
+            value={venueId}
+            onChange={(e) => setVenueId(e.target.value)}
             disabled={venuesLoading}
           >
             <option value="">{venuesLoading ? 'Loading venues…' : 'Select a venue'}</option>

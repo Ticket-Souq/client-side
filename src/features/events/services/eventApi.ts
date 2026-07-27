@@ -1,6 +1,6 @@
 import { fetchWithTimeout } from '../../../shared/fetchWithTimeout'
 import { API } from '../../../shared/api'
-import type { EventFilters, CreateEventRequest, PaginatedResponse, EventCardResponse, EventDetail } from '../types/event.types'
+import type { EventFilters, CreateEventRequest, PaginatedResponse, EventCardResponse, EventFullResponse } from '../types/event.types'
 
 function toQueryParams(filters: EventFilters): string {
   const params = new URLSearchParams()
@@ -28,21 +28,30 @@ export const EventApi = {
     return res.json()
   },
 
-  async getById(id: string): Promise<EventDetail> {
+  async getById(id: string): Promise<EventFullResponse> {
     const res = await fetchWithTimeout(API.events.byId(id))
     if (!res.ok) throw new Error(`Fetch event failed: ${res.status}`)
     return res.json()
   },
 
-  async create(data: CreateEventRequest): Promise<EventDetail> {
+  async getCategories(): Promise<string[]> {
+    const res = await fetchWithTimeout(API.events.categories)
+    if (!res.ok) throw new Error(`Fetch categories failed: ${res.status}`)
+    return res.json()
+  },
+
+  async create(data: CreateEventRequest, posterFile: File | null): Promise<void> {
     const { authFetch } = await import('../../../shared/auth')
+    const formData = new FormData()
+    formData.append('event', new Blob([JSON.stringify(data)], { type: 'application/json' }))
+    if (posterFile) {
+      formData.append('poster', posterFile)
+    }
     const res = await authFetch(API.events.create, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: formData,
     })
     if (!res.ok) throw new Error(`Create event failed: ${res.status}`)
-    return res.json()
   },
 
   async cancel(id: string): Promise<void> {

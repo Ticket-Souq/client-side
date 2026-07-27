@@ -14,11 +14,12 @@ export const API = {
     deactivate: `${BASE_URL}/api/v1/auth`,
   },
   events: {
-    search: `${BASE_URL}/api/v1/events/search`,
-    list: `${BASE_URL}/api/v1/events`,
-    byId: (id: string) => `${BASE_URL}/api/v1/events/${id}`,
-    create: `${BASE_URL}/api/v1/events`,
-    cancel: (id: string) => `${BASE_URL}/api/v1/events/${id}`,
+    search: `${BASE_URL}/api/v1/event/search`,
+    list: `${BASE_URL}/api/v1/event`,
+    byId: (id: string) => `${BASE_URL}/api/v1/event/${id}`,
+    create: `${BASE_URL}/api/v1/event`,
+    cancel: (id: string) => `${BASE_URL}/api/v1/event/${id}`,
+    categories: `${BASE_URL}/api/v1/event/categories`,
   },
   notifications: {
     list: `${BASE_URL}/api/v1/notification`,

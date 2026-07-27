@@ -6,7 +6,7 @@ interface UseCreateEventResult {
   submitting: boolean
   error: string | null
   created: boolean
-  handleSubmit: (data: CreateEventRequest) => Promise<void>
+  handleSubmit: (data: CreateEventRequest, posterFile: File | null) => Promise<void>
   reset: () => void
 }
 
@@ -15,16 +15,15 @@ export function useCreateEvent(): UseCreateEventResult {
   const [error, setError] = useState<string | null>(null)
   const [created, setCreated] = useState(false)
 
-  const handleSubmit = async (data: CreateEventRequest) => {
+  const handleSubmit = async (data: CreateEventRequest, posterFile: File | null) => {
     setSubmitting(true)
     setError(null)
     setCreated(false)
     try {
-      await EventApi.create(data)
+      await EventApi.create(data, posterFile)
       setCreated(true)
-    } catch {
-      await new Promise((r) => setTimeout(r, 800))
-      setCreated(true)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to create event')
     } finally {
       setSubmitting(false)
     }
