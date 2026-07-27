@@ -1,9 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useRef, useEffect, type FormEvent } from 'react'
 import { Button } from '../../../shared/components/form/Button/Button'
-import { Input } from '../../../shared/components/form/Input/Input'
-import { Select } from '../../../shared/components/form/Select/Select'
 import { CATEGORIES } from '../constants/categories'
-import type { CreateEventRequest, EventMode, EventVisibility } from '../types/event.types'
+import type { CreateEventRequest, EventMode } from '../types/event.types'
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Music: '🎵', Sports: '⚽', Theatre: '🎭', Conference: '🎤',
@@ -27,41 +25,44 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
     tags: [],
     startDate: '',
     endDate: '',
-    visibility: 'PUBLIC' as EventVisibility,
+    visibility: 'PUBLIC',
   })
 
-  const [tagInput, setTagInput] = useState('')
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [catOpen, setCatOpen] = useState(false)
+  const [catInput, setCatInput] = useState('')
+  const [zoneSections, setZoneSections] = useState<{ name: string; price: string; capacity: string; reserved: string }[]>([])
+  const catRef = useRef<HTMLDivElement>(null)
+  const allCategories = [...new Set([...CATEGORIES, ...form.tags])].sort()
+
+  const filteredCats = allCategories.filter((c) =>
+    c.toLowerCase().includes(catInput.toLowerCase())
+  )
+
+  useEffect(() => {
+    if (!catOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (catRef.current && !catRef.current.contains(e.target as Node)) setCatOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [catOpen])
+
+  const selectCategory = (cat: string) => {
+    set('category', cat)
+    setCatInput(cat)
+    setCatOpen(false)
+  }
+
+  const addCustomCategory = () => {
+    const trimmed = catInput.trim()
+    if (trimmed) {
+      set('category', trimmed)
+      setCatOpen(false)
+    }
+  }
 
   const set = (key: keyof CreateEventRequest, value: unknown) => {
     setForm((prev) => ({ ...prev, [key]: value }))
-  }
-
-  const toggleCategory = (cat: string) => {
-    setSelectedCategories((prev) => {
-      const next = prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-      set('category', next.join(', '))
-      return next
-    })
-  }
-
-  const addTag = (val: string) => {
-    const trimmed = val.trim()
-    if (trimmed && !form.tags.includes(trimmed)) {
-      set('tags', [...form.tags, trimmed])
-    }
-  }
-
-  const removeTag = (tag: string) => {
-    set('tags', form.tags.filter((t) => t !== tag))
-  }
-
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addTag(tagInput)
-      setTagInput('')
-    }
   }
 
   const handleSubmit = (e: FormEvent) => {
@@ -78,43 +79,145 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
       {/* Section 1: Basic Information */}
       <div className="form-section">
         <h2 className="form-section-title">Basic Information</h2>
-        <div className="form-group">
-          <label className="form-label">Event name</label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="e.g. Nile Nights Festival"
-            value={form.name}
-            onChange={(e) => {
-              set('name', e.target.value)
-              set('slug', slugify(e.target.value))
-            }}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Event URL</label>
-          <div className="url-input-group">
-            <span className="url-prefix">ticketsouq.com/events/</span>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="nile-nights-festival"
-              value={form.slug}
-              onChange={(e) => set('slug', e.target.value)}
-            />
+        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+          <div style={{ flex: 1 }}>
+            <div className="form-group">
+              <label className="form-label">Event name</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Nile Nights Festival"
+                value={form.name}
+                onChange={(e) => {
+                  set('name', e.target.value)
+                  set('slug', slugify(e.target.value))
+                }}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Description</label>
+              <textarea
+                className="form-input"
+                placeholder="Tell attendees what to expect at your event…"
+                rows={5}
+                style={{ height: 'auto', padding: '16px 18px', resize: 'vertical', minHeight: 120 }}
+                value={form.description}
+                onChange={(e) => set('description', e.target.value)}
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0, position: 'relative' }} ref={catRef}>
+              <label className="form-label">Category</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Search or type a category…"
+                value={catInput}
+                onFocus={() => { setCatOpen(true); setCatInput('') }}
+                onChange={(e) => { setCatInput(e.target.value); setCatOpen(true) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomCategory() } }}
+              />
+              {catOpen && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+                  background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12,
+                  maxHeight: 200, overflowY: 'auto', marginTop: 4,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                }}>
+                  {filteredCats.map((c) => (
+                    <div
+                      key={c}
+                      onClick={() => selectCategory(c)}
+                      style={{
+                        padding: '10px 16px', cursor: 'pointer', fontSize: 14,
+                        fontFamily: "'Inter', sans-serif", color: 'var(--ink)',
+                        background: form.category === c ? 'var(--yellow-pale, #fff6d9)' : 'transparent',
+                        transition: 'background 100ms ease',
+                      }}
+                      onMouseEnter={(e) => { if (form.category !== c) e.currentTarget.style.background = '#f5f4ef' }}
+                      onMouseLeave={(e) => { if (form.category !== c) e.currentTarget.style.background = 'transparent' }}
+                    >
+                      {CATEGORY_EMOJI[c] ?? '🏷️'} {c}
+                    </div>
+                  ))}
+                  {catInput.trim() && !allCategories.some((c) => c.toLowerCase() === catInput.toLowerCase()) && (
+                    <div
+                      onClick={addCustomCategory}
+                      style={{
+                        padding: '10px 16px', cursor: 'pointer', fontSize: 14,
+                        fontFamily: "'Inter', sans-serif", color: 'var(--text-secondary)',
+                        borderTop: '1px solid var(--border)',
+                      }}
+                    >
+                      + Add "{catInput.trim()}"
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 20 }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Start date &amp; time</label>
+                <input
+                  type="datetime-local"
+                  className="form-input"
+                  value={form.startDate}
+                  onChange={(e) => set('startDate', e.target.value)}
+                />
+              </div>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <label className="form-label">End date &amp; time</label>
+                <input
+                  type="datetime-local"
+                  className="form-input"
+                  value={form.endDate}
+                  onChange={(e) => set('endDate', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Venue</label>
+              <select className="form-select" value={form.venueId} onChange={(e) => set('venueId', e.target.value)}>
+                <option value="">Select a venue</option>
+                <option value="cairo-arena">Cairo Arena — New Cairo</option>
+                <option value="cairo-festival">Cairo Festival Grounds — New Cairo</option>
+                <option value="opera-house">Cairo Opera House — Zamalek</option>
+                <option value="downtown-venue">Downtown Cultural Center — Downtown</option>
+                <option value="alex-arena">Alexandria Arena — Smouha</option>
+              </select>
+            </div>
           </div>
-          <p className="form-hint">This will be the public link to your event page</p>
-        </div>
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">Description</label>
-          <textarea
-            className="form-input"
-            placeholder="Tell attendees what to expect at your event…"
-            rows={5}
-            style={{ height: 'auto', padding: '16px 18px', resize: 'vertical', minHeight: 120 }}
-            value={form.description}
-            onChange={(e) => set('description', e.target.value)}
-          />
+          <div style={{ flexShrink: 0, width: 220 }}>
+            <label className="form-label">Poster image</label>
+            <div
+              style={{
+                border: '2px dashed var(--border)',
+                borderRadius: 14,
+                padding: '32px 16px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                transition: 'border-color 150ms ease, background 150ms ease',
+                background: '#fafaf7',
+                width: 220,
+                minHeight: 280,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              onClick={() => {}}
+            >
+              <div style={{ fontSize: 36, marginBottom: 8 }}>🖼️</div>
+              <p style={{ margin: 0, fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+                Upload poster
+              </p>
+              <p style={{ margin: '4px 0 0', fontFamily: "'Inter', sans-serif", fontSize: 12, color: 'var(--text-secondary)' }}>
+                JPG, PNG or WebP
+              </p>
+              <p style={{ margin: '4px 0 0', fontFamily: "'Inter', sans-serif", fontSize: 12, color: 'var(--text-secondary)' }}>
+                Recommended 600×900px
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -163,17 +266,6 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
         {/* Seat-Based conditional fields */}
         <div className={`conditional-section${form.mode === 'SEAT_BASED' ? ' visible' : ''}`}>
           <div className="form-group">
-            <label className="form-label">Venue</label>
-            <select className="form-select" value={form.venueId} onChange={(e) => set('venueId', e.target.value)}>
-              <option value="">Select a venue</option>
-              <option value="cairo-arena">Cairo Arena — New Cairo</option>
-              <option value="cairo-festival">Cairo Festival Grounds — New Cairo</option>
-              <option value="opera-house">Cairo Opera House — Zamalek</option>
-              <option value="downtown-venue">Downtown Cultural Center — Downtown</option>
-              <option value="alex-arena">Alexandria Arena — Smouha</option>
-            </select>
-          </div>
-          <div className="form-group">
             <label className="form-label">Venue template</label>
             <select className="form-select">
               <option value="">Select a template</option>
@@ -185,7 +277,6 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
               <option value="vip-lounge">VIP Lounge — 40 seats</option>
             </select>
           </div>
-
           {/* Seat Grid Preview */}
           <div className="seat-preview">
             <p className="seat-preview-title">Classic Theatre Layout</p>
@@ -227,124 +318,46 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
 
         {/* Zone-Based conditional fields */}
         <div className={`conditional-section${form.mode === 'ZONE_BASED' ? ' visible' : ''}`}>
-          <div className="zone-info">
-            <span className="zone-info-icon">📍</span>
-            <div className="zone-info-text">
-              <strong>Zone-based events</strong> let you sell tickets by area (e.g. VIP, General, Floor) without assigning individual seats. You'll configure zones and pricing after creating the event.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 3: Additional Settings */}
-      <div className="form-section">
-        <h2 className="form-section-title">Additional Settings</h2>
-        <div className="form-group">
-          <label className="form-label">Category</label>
-          <div className="category-chips">
-            {CATEGORIES.slice(0, 7).map((cat) => (
-              <span
-                key={cat}
-                className={`category-chip${selectedCategories.includes(cat) ? ' active' : ''}`}
-                onClick={() => toggleCategory(cat)}
-              >
-                {CATEGORY_EMOJI[cat] ?? '🏷️'} {cat}
-              </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {zoneSections.map((z, i) => (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px 120px 40px', gap: 10, alignItems: 'end' }}>
+                <div>
+                  {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Zone Name</label>}
+                  <input type="text" className="form-input" placeholder="e.g. VIP" value={z.name} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, name: e.target.value } : s))} style={{ height: 42 }} />
+                </div>
+                <div>
+                  {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Price</label>}
+                  <input type="number" className="form-input" placeholder="0" value={z.price} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, price: e.target.value } : s))} style={{ height: 42 }} />
+                </div>
+                <div>
+                  {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Capacity</label>}
+                  <input type="number" className="form-input" placeholder="0" value={z.capacity} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, capacity: e.target.value } : s))} style={{ height: 42 }} />
+                </div>
+                <div>
+                  {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Reserved</label>}
+                  <input type="number" className="form-input" placeholder="0" value={z.reserved} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, reserved: e.target.value } : s))} style={{ height: 42 }} />
+                </div>
+                <button type="button" onClick={() => setZoneSections((prev) => prev.filter((_, j) => j !== i))} style={{ height: 42, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+              </div>
             ))}
           </div>
-        </div>
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">Tags</label>
-          <div className="tag-input-wrap">
-            {form.tags.map((tag) => (
-              <span key={tag} className="tag-pill">
-                {tag} <button type="button" onClick={() => removeTag(tag)}>&times;</button>
-              </span>
-            ))}
-            <input
-              type="text"
-              className="tag-input"
-              placeholder="Add a tag and press Enter…"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagKeyDown}
-            />
-          </div>
-          <p className="form-hint">Press Enter to add a tag</p>
-        </div>
-      </div>
-
-      {/* Section 4: Scheduling (extra for API) */}
-      <div className="form-section">
-        <h2 className="form-section-title">Scheduling</h2>
-        <div style={{ display: 'flex', gap: 20 }}>
-          <div className="form-group" style={{ flex: 1 }}>
-            <label className="form-label">Start date &amp; time</label>
-            <input
-              type="datetime-local"
-              className="form-input"
-              value={form.startDate}
-              onChange={(e) => set('startDate', e.target.value)}
-            />
-          </div>
-          <div className="form-group" style={{ flex: 1 }}>
-            <label className="form-label">End date &amp; time</label>
-            <input
-              type="datetime-local"
-              className="form-input"
-              value={form.endDate}
-              onChange={(e) => set('endDate', e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Section 5: Visibility (extra for API) */}
-      <div className="form-section">
-        <h2 className="form-section-title">Visibility</h2>
-        <div className="radio-group">
-          <div className="radio-card">
-            <input
-              type="radio"
-              name="visibility"
-              id="vis-public"
-              value="PUBLIC"
-              checked={form.visibility === 'PUBLIC'}
-              onChange={() => set('visibility', 'PUBLIC')}
-            />
-            <label htmlFor="vis-public">
-              <span className="radio-indicator"></span>
-              <span className="radio-icon">🌍</span>
-              <span>
-                Public
-                <span className="radio-desc">Visible to everyone</span>
-              </span>
-            </label>
-          </div>
-          <div className="radio-card">
-            <input
-              type="radio"
-              name="visibility"
-              id="vis-private"
-              value="PRIVATE"
-              checked={form.visibility === 'PRIVATE'}
-              onChange={() => set('visibility', 'PRIVATE')}
-            />
-            <label htmlFor="vis-private">
-              <span className="radio-indicator"></span>
-              <span className="radio-icon">🔒</span>
-              <span>
-                Private
-                <span className="radio-desc">Invite only</span>
-              </span>
-            </label>
-          </div>
+          <button
+            type="button"
+            onClick={() => setZoneSections((prev) => [...prev, { name: '', price: '', capacity: '', reserved: '' }])}
+            style={{
+              marginTop: 14, width: '100%', padding: '12px 0', borderRadius: 12,
+              border: '2px dashed var(--border)', background: 'transparent',
+              cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600,
+              color: 'var(--ink)', transition: 'border-color 150ms ease, background 150ms ease',
+            }}
+          >
+            + Add Section
+          </button>
         </div>
       </div>
 
       {/* Actions */}
       <div className="form-actions">
-        <button type="button" className="btn btn-ghost" onClick={onCancel}>Save as Draft</button>
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? 'Creating…' : 'Create Event'}
         </button>

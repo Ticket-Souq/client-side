@@ -104,4 +104,5 @@ export interface EventCardResponse {
   ticketsSold?: number
   description?: string
   organizerName?: string
+  mode?: EventMode
 }

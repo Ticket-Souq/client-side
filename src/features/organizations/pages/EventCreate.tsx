@@ -27,7 +27,6 @@ export default function EventCreate() {
           <h1 className="section-title">Create Event</h1>
           <p className="section-sub" style={{ margin: '4px 0 0' }}>Set up a new event for your audience</p>
         </div>
-        <button className="btn btn-ghost" onClick={() => navigate('/org/events')}>Cancel</button>
       </div>
 
       {error && (
