@@ -103,7 +103,7 @@ export default function Landing() {
           <h2 className={styles.portalSectionTitle}>Choose your portal</h2>
           <p className={styles.portalSectionDesc}>3 independent platforms, one ticket ecosystem</p>
           <div className={styles.portalGrid}>
-            <a href="/customer" className={styles.portalCard}>
+            <a href="/customer/events" className={styles.portalCard}>
               <div className={styles.portalIcon}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#15150f" strokeWidth="1.5">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -114,7 +114,7 @@ export default function Landing() {
               <span className={styles.portalDesc}>Browse events, book tickets, manage your reservations</span>
               <span className={styles.portalBtn}>Enter</span>
             </a>
-            <a href="/org/dashboard" className={styles.portalCard}>
+            <a href="/org/events" className={styles.portalCard}>
               <div className={styles.portalIcon}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#15150f" strokeWidth="1.5">
                   <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -126,7 +126,7 @@ export default function Landing() {
               <span className={styles.portalDesc}>Manage venues, events, tickets & your organization</span>
               <span className={styles.portalBtn}>Enter</span>
             </a>
-            <a href="/admin/dashboard" className={styles.portalCard}>
+            <a href="/admin/organizations" className={styles.portalCard}>
               <div className={styles.portalIcon}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#15150f" strokeWidth="1.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />

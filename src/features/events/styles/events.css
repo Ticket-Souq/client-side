@@ -1981,6 +1981,50 @@
 }
 .card-white .section-title{font-size:16px;font-weight:600;color:var(--ink);margin:0 0 18px;}
 
+/* ───── Event Row (collapsible) ───── */
+.event-row-wrap{margin-bottom:4px;}
+.event-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px 20px;cursor:default;
+  transition:background 150ms ease;
+}
+.event-row:hover{background:var(--white-hover, #fafaf7);}
+.event-row.expanded{border-radius:var(--radius) var(--radius) 0 0;border-bottom-color:transparent;}
+.event-row-chevron{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:6px;border:1px solid var(--border);
+  background:var(--white);font-size:13px;font-weight:600;color:var(--ink);
+  cursor:pointer;flex-shrink:0;transition:background 150ms ease;
+  font-family:'Inter',sans-serif;
+}
+.event-row-chevron:hover{background:var(--yellow);}
+.event-row-name{
+  flex:1;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.event-row-card{
+  background:var(--white);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 var(--radius) var(--radius);padding:20px 24px;
+}
+.event-row-card .detail-grid{grid-template-columns:repeat(2, 1fr);gap:16px 24px;}
+.event-row-card .detail-field{display:flex;flex-direction:column;gap:4px;}
+.event-row-card .detail-label{font-size:12px;font-weight:500;color:var(--text-secondary, #726f63);text-transform:uppercase;letter-spacing:0.06em;font-family:'IBM Plex Mono',monospace;}
+.event-row-card .detail-value{font-size:14px;color:var(--ink);}
+.event-row-card .card-title{font-size:15px;font-weight:600;color:var(--ink);margin:0;}
+.event-row-card .action-row{display:flex;gap:10px;}
+
+/* inline price edit inside table cells */
+.price-input{
+  width:120px;height:36px;padding:0 10px;
+  border:1px solid var(--border);border-radius:8px;
+  font-size:14px;font-weight:600;font-family:'Inter',sans-serif;
+  color:var(--ink);background:var(--white);
+  transition:border-color 150ms ease;
+}
+.price-input:focus{outline:none;border-color:var(--yellow);}
+.new-section-row td{background:var(--white-hover, #fafaf7);}
+
 @media (max-width:860px){
   .event-grid{grid-template-columns:1fr;}
   .feat-title{font-size:32px;}

@@ -1,15 +1,10 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEvents } from '../../events/hooks/useEvents'
-import { useEvent } from '../../events/hooks/useEvent'
 import { Badge } from '../../../shared/components/display/Badge/Badge'
 import { Button } from '../../../shared/components/form/Button/Button'
-import { Toggle } from '../../../shared/components/form/Toggle/Toggle'
-import { HorizontalScroll } from '../../../shared/components/layout/HorizontalScroll/HorizontalScroll'
-import { EventCard } from '../../../shared/components/ticket/EventCard/EventCard'
-import { CATEGORIES } from '../../events/constants/categories'
-import { formatDate, formatPrice, getArtVariant } from '../../events/utils/eventFormatters'
-import type { EventFilters, TicketTier } from '../../events/types/event.types'
+import { formatDate } from '../../events/utils/eventFormatters'
+import type { EventSummary } from '../../events/types/event.types'
 
 const STATUS_BADGE: Record<string, { label: string; variant: 'green' | 'yellow' | 'red' | 'soft' }> = {
   PUBLISHED: { label: 'Published', variant: 'green' },
@@ -19,120 +14,72 @@ const STATUS_BADGE: Record<string, { label: string; variant: 'green' | 'yellow' 
   REJECTED: { label: 'Rejected', variant: 'red' },
 }
 
-const TAGS = ['live', 'festival', 'outdoor', 'indoor', 'family', 'night', 'concert']
+let nextId = 5
 
-export default function EventManagement() {
-  const navigate = useNavigate()
-  const [filters, setFilters] = useState<EventFilters>({})
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [tierToggles, setTierToggles] = useState<Record<string, boolean>>({})
+const INITIAL_SECTIONS = [
+  { id: '1', name: 'VIP', variant: 'yellow' as const, price: 1500, remaining: 50, reserved: 5 },
+  { id: '2', name: 'Regular', variant: 'ink' as const, price: 450, remaining: 200, reserved: 20 },
+  { id: '3', name: 'Balcony', variant: 'yellow' as const, price: 800, remaining: 30, reserved: 10 },
+  { id: '4', name: 'Student', variant: 'soft' as const, price: 250, remaining: 100, reserved: 0 },
+]
 
-  const { events, loading } = useEvents({ filters, page: 0, size: 20 })
-  const { event: selectedEvent } = useEvent(selectedId)
+type Section = typeof INITIAL_SECTIONS[number]
 
-  const selected = useMemo(() => {
-    if (selectedEvent) return selectedEvent
-    if (selectedId) return events.find((e) => e.id === selectedId) ?? null
-    return events[0] ?? null
-  }, [selectedEvent, selectedId, events])
+function EventRow({ event, isExpanded, onToggle }: {
+  event: EventSummary
+  isExpanded: boolean
+  onToggle: () => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [sections, setSections] = useState(INITIAL_SECTIONS)
+  const [newRow, setNewRow] = useState<{ name: string; price: string; remaining: string; reserved: string } | null>(null)
 
-  const handleSearch = useCallback((value: string) => {
-    setFilters((prev) => ({ ...prev, title: value }))
-  }, [])
+  const startEditing = () => setEditing(true)
 
-  const handleCategoryChange = useCallback((value: string) => {
-    setFilters((prev) => ({ ...prev, category: value }))
-  }, [])
+  const saveEditing = () => {
+    setEditing(false)
+  }
 
-  const handleStatusChange = useCallback((value: string) => {
-    setFilters((prev) => ({ ...prev, status: value }))
-  }, [])
+  const updateField = (id: string, field: keyof Section, value: string) => {
+    setSections((prev) =>
+      prev.map((s) => s.id === id ? { ...s, [field]: field === 'name' ? value : Number(value) || 0 } : s)
+    )
+  }
 
-  const toggleTier = useCallback((tierId: string) => {
-    setTierToggles((prev) => ({ ...prev, [tierId]: !prev[tierId] }))
-  }, [])
+  const addNewRow = () => {
+    setNewRow({ name: '', price: '', remaining: '', reserved: '' })
+  }
 
-  const totalTickets = selected && 'tiers' in selected
-    ? selected.tiers.reduce((sum: number, t: TicketTier) => sum + t.total, 0)
-    : 860
-  const soldTickets = selected && 'tiers' in selected
-    ? selected.tiers.reduce((sum: number, t: TicketTier) => sum + (t.total - t.available), 0)
-    : 380
-  const availableTickets = totalTickets - soldTickets
+  const saveNewRow = () => {
+    if (!newRow?.name.trim()) return
+    const variants = ['yellow', 'ink', 'soft'] as const
+    setSections((prev) => [
+      ...prev,
+      { id: String(nextId++), name: newRow.name.trim(), variant: variants[prev.length % 3], price: Number(newRow.price) || 0, remaining: Number(newRow.remaining) || 0, reserved: Number(newRow.reserved) || 0 },
+    ])
+    setNewRow(null)
+  }
+
+  const cancelNewRow = () => setNewRow(null)
 
   return (
-    <div className="wrap">
-
-      {/* 1. Page title row */}
-      <div className="page-title-row">
-        <h1 className="section-title" style={{ margin: 0 }}>Event Management</h1>
-        <Button variant="primary" onClick={() => navigate('/org/events/create')}>Create event</Button>
-      </div>
-      <p className="section-sub" style={{ marginBottom: 28 }}>Manage, edit, and organise your events</p>
-
-      {/* 3. Filter bar */}
-      <div className="filter-bar">
-        <input
-          className="form-input"
-          type="search"
-          placeholder="Search events…"
-          value={filters.title ?? ''}
-          onChange={(e) => handleSearch(e.target.value)}
-        />
-        <select
-          className="form-select"
-          value={filters.category ?? ''}
-          onChange={(e) => handleCategoryChange(e.target.value)}
-        >
-          <option value="">All categories</option>
-          {CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-        <select
-          className="form-select"
-          value={filters.status ?? ''}
-          onChange={(e) => handleStatusChange(e.target.value)}
-        >
-          <option value="">All status</option>
-          <option value="PUBLISHED">Published</option>
-          <option value="DRAFT">Draft</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
+    <div className="event-row-wrap">
+      <div className={`event-row ${isExpanded ? 'expanded' : ''}`}>
+        <button className="event-row-chevron" onClick={onToggle}>
+          {isExpanded ? 'v' : '>'}
+        </button>
+        <span className="event-row-name">{event.title}</span>
+        <Badge variant={STATUS_BADGE[event.status]?.variant ?? 'soft'}>
+          {STATUS_BADGE[event.status]?.label ?? event.status}
+        </Badge>
       </div>
 
-      {/* 4. Horizontal scroll event cards */}
-      <section className="row-section" style={{ paddingTop: 0 }}>
-        <HorizontalScroll>
-          {events.map((event, i) => (
-            <EventCard
-              key={event.id}
-              variant="scroll"
-              title={event.title}
-              meta={`${formatDate(event.startDate)} · ${event.venueName || 'TBD'}`}
-              artVariant={getArtVariant(i)}
-              cornerLabel={String(new Date(event.startDate).getDate())}
-              onCtaClick={() => setSelectedId(event.id)}
-            />
-          ))}
-        </HorizontalScroll>
-      </section>
-
-      {/* 5. Selected event detail card */}
-      {selected && (
-        <div className="card-white">
-          <div className="detail-header">
-            <div>
-              <h2 className="detail-name">{selected.title}</h2>
-              <Badge variant={STATUS_BADGE[selected.status]?.variant ?? 'soft'}>
-                {STATUS_BADGE[selected.status]?.label ?? selected.status}
-              </Badge>
-            </div>
-          </div>
+      {isExpanded && (
+        <div className="event-row-card">
           <div className="detail-grid">
             <div className="detail-field">
               <span className="detail-label">Date</span>
-              <span className="detail-value">{formatDate(selected.startDate)}</span>
+              <span className="detail-value">{formatDate(event.startDate)}</span>
             </div>
             <div className="detail-field">
               <span className="detail-label">Time</span>
@@ -140,190 +87,154 @@ export default function EventManagement() {
             </div>
             <div className="detail-field">
               <span className="detail-label">Venue</span>
-              <span className="detail-value">{selected.venueName || 'TBD'}</span>
+              <span className="detail-value">{event.venueName || 'TBD'}</span>
             </div>
             <div className="detail-field">
               <span className="detail-label">Category</span>
               <span className="detail-value">
-                {selected.category && <Badge variant="yellow">{selected.category}</Badge>}
-              </span>
-            </div>
-            <div className="detail-field">
-              <span className="detail-label">Tags</span>
-              <span className="detail-value tags-row">
-                {TAGS.map((tag) => (
-                  <span key={tag} className="badge-pill">{tag}</span>
-                ))}
-              </span>
-            </div>
-            <div className="detail-field detail-field-full">
-              <span className="detail-label">Description</span>
-              <span className="detail-value">
-                {'description' in selected ? selected.description : 'Join us for an unforgettable evening under the stars featuring top Egyptian and international artists across three stages.'}
+                {event.category && <Badge variant="yellow">{event.category}</Badge>}
               </span>
             </div>
           </div>
-          <div className="action-row">
-            <Button variant="ghost" size="sm">Edit</Button>
-            <Button variant="primary" size="sm">Unpublish</Button>
-            <Button variant="danger" size="sm">Delete</Button>
+
+          <div className="sections-table" style={{ marginTop: 20 }}>
+            <h3 className="card-title" style={{ marginBottom: 12 }}>Sections</h3>
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Remaining</th>
+                    <th>Reserved</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sections.map((s) => (
+                    <tr key={s.id}>
+                      <td><Badge variant={s.variant} className="mono">{s.name}</Badge></td>
+                      <td>
+                        {editing ? (
+                          <input
+                            className="form-input price-input"
+                            type="number"
+                            value={s.price}
+                            onChange={(e) => updateField(s.id, 'price', e.target.value)}
+                          />
+                        ) : (
+                          <span style={{ fontWeight: 600 }}>EGP {s.price.toLocaleString()}</span>
+                        )}
+                      </td>
+                      <td>{s.remaining}</td>
+                      <td>
+                        {editing ? (
+                          <input
+                            className="form-input price-input"
+                            type="number"
+                            value={s.reserved}
+                            onChange={(e) => updateField(s.id, 'reserved', e.target.value)}
+                          />
+                        ) : (
+                          s.reserved
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {newRow && (
+                    <tr className="new-section-row">
+                      <td>
+                        <input
+                          className="form-input price-input"
+                          type="text"
+                          placeholder="Section name"
+                          value={newRow.name}
+                          onChange={(e) => setNewRow((r) => r ? { ...r, name: e.target.value } : r)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="form-input price-input"
+                          type="number"
+                          placeholder="0"
+                          value={newRow.price}
+                          onChange={(e) => setNewRow((r) => r ? { ...r, price: e.target.value } : r)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="form-input price-input"
+                          type="number"
+                          placeholder="0"
+                          value={newRow.remaining}
+                          onChange={(e) => setNewRow((r) => r ? { ...r, remaining: e.target.value } : r)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="form-input price-input"
+                          type="number"
+                          placeholder="0"
+                          value={newRow.reserved}
+                          onChange={(e) => setNewRow((r) => r ? { ...r, reserved: e.target.value } : r)}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  {!newRow && (
+                    <tr>
+                      <td colSpan={4}>
+                        <Button variant="ghost" size="sm" onClick={addNewRow}>+ Add New Section</Button>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {newRow && (
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <Button variant="primary" size="sm" onClick={saveNewRow}>Save Section</Button>
+                <Button variant="ghost" size="sm" onClick={cancelNewRow}>Cancel</Button>
+              </div>
+            )}
+          </div>
+
+          <div className="action-row" style={{ marginTop: 16 }}>
+            {editing ? (
+              <Button variant="primary" size="sm" onClick={saveEditing}>Save Event</Button>
+            ) : (
+              <Button variant="primary" size="sm" onClick={startEditing}>Update Event</Button>
+            )}
+            <Button variant="danger" size="sm">Cancel Event</Button>
           </div>
         </div>
       )}
+    </div>
+  )
+}
 
-      {/* 6. Categories & Tags card */}
-      <div className="card-white">
-        <h2 className="card-title" style={{ marginBottom: 16 }}>Categories &amp; Tags</h2>
-        <div className="cat-section">
-          <div className="cat-group">
-            <span className="cat-group-label">Categories</span>
-            <div className="cat-badges">
-              {CATEGORIES.map((cat) => (
-                <Badge key={cat} variant="ink" className="mono">{cat}</Badge>
-              ))}
-            </div>
-          </div>
-          <div className="cat-group">
-            <span className="cat-group-label">Tags</span>
-            <div className="tags-row">
-              {TAGS.map((tag) => (
-                <span key={tag} className="badge-pill">{tag}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-        <Button variant="ghost" size="sm" style={{ marginTop: 12 }}>Manage categories</Button>
+export default function EventManagement() {
+  const navigate = useNavigate()
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const { events, loading } = useEvents({ filters: {}, page: 0, size: 20 })
+
+  const toggle = (id: string) => setExpandedId((prev) => (prev === id ? null : id))
+
+  return (
+    <div className="wrap">
+      <div className="page-title-row">
+        <h1 className="section-title" style={{ margin: 0 }}>Event Management</h1>
+        <Button variant="primary" onClick={() => navigate('/org/events/create')}>Create event</Button>
       </div>
+      <p className="section-sub" style={{ marginBottom: 28 }}>Manage, edit, and organise your events</p>
 
-      {/* 7. Ticket Types table */}
-      <div className="card-white">
-        <div className="card-header-line">
-          <h2 className="card-title">Ticket Types</h2>
-          <Button variant="primary" size="sm">Add type</Button>
-        </div>
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Price</th>
-                <th>Available / Total</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {selected && 'tiers' in selected && selected.tiers.length > 0 ? (
-                selected.tiers.map((tier: TicketTier) => (
-                  <tr key={tier.id}>
-                    <td><Badge variant="yellow" className="mono">{tier.name}</Badge></td>
-                    <td style={{ fontWeight: 600 }}>{formatPrice(tier.price)}</td>
-                    <td>{tier.available} / {tier.total}</td>
-                    <td>
-                      <Badge variant={tier.active ? 'green' : 'red'}>
-                        {tier.active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </td>
-                    <td className="action-cell">
-                      <a href="#" className="action-link">Edit</a>
-                      <Toggle
-                        checked={tierToggles[tier.id] ?? tier.active}
-                        onChange={() => toggleTier(tier.id)}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <>
-                  <tr>
-                    <td><Badge variant="yellow" className="mono">VIP</Badge></td>
-                    <td style={{ fontWeight: 600 }}>EGP 1,500</td>
-                    <td>50 / 100</td>
-                    <td><Badge variant="green">Active</Badge></td>
-                    <td className="action-cell">
-                      <a href="#" className="action-link">Edit</a>
-                      <Toggle checked={true} onChange={() => {}} />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><Badge variant="ink" className="mono">Regular</Badge></td>
-                    <td style={{ fontWeight: 600 }}>EGP 450</td>
-                    <td>200 / 500</td>
-                    <td><Badge variant="green">Active</Badge></td>
-                    <td className="action-cell">
-                      <a href="#" className="action-link">Edit</a>
-                      <Toggle checked={true} onChange={() => {}} />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><Badge variant="yellow" className="mono">Balcony</Badge></td>
-                    <td style={{ fontWeight: 600 }}>EGP 800</td>
-                    <td>30 / 60</td>
-                    <td><Badge variant="green">Active</Badge></td>
-                    <td className="action-cell">
-                      <a href="#" className="action-link">Edit</a>
-                      <Toggle checked={true} onChange={() => {}} />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><Badge variant="soft" className="mono">Student</Badge></td>
-                    <td style={{ fontWeight: 600 }}>EGP 250</td>
-                    <td>100 / 200</td>
-                    <td><Badge variant="red">Inactive</Badge></td>
-                    <td className="action-cell">
-                      <a href="#" className="action-link">Edit</a>
-                      <Toggle checked={false} onChange={() => {}} />
-                    </td>
-                  </tr>
-                </>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 8. Inventory overview */}
-      <div className="card-white">
-        <h2 className="card-title" style={{ marginBottom: 16 }}>Inventory overview</h2>
-        <div className="inventory-stats">
-          <div className="stat-box">
-            <span className="stat-num">{totalTickets}</span>
-            <span className="stat-lbl mono">Total tickets</span>
-          </div>
-          <div className="stat-box">
-            <span className="stat-num">{soldTickets}</span>
-            <span className="stat-lbl mono">Sold</span>
-          </div>
-          <div className="stat-box">
-            <span className="stat-num">{availableTickets}</span>
-            <span className="stat-lbl mono">Available</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 9. QR Code section */}
-      <div className="card-white">
-        <h2 className="card-title" style={{ marginBottom: 20 }}>QR Code &amp; Barcode</h2>
-        <div className="qr-section">
-          <div className="qr-sim"></div>
-          <span className="qr-id mono">TICKET-2026-0719-0042</span>
-          <Button variant="ghost" size="sm">Generate QR</Button>
-        </div>
-      </div>
-
-      {/* 10. Validate Ticket section */}
-      <div className="card-white">
-        <h2 className="card-title" style={{ marginBottom: 16 }}>Validate Ticket</h2>
-        <div className="search-bar" style={{ marginBottom: 16 }}>
-          <input className="form-input" type="search" placeholder="Enter ticket ID or scan QR…" />
-          <Button variant="primary">Validate</Button>
-        </div>
-        <div className="validation-result">
-          <Badge variant="green" style={{ fontSize: 12, padding: '6px 14px' }}>VALID</Badge>
-          <span className="mono" style={{ fontSize: 13, color: 'var(--text-secondary, #726f63)' }}>TICKET-2026-0719-0042</span>
-        </div>
-      </div>
-
+      {events.map((ev) => (
+        <EventRow
+          key={ev.id}
+          event={ev}
+          isExpanded={expandedId === ev.id}
+          onToggle={() => toggle(ev.id)}
+        />
+      ))}
     </div>
   )
 }
