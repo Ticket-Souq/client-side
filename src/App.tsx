@@ -7,6 +7,7 @@ import AuthLayout from './layouts/AuthLayout'
 import AdminLayout from './layouts/AdminLayout'
 
 import Landing from './features/home/pages/Landing'
+import OrgRootRedirect from './features/organizations/pages/OrgRootRedirect'
 
 import Login from './features/auth/pages/Login'
 import Register from './features/auth/pages/Register'
@@ -15,7 +16,6 @@ import ResetPassword from './features/auth/pages/ResetPassword'
 import EmailVerification from './features/auth/pages/EmailVerification'
 import ChangePassword from './features/auth/pages/ChangePassword'
 
-import CustomerDashboard from './features/home/pages/Dashboard'
 import CustomerEvents from './features/events/pages/CustomerEvents'
 import CustomerEventDetail from './features/events/pages/CustomerEventDetail'
 import ZonePurchase from './features/events/pages/ZonePurchase'
@@ -30,7 +30,6 @@ import PaymentCancel from './features/booking/pages/PaymentCancel'
 const MyTickets = lazy(() => import('./features/tickets/pages/MyTickets'))
 const TicketDetail = lazy(() => import('./features/tickets/pages/TicketDetail'))
 
-import OrgDashboard from './features/organizations/pages/Dashboard'
 import EventManagement from './features/organizations/pages/EventManagement'
 import EventCreate from './features/organizations/pages/EventCreate'
 import VenueTemplates from './features/organizations/pages/VenueTemplates'
@@ -42,7 +41,6 @@ import QRValidation from './features/organizations/pages/QRValidation'
 import OrgRefunds from './features/organizations/pages/Refunds'
 import OrgProfile from './features/organizations/pages/Profile'
 
-import AdminDashboard from './features/admin/pages/Dashboard'
 import AdminEvents from './features/admin/pages/AdminEvents'
 import VenueOversight from './features/admin/pages/VenueOversight'
 import AdminRefunds from './features/admin/pages/AdminRefunds'
@@ -61,7 +59,7 @@ function App() {
   return (
     <Routes>
       {/* Landing (public, root) */}
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<OrgRootRedirect />} />
 
       {/* Auth */}
       <Route path="auth" element={<AuthLayout />}>
@@ -90,8 +88,7 @@ function App() {
 
       {/* Customer */}
       <Route path="customer" element={<CustomerLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<CustomerDashboard />} />
+        <Route index element={<Navigate to="events" replace />} />
         <Route path="events" element={<CustomerEvents />} />
         <Route path="events/:eventId" element={<CustomerEventDetail />} />
         <Route path="events/:eventId/zone-purchase" element={<ZonePurchase />} />
@@ -107,13 +104,11 @@ function App() {
 
       {/* Organization */}
       <Route path="org" element={<OrganizerLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<OrgDashboard />} />
+        <Route index element={<Navigate to="events" replace />} />
         <Route path="events" element={<EventManagement />} />
         <Route path="events/create" element={<EventCreate />} />
         <Route path="venues" element={<VenueManagement />} />
         <Route path="venue-templates" element={<VenueTemplates />} />
-        <Route path="organization" element={<OrgManagement />} />
         <Route path="team" element={<TeamManagement />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="validate" element={<QRValidation />} />
@@ -123,8 +118,7 @@ function App() {
 
       {/* Admin */}
       <Route path="admin" element={<AdminLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route index element={<Navigate to="organizations" replace />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="venues" element={<VenueOversight />} />
         <Route path="monitoring" element={<SystemMonitoring />} />
