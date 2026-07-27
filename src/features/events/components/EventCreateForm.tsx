@@ -1,11 +1,32 @@
-import { useState, useRef, useEffect, type FormEvent } from 'react'
-import { Button } from '../../../shared/components/form/Button/Button'
+import { useState, useRef, useEffect, useMemo, type FormEvent } from 'react'
 import { CATEGORIES } from '../constants/categories'
 import type { CreateEventRequest, EventMode } from '../types/event.types'
+import { listVenues, listVenueTemplates, getVenueTemplate } from '../../venues/api/venueApi'
+import type { Venue, VenueType, VenueTemplate, SeatMap } from '../../venues/components/types'
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Music: '🎵', Sports: '⚽', Theatre: '🎭', Conference: '🎤',
   Food: '🍕', Arts: '🎨', Family: '👨\u200d👩\u200d👧',
+}
+
+interface ZoneSection {
+  name: string
+  price: string
+  capacity: string
+}
+
+interface CategoryPrice {
+  id: string
+  name: string
+  color: string
+  price: string
+}
+
+export interface SeatReservation {
+  cellId: string
+  rowLabel: string
+  seatNumber: string
+  holderName: string
 }
 
 interface Props {
@@ -30,13 +51,112 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
 
   const [catOpen, setCatOpen] = useState(false)
   const [catInput, setCatInput] = useState('')
-  const [zoneSections, setZoneSections] = useState<{ name: string; price: string; capacity: string; reserved: string }[]>([])
   const catRef = useRef<HTMLDivElement>(null)
   const allCategories = [...new Set([...CATEGORIES, ...form.tags])].sort()
-
   const filteredCats = allCategories.filter((c) =>
     c.toLowerCase().includes(catInput.toLowerCase())
   )
+
+  const [venues, setVenues] = useState<Venue[]>([])
+  const [venuesLoading, setVenuesLoading] = useState(true)
+
+  const [templates, setTemplates] = useState<VenueTemplate[]>([])
+  const [templatesLoading, setTemplatesLoading] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
+
+  const [seatMap, setSeatMap] = useState<SeatMap | null>(null)
+  const [seatMapLoading, setSeatMapLoading] = useState(false)
+
+  const [categoryPrices, setCategoryPrices] = useState<CategoryPrice[]>([])
+  const [zoneSections, setZoneSections] = useState<ZoneSection[]>([])
+  const [reservations, setReservations] = useState<SeatReservation[]>([])
+
+  const selectedVenue = useMemo(
+    () => venues.find((v) => v.id === form.venueId) ?? null,
+    [venues, form.venueId],
+  )
+
+  const isSeatBased = selectedVenue?.type === 'SEAT_BASED'
+
+  useEffect(() => {
+    let cancelled = false
+    setVenuesLoading(true)
+    ;(async () => {
+      try {
+        const res = await listVenues(0, 100)
+        if (!cancelled) setVenues(res.content)
+      } catch {
+        // silently fail
+      } finally {
+        if (!cancelled) setVenuesLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    if (!form.venueId) return
+    setModeFromVenue(selectedVenue?.type)
+    setSelectedTemplateId('')
+    setSeatMap(null)
+    setCategoryPrices([])
+    setZoneSections([])
+    setReservations([])
+
+    if (!selectedVenue) return
+
+    if (selectedVenue.type === 'SEAT_BASED') {
+      let cancelled = false
+      setTemplatesLoading(true)
+      ;(async () => {
+        try {
+          const list = await listVenueTemplates(selectedVenue.id)
+          if (!cancelled) setTemplates(list)
+        } catch {
+          if (!cancelled) setTemplates([])
+        } finally {
+          if (!cancelled) setTemplatesLoading(false)
+        }
+      })()
+      return () => { cancelled = true }
+    }
+  }, [form.venueId])
+
+  useEffect(() => {
+    if (!selectedTemplateId || !selectedVenue) return
+    let cancelled = false
+    setSeatMapLoading(true)
+    ;(async () => {
+      try {
+        const tpl = await getVenueTemplate(selectedVenue.id, selectedTemplateId)
+        if (cancelled) return
+        const parsed = JSON.parse(tpl.layout) as SeatMap
+        if (parsed && parsed.rows) {
+          setSeatMap(parsed)
+          setCategoryPrices(
+            parsed.categories.map((c) => ({
+              id: c.id,
+              name: c.name,
+              color: c.color,
+              price: '',
+            })),
+          )
+        }
+      } catch {
+        if (!cancelled) setSeatMap(null)
+      } finally {
+        if (!cancelled) setSeatMapLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedTemplateId])
+
+  const setModeFromVenue = (type?: VenueType) => {
+    setForm((prev) => ({
+      ...prev,
+      mode: type === 'ZONE_BASED' ? 'ZONE_BASED' : 'SEAT_BASED',
+    }))
+  }
 
   useEffect(() => {
     if (!catOpen) return
@@ -174,17 +294,6 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
                 />
               </div>
             </div>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Venue</label>
-              <select className="form-select" value={form.venueId} onChange={(e) => set('venueId', e.target.value)}>
-                <option value="">Select a venue</option>
-                <option value="cairo-arena">Cairo Arena — New Cairo</option>
-                <option value="cairo-festival">Cairo Festival Grounds — New Cairo</option>
-                <option value="opera-house">Cairo Opera House — Zamalek</option>
-                <option value="downtown-venue">Downtown Cultural Center — Downtown</option>
-                <option value="alex-arena">Alexandria Arena — Smouha</option>
-              </select>
-            </div>
           </div>
           <div style={{ flexShrink: 0, width: 220 }}>
             <label className="form-label">Poster image</label>
@@ -221,139 +330,164 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
         </div>
       </div>
 
-      {/* Section 2: Event Type */}
+      {/* Section 2: Venue & Layout */}
       <div className="form-section">
-        <h2 className="form-section-title">Event Type</h2>
-        <div className="radio-group">
-          <div className="radio-card">
-            <input
-              type="radio"
-              name="eventType"
-              id="typeSeat"
-              value="SEAT_BASED"
-              checked={form.mode === 'SEAT_BASED'}
-              onChange={() => set('mode', 'SEAT_BASED')}
-            />
-            <label htmlFor="typeSeat">
-              <span className="radio-indicator"></span>
-              <span className="radio-icon">💺</span>
-              <span>
-                Seat-Based
-                <span className="radio-desc">Assign specific seats from a venue layout</span>
-              </span>
-            </label>
-          </div>
-          <div className="radio-card">
-            <input
-              type="radio"
-              name="eventType"
-              id="typeZone"
-              value="ZONE_BASED"
-              checked={form.mode === 'ZONE_BASED'}
-              onChange={() => set('mode', 'ZONE_BASED')}
-            />
-            <label htmlFor="typeZone">
-              <span className="radio-indicator"></span>
-              <span className="radio-icon">📍</span>
-              <span>
-                Zone-Based
-                <span className="radio-desc">Sell tickets by area or section</span>
-              </span>
-            </label>
-          </div>
-        </div>
+        <h2 className="form-section-title">Venue & Layout</h2>
 
-        {/* Seat-Based conditional fields */}
-        <div className={`conditional-section${form.mode === 'SEAT_BASED' ? ' visible' : ''}`}>
-          <div className="form-group">
-            <label className="form-label">Venue template</label>
-            <select className="form-select">
-              <option value="">Select a template</option>
-              <option value="classic-theatre">Classic Theatre — 120 seats</option>
-              <option value="concert-bowl">Concert Bowl — 500 seats</option>
-              <option value="banquet-hall">Banquet Hall — 200 seats</option>
-              <option value="classroom">Classroom Style — 80 seats</option>
-              <option value="outdoor-stage">Outdoor Stage — 1,000 seats</option>
-              <option value="vip-lounge">VIP Lounge — 40 seats</option>
-            </select>
-          </div>
-          {/* Seat Grid Preview */}
-          <div className="seat-preview">
-            <p className="seat-preview-title">Classic Theatre Layout</p>
-            <div className="seat-grid-compact">
-              <div className="seat-stage">Stage</div>
-
-              <div className="section-label">— Orchestra —</div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat-aisle"></div><div className="seat-aisle"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat-aisle"></div><div className="seat-aisle"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat-aisle"></div><div className="seat-aisle"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat-aisle"></div><div className="seat-aisle"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-
-              <div className="section-label">— Mezzanine —</div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div><div className="seat"></div>
-
-              <div className="section-label">— Balcony —</div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div>
-              <div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div><div className="seat-aisle"></div>
-              <div className="seat"></div><div className="seat"></div><div className="seat"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Zone-Based conditional fields */}
-        <div className={`conditional-section${form.mode === 'ZONE_BASED' ? ' visible' : ''}`}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {zoneSections.map((z, i) => (
-              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px 120px 40px', gap: 10, alignItems: 'end' }}>
-                <div>
-                  {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Zone Name</label>}
-                  <input type="text" className="form-input" placeholder="e.g. VIP" value={z.name} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, name: e.target.value } : s))} style={{ height: 42 }} />
-                </div>
-                <div>
-                  {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Price</label>}
-                  <input type="number" className="form-input" placeholder="0" value={z.price} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, price: e.target.value } : s))} style={{ height: 42 }} />
-                </div>
-                <div>
-                  {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Capacity</label>}
-                  <input type="number" className="form-input" placeholder="0" value={z.capacity} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, capacity: e.target.value } : s))} style={{ height: 42 }} />
-                </div>
-                <div>
-                  {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Reserved</label>}
-                  <input type="number" className="form-input" placeholder="0" value={z.reserved} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, reserved: e.target.value } : s))} style={{ height: 42 }} />
-                </div>
-                <button type="button" onClick={() => setZoneSections((prev) => prev.filter((_, j) => j !== i))} style={{ height: 42, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
-              </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setZoneSections((prev) => [...prev, { name: '', price: '', capacity: '', reserved: '' }])}
-            style={{
-              marginTop: 14, width: '100%', padding: '12px 0', borderRadius: 12,
-              border: '2px dashed var(--border)', background: 'transparent',
-              cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600,
-              color: 'var(--ink)', transition: 'border-color 150ms ease, background 150ms ease',
-            }}
+        {/* Venue selector */}
+        <div className="form-group">
+          <label className="form-label">Venue</label>
+          <select
+            className="form-select"
+            value={form.venueId}
+            onChange={(e) => set('venueId', e.target.value)}
+            disabled={venuesLoading}
           >
-            + Add Section
-          </button>
+            <option value="">{venuesLoading ? 'Loading venues…' : 'Select a venue'}</option>
+            {venues.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name} — {v.address} ({v.type === 'SEAT_BASED' ? 'Seat-based' : 'Zone-based'})
+              </option>
+            ))}
+          </select>
         </div>
+
+        {/* Seat-based: template + seat map + category pricing */}
+        {isSeatBased && (
+          <div style={{ marginTop: 16 }}>
+            <div className="form-group">
+              <label className="form-label">Venue template</label>
+              <select
+                className="form-select"
+                value={selectedTemplateId}
+                onChange={(e) => setSelectedTemplateId(e.target.value)}
+                disabled={templatesLoading}
+              >
+                <option value="">{templatesLoading ? 'Loading templates…' : 'Select a template'}</option>
+                {templates.map((t) => {
+                  let label = t.id.slice(0, 8)
+                  try {
+                    const parsed = JSON.parse(t.layout) as SeatMap
+                    if (parsed.name) label = parsed.name
+                  } catch { /* keep fallback */ }
+                  return (
+                    <option key={t.id} value={t.id}>{label}</option>
+                  )
+                })}
+              </select>
+            </div>
+
+            {/* Seat map preview */}
+            {selectedTemplateId && (
+              <div style={{ marginTop: 12 }}>
+                {seatMapLoading ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Loading seat map…</p>
+                ) : seatMap ? (
+                  <SeatMapPreview map={seatMap} reservations={reservations} onReserve={(r) => setReservations((prev) => [...prev, r])} onUnreserve={(cellId) => setReservations((prev) => prev.filter((r) => r.cellId !== cellId))} />
+                ) : (
+                  <p style={{ fontSize: 13, color: '#e53e3e' }}>Failed to load seat map</p>
+                )}
+              </div>
+                )}
+
+            {/* Reservations list */}
+            {reservations.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <label className="form-label">Reserved seats ({reservations.length})</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+                  {reservations.map((r) => (
+                    <div key={r.cellId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 6, background: '#ecfdf5', border: '1px solid #a7f3d0', fontSize: 13 }}>
+                      <span>
+                        <strong>{r.rowLabel}{r.seatNumber}</strong> &mdash; {r.holderName}
+                      </span>
+                      <button type="button" onClick={() => setReservations((prev) => prev.filter((x) => x.cellId !== r.cellId))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 14, fontWeight: 700 }}>&times;</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Category pricing */}
+            {categoryPrices.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <label className="form-label">Category pricing</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+                  {categoryPrices.map((cp) => (
+                    <div
+                      key={cp.id}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12 }}
+                    >
+                      <span
+                        style={{
+                          width: 16, height: 16, borderRadius: 4,
+                          backgroundColor: cp.color, flexShrink: 0, border: '1px solid #000',
+                        }}
+                      />
+                      <span style={{ fontSize: 14, fontWeight: 500, minWidth: 100 }}>
+                        {cp.name}
+                      </span>
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>EGP</span>
+                        <input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          placeholder="0.00"
+                          value={cp.price}
+                          onChange={(e) =>
+                            setCategoryPrices((prev) =>
+                              prev.map((p) => (p.id === cp.id ? { ...p, price: e.target.value } : p)),
+                            )
+                          }
+                          className="form-input"
+                          style={{ height: 38, marginLeft: 4 }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Zone-based: zone builder */}
+        {!isSeatBased && selectedVenue && (
+          <div style={{ marginTop: 16 }}>
+            <label className="form-label">Zones</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+              {zoneSections.map((z, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px 40px', gap: 10, alignItems: 'end' }}>
+                  <div>
+                    {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Zone Name</label>}
+                    <input type="text" className="form-input" placeholder="e.g. VIP" value={z.name} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, name: e.target.value } : s))} style={{ height: 42 }} />
+                  </div>
+                  <div>
+                    {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Price</label>}
+                    <input type="number" min={0} className="form-input" placeholder="0" value={z.price} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, price: e.target.value } : s))} style={{ height: 42 }} />
+                  </div>
+                  <div>
+                    {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Capacity</label>}
+                    <input type="number" min={0} className="form-input" placeholder="0" value={z.capacity} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, capacity: e.target.value } : s))} style={{ height: 42 }} />
+                  </div>
+                  <button type="button" onClick={() => setZoneSections((prev) => prev.filter((_, j) => j !== i))} style={{ height: 42, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setZoneSections((prev) => [...prev, { name: '', price: '', capacity: '' }])}
+              style={{
+                marginTop: 14, width: '100%', padding: '12px 0', borderRadius: 12,
+                border: '2px dashed var(--border)', background: 'transparent',
+                cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600,
+                color: 'var(--ink)', transition: 'border-color 150ms ease, background 150ms ease',
+              }}
+            >
+              + Add Zone
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Actions */}
@@ -364,5 +498,165 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
       </div>
 
     </form>
+  )
+}
+
+/* ---------- Read-only seat map preview ---------- */
+
+const PREVIEW_CELL = 18
+const PREVIEW_GAP = 3
+
+function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve }: { map: SeatMap; reservations?: SeatReservation[]; onReserve?: (r: SeatReservation) => void; onUnreserve?: (cellId: string) => void }) {
+  const catById = useMemo(() => new Map(map.categories.map((c) => [c.id, c])), [map.categories])
+  const reservedMap = useMemo(() => new Map(reservations.map((r) => [r.cellId, r])), [reservations])
+  const [pendingCell, setPendingCell] = useState<{ rowLabel: string; seatNumber: string; cellId: string } | null>(null)
+  const [nameInput, setNameInput] = useState('')
+
+  const maxSeatCount = useMemo(() => {
+    let max = 0
+    for (const row of map.rows) {
+      if (row.aisle) continue
+      const count = row.cells.filter((c) => c.type === "seat").length
+      if (count > max) max = count
+    }
+    return max || 1
+  }, [map.rows])
+
+  const seatsWidth = maxSeatCount * PREVIEW_CELL + (maxSeatCount - 1) * PREVIEW_GAP
+
+  const handleSeatClick = (cellId: string, rowLabel: string, seatNumber: string) => {
+    if (reservedMap.has(cellId)) {
+      onUnreserve?.(cellId)
+      return
+    }
+    setPendingCell({ cellId, rowLabel, seatNumber })
+    setNameInput('')
+  }
+
+  const confirmReserve = () => {
+    if (pendingCell && nameInput.trim()) {
+      onReserve?.({ cellId: pendingCell.cellId, rowLabel: pendingCell.rowLabel, seatNumber: pendingCell.seatNumber, holderName: nameInput.trim() })
+      setPendingCell(null)
+      setNameInput('')
+    }
+  }
+
+  return (
+    <div style={{
+      background: '#f7f7f7', borderRadius: 8, padding: 16, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative',
+    }}>
+      {map.stage.position === 'top' && (
+        <div style={{
+          background: '#7f1d1d', borderRadius: 4, padding: '6px 0',
+          textAlign: 'center', fontWeight: 700, fontSize: 11, letterSpacing: 4,
+          color: '#fff', marginBottom: 12,marginLeft: 24, width: seatsWidth,
+        }}>
+          {map.stage.label || 'STAGE'}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {map.rows.map((row) => {
+          if (row.aisle) {
+            return (
+              <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: PREVIEW_GAP, marginBottom: PREVIEW_GAP, minHeight: 8 }}>
+                <span style={{ width: 26, flexShrink: 0 }} />
+                <div style={{ flex: 1, borderTop: '1px dashed #374151' }} />
+              </div>
+            )
+          }
+          return (
+            <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: PREVIEW_GAP, marginBottom: PREVIEW_GAP }}>
+              <span style={{ width: 24, fontSize: 10, color: '#6b7280', textAlign: 'right', flexShrink: 0 , paddingRight: 2 }}>
+                {row.label}
+              </span>
+              <div style={{ display: 'flex', gap: PREVIEW_GAP }}>
+                {row.cells.map((cell, ci) => {
+                  if (cell.type !== 'seat') {
+                    return <div key={cell.id} style={{ width: 8 }} />
+                  }
+                  const cat = cell.categoryId ? catById.get(cell.categoryId) : undefined
+                  const res = reservedMap.get(cell.id)
+                  const isReserved = !!res
+                  return (
+                    <div
+                      key={cell.id}
+                      title={isReserved ? `${row.label}${cell.number ?? ''} — ${res.holderName}` : `${row.label}${cell.number ?? ''}${cat ? ' · ' + cat.name : ''}`}
+                      onClick={() => handleSeatClick(cell.id, row.label, cell.number ?? String(ci + 1))}
+                      style={{
+                        width: PREVIEW_CELL, height: PREVIEW_CELL, borderRadius: 3,
+                        backgroundColor: isReserved ? '#16a34a' : (cat?.color ?? '#3b82f6'), opacity: isReserved ? 1 : 0.8,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 8, color: '#fff', fontWeight: 600, border: '1px solid #000',
+                        cursor: 'pointer', transition: 'transform 100ms ease',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.3)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
+                    >
+                      {cell.number ?? ''}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {map.stage.position === 'bottom' && (
+        <div style={{
+          background: '#000', borderRadius: 4, padding: '6px 0',
+          textAlign: 'center', fontWeight: 700, fontSize: 11, letterSpacing: 4,
+          color: '#fff', marginTop: 12, width: seatsWidth,
+        }}>
+          {map.stage.label || 'STAGE'}
+        </div>
+      )}
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, paddingTop: 8, borderTop: '1px solid #1f2937', justifyContent: 'center' }}>
+        {map.categories.map((c) => (
+          <span key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#000' }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: c.color , border: '1px solid #000' }} />
+            {c.name}
+          </span>
+        ))}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#000' }}>
+          <span style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: '#16a34a', border: '1px solid #000' }} />
+          Reserved
+        </span>
+      </div>
+
+      {/* Name input modal */}
+      {pendingCell && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+          onClick={() => setPendingCell(null)}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: 12, padding: 24, width: 340, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700 }}>Reserve seat</h3>
+            <p style={{ margin: '0 0 14px', fontSize: 13, color: '#6b7280' }}>
+              Seat <strong>{pendingCell.rowLabel}{pendingCell.seatNumber}</strong> &mdash; enter holder name
+            </p>
+            <input
+              autoFocus
+              type="text"
+              placeholder="e.g. John Smith"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') confirmReserve() }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, boxSizing: 'border-box', marginBottom: 14 }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setPendingCell(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: 13 }}>Cancel</button>
+              <button type="button" onClick={confirmReserve} disabled={!nameInput.trim()} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: nameInput.trim() ? '#16a34a' : '#d1d5db', color: '#fff', cursor: nameInput.trim() ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 600 }}>Reserve</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
