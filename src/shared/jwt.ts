@@ -47,3 +47,9 @@ export function isTokenExpired(token: string): boolean {
   if (!payload?.exp) return true;
   return payload.exp * 1000 < Date.now();
 }
+
+export function isExpiringSoon(token: string, seconds: number): boolean {
+  const payload = parseJwt(token);
+  if (!payload?.exp) return true;
+  return payload.exp * 1000 < Date.now() + seconds * 1000;
+}

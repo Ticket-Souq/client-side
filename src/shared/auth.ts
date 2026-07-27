@@ -1,6 +1,7 @@
 import { API } from "./api";
 import { fetchWithTimeout } from "./fetchWithTimeout";
-import { getRoles, hasRole, isTokenExpired, parseJwt } from "./jwt";
+import { getRoles, hasRole, isTokenExpired, isExpiringSoon, parseJwt } from "./jwt";
+import { showLoading, hideLoading } from "./loading";
 
 const ACCESS_COOKIE = "sq_access";
 const REFRESH_COOKIE = "sq_refresh";
@@ -10,9 +11,11 @@ const REFRESH_MAX_AGE = 604800;   // 7 days
 // ── Cookie helpers ────────────────────────────────────────────────────────────
 
 function setCookie(name: string, value: string, maxAge: number) {
+  const expires = new Date(Date.now() + maxAge * 1000).toUTCString();
   const parts = [
     `${name}=${encodeURIComponent(value)}`,
     `max-age=${maxAge}`,
+    `expires=${expires}`,
     "path=/",
     "SameSite=Strict",
   ];
@@ -82,7 +85,7 @@ async function doRefresh(): Promise<{ access: string; refresh: string }> {
 
   const res = await fetchWithTimeout(API.auth.refresh, {
     method: "POST",
-    headers: { Authorization: `Bearer ${refresh}` },
+    headers: { "X-Refresh-Token": `Bearer ${refresh}` },
   });
 
   if (!res.ok) throw new Error("Refresh failed");
@@ -103,45 +106,63 @@ async function tryRefresh(): Promise<void> {
 
 // ── Authenticated fetch ───────────────────────────────────────────────────────
 
+function saveTokensFromHeaders(res: Response) {
+  const newAccess = res.headers.get("Authorization");
+  const newRefresh = res.headers.get("X-Refresh-Token");
+  if (newAccess) setTokens(newAccess.replace(/^Bearer\s+/i, ""), newRefresh?.replace(/^Bearer\s+/i, ""));
+}
+
 export async function authFetch(
   url: string,
   options: RequestInit & { timeout?: number } = {},
 ): Promise<Response> {
-  // If access token is expired, try refresh first
-  const access = getAccessToken();
-  if (access && isTokenExpired(access)) {
-    try {
-      await tryRefresh();
-    } catch {
-      clearTokens();
-      window.location.href = "/auth/login";
-      throw new Error("Session expired");
-    }
-  }
-
-  const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string>),
-  };
-
-  const currentAccess = getAccessToken();
-  if (currentAccess) headers["Authorization"] = `Bearer ${currentAccess}`;
-
-  const res = await fetchWithTimeout(url, { ...options, headers });
-
-  // If server says 401, try refresh once and retry
-  if (res.status === 401) {
-    try {
-      await tryRefresh();
-    } catch {
-      clearTokens();
-      window.location.href = "/auth/login";
-      throw new Error("Session expired");
+  showLoading();
+  try {
+    // If access token is missing or about to expire, refresh proactively
+    const access = getAccessToken();
+    if (!access || isTokenExpired(access) || isExpiringSoon(access, 10)) {
+      if (getRefreshToken()) {
+        try {
+          await tryRefresh();
+        } catch {
+          clearTokens();
+          window.location.href = "/auth/login";
+          throw new Error("Session expired");
+        }
+      }
     }
 
-    const newAccess = getAccessToken();
-    if (newAccess) headers["Authorization"] = `Bearer ${newAccess}`;
-    return fetchWithTimeout(url, { ...options, headers });
-  }
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string>),
+    };
 
-  return res;
+    const currentAccess = getAccessToken();
+    if (currentAccess) headers["Authorization"] = `Bearer ${currentAccess}`;
+
+    const res = await fetchWithTimeout(url, { ...options, headers });
+
+    // Save any new tokens the backend sent back
+    saveTokensFromHeaders(res);
+
+    // If server says 401, try refresh once and retry
+    if (res.status === 401 && getRefreshToken()) {
+      try {
+        await tryRefresh();
+      } catch {
+        clearTokens();
+        window.location.href = "/auth/login";
+        throw new Error("Session expired");
+      }
+
+      const retryAccess = getAccessToken();
+      if (retryAccess) headers["Authorization"] = `Bearer ${retryAccess}`;
+      const retryRes = await fetchWithTimeout(url, { ...options, headers });
+      saveTokensFromHeaders(retryRes);
+      return retryRes;
+    }
+
+    return res;
+  } finally {
+    hideLoading();
+  }
 }

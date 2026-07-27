@@ -31,7 +31,6 @@ export const API = {
   },
   users: {
     profile: `${BASE_URL}/api/v1/user/profile`,
-    membersBatch: `${BASE_URL}/api/v1/user/members/batch`,
   },
   admin: {
     organizations: `${BASE_URL}/api/v1/user/organizations`,
@@ -39,6 +38,12 @@ export const API = {
     orgReject: (id: string) => `${BASE_URL}/api/v1/user/org/${id}/reject`,
     orgBan: (id: string) => `${BASE_URL}/api/v1/user/org/${id}/ban`,
     auditLogs: `${BASE_URL}/api/v1/audit`,
+  },
+  org: {
+    members: `${BASE_URL}/api/v1/auth/org/members`,
+    deactivate: `${BASE_URL}/api/v1/auth/org`,
+    activate: `${BASE_URL}/api/v1/auth/org`,
+    generateAccounts: `${BASE_URL}/api/v1/auth/org/generate-accounts`,
   },
   tickets: {
     list: `${BASE_URL}/api/v1/tickets`,
