@@ -59,14 +59,12 @@ export type VenueType = "SEAT_BASED" | "ZONE_BASED";
 
 export interface Venue {
   id: string;
-  orgId: string;
   name: string;
   address: string;
   type: VenueType;
 }
 
 export interface CreateVenueRequest {
-  orgId: string;
   name: string;
   address: string;
   type: VenueType;

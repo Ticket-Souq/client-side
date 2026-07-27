@@ -33,8 +33,7 @@ function renumber(map: SeatMap): SeatMap {
 
 const defaultCategories = (): Category[] => [
   { id: uuid(), name: "Standard", color: "#3b82f6" },
-  { id: uuid(), name: "Premium", color: "#a855f7" },
-  { id: uuid(), name: "VIP", color: "#f59e0b" },
+  { id: uuid(), name: "Premium", color: "#a855f7" }
 ];
 
 function makeSeat(categoryId?: string): Cell {
@@ -69,7 +68,7 @@ function makeDefaultMap(): SeatMap {
   for (let i = 0; i < 5; i++) rows.push(makeSeatedRow(14, cats[1].id));
   return renumber({
     id: uuid(),
-    name: "New venue",
+    name: "New Template",
     mode: "SEAT_BASED",
     stage: { label: "STAGE", color: "#7f1d1d", position: "top" },
     categories: cats,
@@ -122,6 +121,7 @@ export type VenueAction =
   | { type: "INSERT_SEAT"; rowId: string; atCellId: string; side: "left" | "right"; cellType: "seat" | "space" }
   | { type: "APPEND_SEAT"; rowId: string; cellType: "seat" | "space" }
   | { type: "REMOVE_CELL"; rowId: string; cellId: string }
+  | { type: "DELETE_CELLS"; ids: string[] }
   | { type: "SET_SEAT_STATUS"; ids: string[]; status: SeatStatus }
   | { type: "ASSIGN_CATEGORY"; ids: string[]; categoryId: string }
   | { type: "RENUMBER_SEAT"; rowId: string; cellId: string; number: string }
@@ -299,6 +299,15 @@ export function venueReducer(state: VenueState, action: VenueAction): VenueState
         r.id !== action.rowId ? r : { ...r, cells: r.cells.filter((c) => c.id !== action.cellId) },
       );
       return { ...state, map: renumber({ ...state.map, rows }), history: push(state) };
+    }
+
+    case "DELETE_CELLS": {
+      const set = new Set(action.ids);
+      const rows = state.map.rows.map((r) => ({
+        ...r,
+        cells: r.cells.filter((c) => !set.has(c.id)),
+      }));
+      return { ...state, map: renumber({ ...state.map, rows }), selection: new Set(), history: push(state) };
     }
 
     case "SET_SEAT_STATUS": {

@@ -1,47 +1,43 @@
 import { useEffect, useMemo, useState, Fragment } from "react";
 import { ArrowLeft, LogOut } from "lucide-react";
 import "./seat-map.css";
-import { listVenuesByOrg, listVenueTemplates, getVenueTemplate } from "../api/venueApi";
+import { listVenues, listVenueTemplates, getVenueTemplate } from "../api/venueApi";
+import { authFetch } from "../../../shared/auth";
+import { API } from "../../../shared/api";
 import type { Venue, Category, SeatMap, VerticalAisle } from "./types";
 import { LockedShell } from "./PublisherApp";
 
-export interface Customer {
-  id: string;
-  name?: string;
-}
-
 interface Props {
-  customer?: Customer | null;
   onSignOut?: () => void;
 }
 
-export function CustomerApp({ customer, onSignOut }: Props) {
-  if (!customer) {
-    return (
-      <LockedShell
-        title="Customer area"
-        message="Sign in as a customer to browse events and book seats."
-      />
-    );
-  }
-  return <CustomerInner customer={customer} onSignOut={onSignOut} />;
+export function CustomerApp({ onSignOut }: Props) {
+  return <CustomerInner onSignOut={onSignOut} />;
 }
 
 function CustomerInner({
-  customer,
   onSignOut,
 }: {
-  customer: Customer;
   onSignOut?: () => void;
 }) {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [openVenue, setOpenVenue] = useState<SeatMap | null>(null);
+  const [userName, setUserName] = useState("Customer");
 
   useEffect(() => {
-    listVenuesByOrg(customer.id, 0, 100)
+    authFetch(API.users.profile)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.name) setUserName(data.name);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    listVenues(0, 100)
       .then((res) => setVenues(res.content))
       .catch(() => setVenues([]));
-  }, [customer.id]);
+  }, []);
 
   const openMap = async (id: string) => {
     try {
@@ -64,7 +60,7 @@ function CustomerInner({
           Customer
         </span>
         <span className="text-sm text-venue-400">
-          {customer.name ?? customer.id}
+          {userName}
         </span>
         <div className="flex-1" />
         {openVenue && (
@@ -89,7 +85,7 @@ function CustomerInner({
         {!openVenue ? (
           <BrowseList venues={venues} onOpen={openMap} />
         ) : (
-          <BookingView map={openVenue} customerId={customer.id} />
+          <BookingView map={openVenue} />
         )}
       </main>
     </div>
@@ -138,10 +134,8 @@ function BrowseList({
 
 function BookingView({
   map,
-  customerId: _customerId,
 }: {
   map: SeatMap;
-  customerId: string;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 

@@ -14,11 +14,13 @@ export function ContextMenu({
   y,
   items,
   onClose,
+  onAction,
 }: {
   x: number;
   y: number;
   items: MenuItem[];
   onClose: () => void;
+  onAction?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -50,6 +52,7 @@ export function ContextMenu({
               className={`block w-full text-left px-3 py-1.5 hover:bg-venue-800 ${it.danger ? "text-danger" : ""}`}
               onClick={() => {
                 it.onClick();
+                onAction?.();
                 onClose();
               }}
             >

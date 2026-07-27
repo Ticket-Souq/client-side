@@ -50,4 +50,13 @@ export const API = {
     byId: (id: string) => `${BASE_URL}/api/v1/tickets/${id}`,
     byReservation: (reservationId: string) => `${BASE_URL}/api/v1/tickets?reservationId=${reservationId}`,
   },
+  venues: {
+    list: `${BASE_URL}/api/v1/venue`,
+    byId: (id: string) => `${BASE_URL}/api/v1/venue/${id}`,
+    create: `${BASE_URL}/api/v1/venue`,
+    update: (id: string) => `${BASE_URL}/api/v1/venue/${id}`,
+    delete: (id: string) => `${BASE_URL}/api/v1/venue/${id}`,
+    templates: (venueId: string) => `${BASE_URL}/api/v1/venue/${venueId}/templates`,
+    templateById: (venueId: string, templateId: string) => `${BASE_URL}/api/v1/venue/${venueId}/templates/${templateId}`,
+  },
 };
