@@ -46,13 +46,6 @@ const FOOTER_COLS: Record<string, { title: string; links: { label: string; href:
       ],
     },
     {
-      title: 'System',
-      links: [
-        { label: 'Monitoring', href: '/admin/monitoring' },
-        { label: 'Audit Logs', href: '/admin/logs' },
-      ],
-    },
-    {
       title: 'Company',
       links: [
         { label: 'About', href: '#' },

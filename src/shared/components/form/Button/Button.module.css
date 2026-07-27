@@ -18,7 +18,7 @@
 .sm { height: 40px; padding: 0 22px; font-size: 14px; }
 .primary { background: #ffc629; color: #15150f; }
 .primary:hover { background: #e0a600; }
-.ghost { background: transparent; color: #15150f; font-weight: 500; }
-.ghost:hover { color: #726f63; }
-.danger { background: transparent; color: #d32f2f; font-weight: 500; }
-.danger:hover { color: #b71c1c; }
+.ghost { background: var(--white, #fff); color: #15150f; font-weight: 500; border: 1px solid var(--border, #e2e0da); }
+.ghost:hover { background: var(--white-hover, #f8f7f4); }
+.danger { background: var(--white, #fff); color: #d32f2f; font-weight: 500; border: 1px solid var(--border, #e2e0da); }
+.danger:hover { background: #fef2f2; border-color: #d32f2f; }

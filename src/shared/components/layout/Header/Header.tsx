@@ -44,18 +44,15 @@ const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
   CUSTOMER: [
     { label: 'Events', href: '/customer/events' },
     { label: 'My Tickets', href: '/customer/tickets' },
-    { label: 'Dashboard', href: '/customer' },
   ],
   ADMIN: [
-    { label: 'Dashboard', href: '/admin/dashboard' },
     { label: 'Organizations', href: '/admin/organizations' },
+    { label: 'Monitoring', href: '/admin/monitoring' },
     { label: 'Audit Logs', href: '/admin/logs' },
   ],
   ORG_HEAD: [
-    { label: 'Dashboard', href: '/org/dashboard' },
     { label: 'Events', href: '/org/events' },
     { label: 'Venues', href: '/org/venues' },
-    { label: 'Organization', href: '/org/organization' },
     { label: 'Team', href: '/org/team' },
     { label: 'Analytics', href: '/org/analytics' },
   ],
