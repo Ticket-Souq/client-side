@@ -21,6 +21,11 @@ export const API = {
     create: `${BASE_URL}/api/v1/event`,
     cancel: (id: string) => `${BASE_URL}/api/v1/event/${id}`,
     categories: `${BASE_URL}/api/v1/event/categories`,
+    seatStatusByTemplate: (eventId: string, templateSeatId: string) => `${BASE_URL}/api/v1/event/${eventId}/seats/template/${templateSeatId}/status`,
+    createSection: (eventId: string) => `${BASE_URL}/api/v1/event/${eventId}/sections`,
+    updateSection: (sectionId: string) => `${BASE_URL}/api/v1/event/sections/${sectionId}`,
+    organizerReserveSection: (sectionId: string) => `${BASE_URL}/api/v1/event/sections/${sectionId}/organizer-reserve`,
+    organizerReleaseSection: (sectionId: string) => `${BASE_URL}/api/v1/event/sections/${sectionId}/organizer-release`,
   },
   notifications: {
     list: `${BASE_URL}/api/v1/notification`,
@@ -52,6 +57,8 @@ export const API = {
     byId: (id: string) => `${BASE_URL}/api/v1/ticket/${id}`,
     byReservation: (reservationId: string) => `${BASE_URL}/api/v1/ticket?reservationId=${reservationId}`,
     organizerByEvent: (eventId: string) => `${BASE_URL}/api/v1/ticket/organizer/${eventId}`,
+    reserveOrganizer: `${BASE_URL}/api/v1/ticket/reserve/organizer`,
+    updateStatus: (id: string) => `${BASE_URL}/api/v1/ticket/${id}/status`,
   },
   venues: {
     list: `${BASE_URL}/api/v1/venue`,

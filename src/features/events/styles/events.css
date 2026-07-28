@@ -1267,8 +1267,7 @@
 .table-actions .action-link.approve:hover { background: #c8e6c9; }
 .table-actions .action-link.ban { background: #ffebee; border-color: #ffcdd2; color: #c62828; }
 .table-actions .action-link.ban:hover { background: #ffcdd2; }
-.table-actions button.action-link { cursor: pointer; font-family: inherit; line-height: 1; }
-.table-actions .btn { height: 28px; padding: 0 14px; font-size: 13px; }
+.table-actions button.action-link { cursor: pointer; font-family: inherit; }
 
 /* fixed row height inside expanded event details so actions don't shift the row */
 .event-row-card table td,

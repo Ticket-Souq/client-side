@@ -129,3 +129,15 @@ export async function deleteVenueTemplate(
     throw new Error(`DELETE template ${res.status}: ${text}`);
   }
 }
+
+export async function getTemplateById(
+  templateId: string,
+): Promise<VenueTemplate> {
+  const url = API.venues.templateById("venues",templateId);
+  const res = await authFetch(url);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GET template by id ${res.status}: ${text}`);
+  }
+  return res.json();
+}
