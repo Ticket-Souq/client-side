@@ -16,6 +16,7 @@ export const API = {
   events: {
     search: `${BASE_URL}/api/v1/event/search`,
     list: `${BASE_URL}/api/v1/event`,
+    management: `${BASE_URL}/api/v1/event/management`,
     byId: (id: string) => `${BASE_URL}/api/v1/event/${id}`,
     create: `${BASE_URL}/api/v1/event`,
     cancel: (id: string) => `${BASE_URL}/api/v1/event/${id}`,

@@ -698,7 +698,7 @@ function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve }: { ma
                         width: PREVIEW_CELL, height: PREVIEW_CELL, borderRadius: 3,
                         backgroundColor: isReserved ? '#16a34a' : (cat?.color ?? '#3b82f6'), opacity: isReserved ? 1 : 0.8,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 8, color: '#fff', fontWeight: 600, border: '1px solid #000',
+                        fontSize: 8, color: '#000', fontWeight: 600, border: '1px solid #000',
                         cursor: 'pointer', transition: 'transform 100ms ease',
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.3)' }}

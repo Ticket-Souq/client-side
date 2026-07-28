@@ -1246,7 +1246,7 @@
 .flagged-chip { background: #ffebee; color: #c62828; }
 
 /* ───── Table actions (admin buttons) ───── */
-.table-actions { display: flex; gap: 10px; white-space: nowrap; }
+.table-actions { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .table-actions .action-link {
   display: inline-flex;
   align-items: center;
@@ -1268,6 +1268,11 @@
 .table-actions .action-link.ban { background: #ffebee; border-color: #ffcdd2; color: #c62828; }
 .table-actions .action-link.ban:hover { background: #ffcdd2; }
 .table-actions button.action-link { cursor: pointer; font-family: inherit; line-height: 1; }
+.table-actions .btn { height: 28px; padding: 0 14px; font-size: 13px; }
+
+/* fixed row height inside expanded event details so actions don't shift the row */
+.event-row-card table td,
+.event-row-card table th { height: 44px; padding-top: 8px; padding-bottom: 8px; vertical-align: middle; }
 
 /* ───── QR Section ───── */
 .qr-section {
@@ -2016,9 +2021,9 @@
 
 /* inline price edit inside table cells */
 .price-input{
-  width:120px;height:36px;padding:0 10px;
+  width:120px;height:28px;padding:0 10px;
   border:1px solid var(--border);border-radius:8px;
-  font-size:14px;font-weight:600;font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:600;font-family:'Inter',sans-serif;
   color:var(--ink);background:var(--white);
   transition:border-color 150ms ease;
 }
@@ -2047,3 +2052,33 @@
 .modal-label{display:block;font-size:12px;font-weight:500;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;}
 .modal-input{width:100%;height:42px;}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;}
+
+/* ───── Event Management view toggle ───── */
+.mgmt-view-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.mgmt-view-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:34px;border:none;background:var(--white);
+  color:var(--text-secondary);cursor:pointer;transition:background 150ms,color 150ms;
+}
+.mgmt-view-btn:not(:last-child){border-right:1px solid var(--border);}
+.mgmt-view-btn:hover{background:var(--white-hover,#fafaf7);color:var(--ink);}
+.mgmt-view-btn.active{background:var(--ink);color:var(--white);}
+
+/* ───── Event Management card grid ───── */
+.mgmt-card-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+}
+.mgmt-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  transition:box-shadow 0.2s,border-color 0.2s;
+}
+.mgmt-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+.mgmt-card.expanded{border-color:var(--ink);}
+.mgmt-card-wrap{margin-bottom:4px;}
+.mgmt-card-wrap .event-row-card{
+  background:var(--white);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 var(--radius) var(--radius);padding:20px 24px;
+}
+@media(max-width:960px){.mgmt-card-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.mgmt-card-grid{grid-template-columns:1fr;}}

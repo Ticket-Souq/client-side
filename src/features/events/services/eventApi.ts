@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from '../../../shared/fetchWithTimeout'
+import { authFetch } from '../../../shared/auth'
 import { API } from '../../../shared/api'
 import type { EventFilters, CreateEventRequest, PaginatedResponse, EventCardResponse, EventFullResponse } from '../types/event.types'
 
@@ -28,6 +29,12 @@ export const EventApi = {
     return res.json()
   },
 
+  async getManagement(page: number = 0, size: number = 20): Promise<PaginatedResponse<EventFullResponse>> {
+    const res = await authFetch(`${API.events.management}?page=${page}&size=${size}`)
+    if (!res.ok) throw new Error(`Management list failed: ${res.status}`)
+    return res.json()
+  },
+
   async getById(id: string): Promise<EventFullResponse> {
     const res = await fetchWithTimeout(API.events.byId(id))
     if (!res.ok) throw new Error(`Fetch event failed: ${res.status}`)
@@ -41,7 +48,6 @@ export const EventApi = {
   },
 
   async create(data: CreateEventRequest, posterFile: File | null): Promise<void> {
-    const { authFetch } = await import('../../../shared/auth')
     const formData = new FormData()
     formData.append('event', new Blob([JSON.stringify(data)], { type: 'application/json' }))
     if (posterFile) {
@@ -55,7 +61,6 @@ export const EventApi = {
   },
 
   async cancel(id: string): Promise<void> {
-    const { authFetch } = await import('../../../shared/auth')
     const res = await authFetch(API.events.cancel(id), { method: 'DELETE' })
     if (!res.ok) throw new Error(`Cancel event failed: ${res.status}`)
   },

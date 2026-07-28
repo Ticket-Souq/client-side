@@ -35,11 +35,13 @@ export interface CreateEventRequest {
 
 export interface SeatFullResponse {
   id: string
+  templateSeatId: string | null
   status: SeatStatus
 }
 
 export interface SectionFullResponse {
   id: string
+  templateSectionId: string | null
   name: string
   capacity: number
   remainingCapacity: number
