@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import "./seat-map.css";
 import { SeatMapCreator } from "./SeatMapCreator";
 import { useVenue, VenueProvider, makeDefaultMap } from "../context/VenueContext";
+import { ToastContainer, toast } from "../../../shared/components/display/Toast/Toast";
 import {
   getVenueById,
   listVenues,
@@ -22,6 +23,7 @@ export function PublisherApp({ initialVenueId }: Props) {
   return (
     <VenueProvider>
       <PublisherInner initialVenueId={initialVenueId} />
+      <ToastContainer />
     </VenueProvider>
   );
 }
@@ -92,7 +94,7 @@ function PublisherInner({
           dispatch({ type: "LOAD_MAP", map: makeDefaultMap() });
         }
       } catch (e) {
-        alert("Failed to load venue: " + (e as Error).message);
+        toast("Failed to load venue: " + (e as Error).message);
       }
     },
     [dispatch],
@@ -105,7 +107,7 @@ function PublisherInner({
         const parsed = JSON.parse(template.layout) as SeatMap;
         dispatch({ type: "LOAD_MAP", map: parsed });
       } catch (e) {
-        alert("Failed to load template: " + (e as Error).message);
+        toast("Failed to load template: " + (e as Error).message);
       }
     },
     [dispatch],
@@ -118,7 +120,7 @@ function PublisherInner({
         await deleteVenueTemplate(venueId, templateId);
         await fetchTemplates(venueId);
       } catch (e) {
-        alert("Failed to delete template: " + (e as Error).message);
+        toast("Failed to delete template: " + (e as Error).message);
       }
     },
     [fetchTemplates],
@@ -126,22 +128,34 @@ function PublisherInner({
 
   const handlePublish = useCallback(async () => {
     if (!editingId) return;
+    const trimmedName = map.name.trim();
+    if (!trimmedName) {
+      toast("Template name cannot be empty.");
+      return;
+    }
+    const existingNames = templates.map(
+      (t) => (JSON.parse(t.layout) as SeatMap).name.trim().toLowerCase(),
+    );
+    if (existingNames.includes(trimmedName.toLowerCase())) {
+      toast(`A template named "${trimmedName}" already exists.`);
+      return;
+    }
     setPublishing(true);
     try {
-      const layoutMap = { ...map, id: crypto.randomUUID() };
+      const layoutMap = { ...map, id: crypto.randomUUID(), name: trimmedName };
       await createVenueTemplate(
         editingId,
         JSON.stringify(layoutMap),
       );
 
       await fetchTemplates(editingId);
-      alert(`Saved "${venueMeta.name || map.name}"`);
+      toast(`Saved "${trimmedName}"`, "success");
     } catch (e) {
-      alert("Failed to publish: " + (e as Error).message);
+      toast("Failed to publish: " + (e as Error).message);
     } finally {
       setPublishing(false);
     }
-  }, [map, fetchTemplates, editingId, venueMeta]);
+  }, [map, fetchTemplates, editingId, venueMeta, templates]);
 
   const handleUnpublish = useCallback(
     async (id: string) => {
@@ -153,7 +167,7 @@ function PublisherInner({
         }
         await fetchVenues();
       } catch (e) {
-        alert("Failed to unpublish: " + (e as Error).message);
+        toast("Failed to unpublish: " + (e as Error).message);
       }
     },
     [fetchVenues, editingId],

@@ -623,17 +623,19 @@ function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve }: { ma
   const [pendingCell, setPendingCell] = useState<{ rowLabel: string; seatNumber: string; cellId: string } | null>(null)
   const [nameInput, setNameInput] = useState('')
 
-  const maxSeatCount = useMemo(() => {
+  const maxRowWidth = useMemo(() => {
     let max = 0
     for (const row of map.rows) {
       if (row.aisle) continue
-      const count = row.cells.filter((c) => c.type === "seat").length
-      if (count > max) max = count
+      let w = 0
+      for (const cell of row.cells) {
+        w += PREVIEW_CELL
+        w += PREVIEW_GAP
+      }
+      if (w > max) max = w
     }
     return max || 1
   }, [map.rows])
-
-  const seatsWidth = maxSeatCount * PREVIEW_CELL + (maxSeatCount - 1) * PREVIEW_GAP
 
   const handleSeatClick = (cellId: string, rowLabel: string, seatNumber: string) => {
     if (reservedMap.has(cellId)) {
@@ -660,7 +662,7 @@ function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve }: { ma
         <div style={{
           background: '#7f1d1d', borderRadius: 4, padding: '6px 0',
           textAlign: 'center', fontWeight: 700, fontSize: 11, letterSpacing: 4,
-          color: '#fff', marginBottom: 12,marginLeft: 24, width: seatsWidth,
+          color: '#fff', marginBottom: 12, marginLeft: 24, width: maxRowWidth,
         }}>
           {map.stage.label || 'STAGE'}
         </div>
@@ -670,21 +672,21 @@ function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve }: { ma
         {map.rows.map((row) => {
           if (row.aisle) {
             return (
-              <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: PREVIEW_GAP, marginBottom: PREVIEW_GAP, minHeight: 8 }}>
-                <span style={{ width: 26, flexShrink: 0 }} />
+              <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: PREVIEW_GAP, marginBottom: PREVIEW_GAP, minHeight: 8, width: maxRowWidth + 24 }}>
+                <span style={{ width: 24, flexShrink: 0 }} />
                 <div style={{ flex: 1, borderTop: '1px dashed #374151' }} />
               </div>
             )
           }
           return (
             <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: PREVIEW_GAP, marginBottom: PREVIEW_GAP }}>
-              <span style={{ width: 24, fontSize: 10, color: '#6b7280', textAlign: 'right', flexShrink: 0 , paddingRight: 2 }}>
+              <span style={{ width: 24, fontSize: 10, color: '#6b7280', textAlign: 'right', flexShrink: 0, paddingRight: 2 }}>
                 {row.label}
               </span>
-              <div style={{ display: 'flex', gap: PREVIEW_GAP }}>
+              <div style={{ display: 'flex', gap: PREVIEW_GAP, width: maxRowWidth }}>
                 {row.cells.map((cell, ci) => {
                   if (cell.type !== 'seat') {
-                    return <div key={cell.id} style={{ width: 8 }} />
+                    return <div key={cell.id} style={{ width: PREVIEW_CELL, height: PREVIEW_CELL, flexShrink: 0 }} />
                   }
                   const cat = cell.categoryId ? catById.get(cell.categoryId) : undefined
                   const res = reservedMap.get(cell.id)
@@ -718,7 +720,7 @@ function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve }: { ma
         <div style={{
           background: '#000', borderRadius: 4, padding: '6px 0',
           textAlign: 'center', fontWeight: 700, fontSize: 11, letterSpacing: 4,
-          color: '#fff', marginTop: 12, width: seatsWidth,
+          color: '#fff', marginTop: 12, width: maxRowWidth,
         }}>
           {map.stage.label || 'STAGE'}
         </div>

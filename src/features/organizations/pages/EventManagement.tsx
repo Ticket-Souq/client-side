@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { EventApi } from '../../events/services/eventApi'
 import { Badge } from '../../../shared/components/display/Badge/Badge'
 import { Button } from '../../../shared/components/form/Button/Button'
+import { ToastContainer, toast } from '../../../shared/components/display/Toast/Toast'
 import { formatDateTime } from '../../events/utils/eventFormatters'
 import { API } from '../../../shared/api'
 import type { EventFullResponse } from '../../events/types/event.types'
@@ -56,7 +57,6 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
   const [reserveModal, setReserveModal] = useState<{ sectionName: string } | null>(null)
   const [reserveVenue, setReserveVenue] = useState(false)
   const [ticketName, setTicketName] = useState('')
-  const [toast, setToast] = useState<string | null>(null)
   const [showTickets, setShowTickets] = useState(false)
   const [tickets, setTickets] = useState<ReservedTicket[]>(MOCK_TICKETS)
 
@@ -75,12 +75,7 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
     setReserveModal(null)
     setReserveVenue(false)
     setTicketName('')
-    showToast('Ticket reserved successfully')
-  }
-
-  const showToast = (msg: string) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 3000)
+    toast('Ticket reserved successfully', 'success')
   }
 
   const startEditing = (idx: number) => {
@@ -91,19 +86,19 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
 
   const saveEditing = () => {
     setEditingIdx(null)
-    showToast('Section updated')
+    toast('Section updated', 'success')
   }
 
   const addNewRow = () => {
     if (!newSection.name.trim() || !newSection.price || !newSection.capacity) return
     setAddingSection(false)
     setNewSection({ name: '', price: '', capacity: '' })
-    showToast('Section added')
+    toast('Section added')
   }
 
   const cancelTicket = (id: string) => {
     setTickets((prev) => prev.map((t) => t.id === id ? { ...t, status: 'cancelled' as const } : t))
-    showToast('Ticket cancelled')
+    toast('Ticket cancelled')
   }
 
   return (
@@ -329,25 +324,6 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
         </div>,
         document.body,
       )}
-
-      {toast && createPortal(
-        <div style={{
-          position: 'fixed',
-          bottom: 32,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'var(--ink)',
-          color: 'var(--white)',
-          padding: '14px 28px',
-          borderRadius: 999,
-          fontSize: 14,
-          fontWeight: 600,
-          fontFamily: "'Inter', sans-serif",
-          zIndex: 9999,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-        }}>{toast}</div>,
-        document.body,
-      )}
     </>
   )
 }
@@ -533,6 +509,7 @@ export default function EventManagement() {
           <Button variant="ghost" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>Next</Button>
         </div>
       )}
+      <ToastContainer />
     </div>
   )
 }

@@ -18,6 +18,7 @@ export { Table } from './display/Table/Table'
 export { ArtPattern } from './display/ArtPattern/ArtPattern'
 export { Avatar } from './display/Avatar/Avatar'
 export { QRCode } from './display/QRCode/QRCode'
+export { ToastContainer, toast } from './display/Toast/Toast'
 
 export { TicketHero } from './ticket/TicketHero/TicketHero'
 export { TicketCard } from './ticket/TicketCard/TicketCard'
