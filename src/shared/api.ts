@@ -48,9 +48,10 @@ export const API = {
     generateAccounts: `${BASE_URL}/api/v1/auth/org/generate-accounts`,
   },
   tickets: {
-    list: `${BASE_URL}/api/v1/tickets`,
-    byId: (id: string) => `${BASE_URL}/api/v1/tickets/${id}`,
-    byReservation: (reservationId: string) => `${BASE_URL}/api/v1/tickets?reservationId=${reservationId}`,
+    list: `${BASE_URL}/api/v1/ticket`,
+    byId: (id: string) => `${BASE_URL}/api/v1/ticket/${id}`,
+    byReservation: (reservationId: string) => `${BASE_URL}/api/v1/ticket?reservationId=${reservationId}`,
+    organizerByEvent: (eventId: string) => `${BASE_URL}/api/v1/ticket/organizer/${eventId}`,
   },
   venues: {
     list: `${BASE_URL}/api/v1/venue`,

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EventCreateForm } from '../../events/components/EventCreateForm'
 import { useCreateEvent } from '../../events/hooks/useCreateEvent'
@@ -6,19 +7,9 @@ export default function EventCreate() {
   const navigate = useNavigate()
   const { submitting, error, created, handleSubmit } = useCreateEvent()
 
-  if (created) {
-    return (
-      <div className="wrap">
-        <div className="page-head">
-          <div>
-            <h1 className="section-title">Event created</h1>
-            <p className="section-sub" style={{ margin: '4px 0 0' }}>Your event has been submitted for review.</p>
-          </div>
-          <button className="btn btn-ghost" onClick={() => navigate('/org/events')}>Back to events</button>
-        </div>
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (created) navigate('/org/events')
+  }, [created, navigate])
 
   return (
     <div className="wrap">

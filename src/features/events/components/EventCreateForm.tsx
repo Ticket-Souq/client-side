@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useMemo, type FormEvent } from 'react'
-import type { CreateEventRequest, CreateSectionRequest, CreateSeatRequest, SeatStatus } from '../types/event.types'
+import type { CreateEventRequest, CreateSectionRequest, CreateSeatRequest, SeatStatus, EventReservation } from '../types/event.types'
 import { EventApi } from '../services/eventApi'
 import { listVenues, listVenueTemplates, getVenueTemplate } from '../../venues/api/venueApi'
 import type { Venue, VenueTemplate, SeatMap } from '../../venues/components/types'
+import { toast, ToastContainer } from '../../../shared/components/display/Toast/Toast'
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Music: '🎵', Sports: '⚽', Theatre: '🎭', Conference: '🎤',
@@ -81,6 +82,31 @@ function buildCreateRequest(params: BuildRequestParams): CreateEventRequest {
         seats: [],
       }))
 
+  const eventReservations: EventReservation[] = isSeatBased && seatMap
+    ? reservations.map((r) => {
+        let sectionName = ''
+        let price = 0
+        for (const row of seatMap.rows) {
+          for (const cell of row.cells) {
+            if (cell.id === r.cellId && cell.categoryId) {
+              const cat = seatMap.categories.find((c) => c.id === cell.categoryId)
+              if (cat) {
+                sectionName = cat.name
+                const priceEntry = categoryPrices.find((p) => p.id === cat.id)
+                price = priceEntry ? parseFloat(priceEntry.price) || 0 : 0
+              }
+            }
+          }
+        }
+        return {
+          price,
+          label: `${r.rowLabel}${r.seatNumber}`,
+          sectionName,
+          holderName: r.holderName,
+        }
+      })
+    : []
+
   return {
     title: form.name,
     description: form.description,
@@ -91,6 +117,7 @@ function buildCreateRequest(params: BuildRequestParams): CreateEventRequest {
     startDate: new Date(form.startDate).toISOString(),
     finishDate: new Date(form.endDate).toISOString(),
     sections,
+    reservations: eventReservations,
   }
 }
 
@@ -145,6 +172,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
   const [posterFile, setPosterFile] = useState<File | null>(null)
   const [posterPreview, setPosterPreview] = useState<string>('')
   const posterInputRef = useRef<HTMLInputElement>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const selectedVenue = useMemo(
     () => venues.find((v) => v.id === venueId) ?? null,
@@ -276,6 +304,30 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
+    setFieldErrors({})
+
+    const errs: Record<string, string> = {}
+    if (!form.name.trim()) errs.name = 'Event name is required'
+    if (!form.description.trim()) errs.description = 'Description is required'
+    if (!form.category.trim()) errs.category = 'Category is required'
+    if (!form.startDate) errs.startDate = 'Start date & time is required'
+    if (!form.endDate) errs.endDate = 'End date & time is required'
+    if (form.startDate && form.endDate && new Date(form.endDate) <= new Date(form.startDate)) errs.endDate = 'End date must be after start date'
+    if (!venueId) errs.venueId = 'Venue is required'
+    if (!posterFile) errs.poster = 'Poster image is required'
+    if (isSeatBased && !selectedTemplateId) errs.templateId = 'Venue template is required'
+    if (isSeatBased && categoryPrices.some((p) => !p.price || parseFloat(p.price) <= 0)) errs.categoryPrices = 'All category prices must be set'
+    if (!isSeatBased && zoneSections.length === 0) errs.zoneSections = 'At least one zone section is required'
+    if (!isSeatBased && zoneSections.some((z) => !z.name.trim())) errs.zoneSections = 'All zone sections must have a name'
+    if (!isSeatBased && zoneSections.some((z) => !z.price || parseFloat(z.price) <= 0)) errs.zoneSections = 'All zone sections must have a price'
+    if (!isSeatBased && zoneSections.some((z) => !z.capacity || parseInt(z.capacity) <= 0)) errs.zoneSections = 'All zone sections must have a capacity'
+
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs)
+      toast(Object.values(errs)[0], 'error')
+      return
+    }
+
     const request = buildCreateRequest({
       form,
       selectedVenue,
@@ -290,7 +342,8 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
   }
 
   return (
-    <form id="createEventForm" onSubmit={handleSubmit}>
+    <>
+      <form id="createEventForm" onSubmit={handleSubmit} noValidate>
 
       {/* Section 1: Basic Information */}
       <div className="form-section">
@@ -306,6 +359,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
                 value={form.name}
                 onChange={(e) => set('name', e.target.value)}
               />
+              {fieldErrors.name && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.name}</span>}
             </div>
             <div className="form-group">
               <label className="form-label">Description</label>
@@ -317,6 +371,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
                 value={form.description}
                 onChange={(e) => set('description', e.target.value)}
               />
+              {fieldErrors.description && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.description}</span>}
             </div>
             <div className="form-group" style={{ marginBottom: 0, position: 'relative' }} ref={catRef}>
               <label className="form-label">Category</label>
@@ -329,6 +384,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
                 onChange={(e) => { setCatInput(e.target.value); setCatOpen(true) }}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomCategory() } }}
               />
+              {fieldErrors.category && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.category}</span>}
               {catOpen && (
                 <div style={{
                   position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
@@ -370,22 +426,24 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
             <div style={{ display: 'flex', gap: 20 }}>
               <div className="form-group" style={{ flex: 1 }}>
                 <label className="form-label">Start date &amp; time</label>
-                <input
-                  type="datetime-local"
-                  className="form-input"
-                  value={form.startDate}
-                  onChange={(e) => set('startDate', e.target.value)}
-                />
-              </div>
+                  <input
+                    type="datetime-local"
+                    className="form-input"
+                    value={form.startDate}
+                    onChange={(e) => set('startDate', e.target.value)}
+                  />
+                  {fieldErrors.startDate && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.startDate}</span>}
+                </div>
               <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
                 <label className="form-label">End date &amp; time</label>
-                <input
-                  type="datetime-local"
-                  className="form-input"
-                  value={form.endDate}
-                  onChange={(e) => set('endDate', e.target.value)}
-                />
-              </div>
+                  <input
+                    type="datetime-local"
+                    className="form-input"
+                    value={form.endDate}
+                    onChange={(e) => set('endDate', e.target.value)}
+                  />
+                  {fieldErrors.endDate && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.endDate}</span>}
+                </div>
             </div>
           </div>
           <div style={{ flexShrink: 0, width: 220 }}>
@@ -437,6 +495,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
                 </>
               )}
             </div>
+            {fieldErrors.poster && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:6, textAlign:'center' }}>{fieldErrors.poster}</span>}
           </div>
         </div>
       </div>
@@ -461,6 +520,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
               </option>
             ))}
           </select>
+          {fieldErrors.venueId && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.venueId}</span>}
         </div>
 
         {/* Seat-based: template + seat map + category pricing */}
@@ -486,6 +546,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
                   )
                 })}
               </select>
+              {fieldErrors.templateId && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.templateId}</span>}
             </div>
 
             {/* Seat map preview */}
@@ -520,45 +581,49 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
 
             {/* Category pricing */}
             {categoryPrices.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <label className="form-label">Category pricing</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-                  {categoryPrices.map((cp) => (
-                    <div
-                      key={cp.id}
-                      style={{ display: 'flex', alignItems: 'center', gap: 12 }}
-                    >
-                      <span
-                        style={{
-                          width: 16, height: 16, borderRadius: 4,
-                          backgroundColor: cp.color, flexShrink: 0, border: '1px solid #000',
-                        }}
-                      />
-                      <span style={{ fontSize: 14, fontWeight: 500, minWidth: 100 }}>
-                        {cp.name}
-                      </span>
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>EGP</span>
-                        <input
-                          type="number"
-                          min={0}
-                          step={0.01}
-                          placeholder="0.00"
-                          value={cp.price}
-                          onChange={(e) =>
-                            setCategoryPrices((prev) =>
-                              prev.map((p) => (p.id === cp.id ? { ...p, price: e.target.value } : p)),
-                            )
-                          }
-                          className="form-input"
-                          style={{ height: 38, marginLeft: 4 }}
+              <>
+                <div style={{ marginTop: 16 }}>
+                  <label className="form-label">Category pricing</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+                    {categoryPrices.map((cp) => (
+                      <div
+                        key={cp.id}
+                        style={{ display: 'flex', alignItems: 'center', gap: 12 }}
+                      >
+                        <span
+                          style={{
+                            width: 16, height: 16, borderRadius: 4,
+                            backgroundColor: cp.color, flexShrink: 0, border: '1px solid #000',
+                          }}
                         />
+                        <span style={{ fontSize: 14, fontWeight: 500, minWidth: 100 }}>
+                          {cp.name}
+                        </span>
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>EGP</span>
+                          <input
+                            type="number"
+                            min={0}
+                            step={0.01}
+                            placeholder="0.00"
+                            value={cp.price}
+                            onChange={(e) =>
+                              setCategoryPrices((prev) =>
+                                prev.map((p) => (p.id === cp.id ? { ...p, price: e.target.value } : p)),
+                              )
+                            }
+                            className="form-input"
+                            style={{ height: 38, marginLeft: 4 }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+                {fieldErrors.categoryPrices && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.categoryPrices}</span>}
+              </>
             )}
+
           </div>
         )}
 
@@ -597,6 +662,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
             >
               + Add Zone
             </button>
+            {fieldErrors.zoneSections && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:8 }}>{fieldErrors.zoneSections}</span>}
           </div>
         )}
       </div>
@@ -609,6 +675,9 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
       </div>
 
     </form>
+
+      <ToastContainer />
+    </>
   )
 }
 

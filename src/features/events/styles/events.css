@@ -2066,19 +2066,38 @@
 
 /* ───── Event Management card grid ───── */
 .mgmt-card-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;
 }
 .mgmt-card{
   background:var(--white);border:1px solid var(--border);
-  border-radius:var(--radius);overflow:hidden;
+  border-radius:var(--radius);
   transition:box-shadow 0.2s,border-color 0.2s;
 }
 .mgmt-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.06);}
 .mgmt-card.expanded{border-color:var(--ink);}
 .mgmt-card-wrap{margin-bottom:4px;}
+.mgmt-card-wrap.expanded{grid-column:1/-1;}
+.mgmt-card-wrap.expanded .mgmt-card-expand-inner{
+  padding:0 24px 20px;background:var(--white);
+}
 .mgmt-card-wrap .event-row-card{
   background:var(--white);border:1px solid var(--border);border-top:none;
   border-radius:0 0 var(--radius) var(--radius);padding:20px 24px;
 }
+
+/* ───── Card expand animation ───── */
+.mgmt-card-expand{
+  display:grid;grid-template-rows:0fr;transition:grid-template-rows 800ms ease;
+}
+.mgmt-card-expand.open{grid-template-rows:1fr;}
+.mgmt-card-expand-inner{overflow:hidden;position:relative;}
+.mgmt-card-close{
+  position:absolute;top:12px;right:12px;width:32px;height:32px;
+  border-radius:50%;border:none;background:rgba(0,0,0,0.06);
+  color:var(--ink);font-size:20px;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;z-index:2;
+  transition:background 150ms;
+}
+.mgmt-card-close:hover{background:rgba(0,0,0,0.12);}
 @media(max-width:960px){.mgmt-card-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:600px){.mgmt-card-grid{grid-template-columns:1fr;}}

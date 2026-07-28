@@ -7,6 +7,7 @@ import { Button } from '../../../shared/components/form/Button/Button'
 import { ToastContainer, toast } from '../../../shared/components/display/Toast/Toast'
 import { formatDateTime } from '../../events/utils/eventFormatters'
 import { API } from '../../../shared/api'
+import { authFetch } from '../../../shared/auth'
 import type { EventFullResponse } from '../../events/types/event.types'
 import '../../events/styles/events.css'
 
@@ -25,32 +26,27 @@ const MODE_LABEL: Record<string, { label: string; variant: 'yellow' | 'ink' | 's
 
 const SECTION_VARIANTS = ['yellow', 'ink', 'soft'] as const
 
-type ViewMode = 'list' | 'card'
-
-interface ReservedTicket {
+interface OrganizerTicket {
   id: string
-  code: string
-  seat: string
-  section: string
-  customer: string
-  purchaseDate: string
-  status: 'reserved' | 'confirmed' | 'cancelled'
+  ticketType: string
+  eventTitle: string
+  price: number
+  reservationStatus: string
+  consumed: boolean
+  holderName: string | null
+  row: string | null
+  seatNumber: number | null
+  seatCategory: string | null
+  zoneCategory: string | null
+  createdAt: string
 }
 
 const TICKET_STATUS: Record<string, { label: string; variant: 'green' | 'yellow' | 'red' | 'soft' }> = {
-  reserved: { label: 'Reserved', variant: 'yellow' },
-  confirmed: { label: 'Confirmed', variant: 'green' },
-  cancelled: { label: 'Cancelled', variant: 'red' },
+  ACTIVE: { label: 'Active', variant: 'green' },
+  CANCELLED: { label: 'Cancelled', variant: 'red' },
 }
 
-const MOCK_TICKETS: ReservedTicket[] = [
-  { id: '1', code: 'TKT-001', seat: 'A1', section: 'VIP', customer: 'Ahmed Ali', purchaseDate: '2026-07-10', status: 'confirmed' },
-  { id: '2', code: 'TKT-002', seat: 'A2', section: 'VIP', customer: 'Sara Mohamed', purchaseDate: '2026-07-11', status: 'reserved' },
-  { id: '3', code: 'TKT-003', seat: 'B1', section: 'Standard', customer: 'Omar Hassan', purchaseDate: '2026-07-12', status: 'confirmed' },
-  { id: '4', code: 'TKT-004', seat: 'B2', section: 'Standard', customer: 'Layla Khaled', purchaseDate: '2026-07-13', status: 'cancelled' },
-]
-
-function EventExpandedDetails({ event }: { event: EventFullResponse }) {
+function EventExpandedDetails({ event, cardView }: { event: EventFullResponse; cardView?: boolean }) {
   const bookingModel = event.bookingModel || 'SEAT'
   const isZone = bookingModel === 'ZONE'
 
@@ -58,7 +54,8 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
   const [reserveVenue, setReserveVenue] = useState(false)
   const [ticketName, setTicketName] = useState('')
   const [showTickets, setShowTickets] = useState(false)
-  const [tickets, setTickets] = useState<ReservedTicket[]>(MOCK_TICKETS)
+  const [tickets, setTickets] = useState<OrganizerTicket[]>([])
+  const [ticketsLoading, setTicketsLoading] = useState(false)
 
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
   const [editFields, setEditFields] = useState<{ name: string; price: string }>({ name: '', price: '' })
@@ -69,6 +66,27 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
   const totalRemaining = event.sections.reduce((sum, s) => sum + (s.remainingCapacity || 0), 0)
   const totalSold = totalCapacity - totalRemaining
   const totalRevenue = event.sections.reduce((sum, s) => sum + ((s.capacity || 0) - (s.remainingCapacity || 0)) * (s.price || 0), 0)
+
+  const fetchOrganizerTickets = useCallback(async () => {
+    setTicketsLoading(true)
+    try {
+      const res = await authFetch(API.tickets.organizerByEvent(event.id))
+      if (res.ok) {
+        const data = await res.json()
+        setTickets(data)
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setTicketsLoading(false)
+    }
+  }, [event.id])
+
+  useEffect(() => {
+    if (showTickets) {
+      fetchOrganizerTickets()
+    }
+  }, [showTickets, fetchOrganizerTickets])
 
   const handleReserve = () => {
     if (!ticketName.trim()) return
@@ -97,13 +115,22 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
   }
 
   const cancelTicket = (id: string) => {
-    setTickets((prev) => prev.map((t) => t.id === id ? { ...t, status: 'cancelled' as const } : t))
+    setTickets((prev) => prev.map((t) => t.id === id ? { ...t, reservationStatus: 'CANCELLED' } : t))
     toast('Ticket cancelled')
   }
 
+  const getSeatLabel = (t: OrganizerTicket) => {
+    if (t.row && t.seatNumber) return `${t.row}${t.seatNumber}`
+    if (t.row) return t.row
+    return '-'
+  }
+
+  const getHolderName = (t: OrganizerTicket) => t.holderName || '-'
+  const getSectionName = (t: OrganizerTicket) => t.seatCategory || t.zoneCategory || '-'
+
   return (
     <>
-      <div className="event-row-card">
+      <div className={cardView ? '' : 'event-row-card'}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
           <span className="stat-chip" style={{ background: '#e8f5e9', color: '#2e7d32' }}>
             <span className="stat-chip-num">EGP {totalRevenue.toLocaleString()}</span>
@@ -234,40 +261,44 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
           </button>
           {showTickets && (
             <div className="table-wrap">
-              <table className="table" style={{ marginTop: 8 }}>
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Seat</th>
-                    <th>Section</th>
-                    <th>Customer</th>
-                    <th>Purchase Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tickets.map((t) => (
-                    <tr key={t.id}>
-                      <td><span className="mono" style={{ fontSize: 13 }}>{t.code}</span></td>
-                      <td>{t.seat}</td>
-                      <td>{t.section}</td>
-                      <td>{t.customer}</td>
-                      <td>{t.purchaseDate}</td>
-                      <td>
-                        <Badge variant={TICKET_STATUS[t.status]?.variant ?? 'soft'}>
-                          {TICKET_STATUS[t.status]?.label ?? t.status}
-                        </Badge>
-                      </td>
-                      <td className="table-actions">
-                        {t.status !== 'cancelled' && (
-                          <button className="action-link ban" onClick={() => cancelTicket(t.id)}>Cancel</button>
-                        )}
-                      </td>
+              {ticketsLoading ? (
+                <p style={{ color: 'var(--text-secondary)', padding: 16, textAlign: 'center', fontSize: 13 }}>Loading reserved tickets...</p>
+              ) : tickets.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)', padding: 16, textAlign: 'center', fontSize: 13 }}>No reserved tickets found.</p>
+              ) : (
+                <table className="table" style={{ marginTop: 8 }}>
+                  <thead>
+                    <tr>
+                      <th>Seat</th>
+                      <th>Section</th>
+                      <th>Holder Name</th>
+                      <th>Price</th>
+                      <th>Status</th>
+                      <th>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {tickets.map((t) => (
+                      <tr key={t.id}>
+                        <td><span className="mono" style={{ fontSize: 13 }}>{getSeatLabel(t)}</span></td>
+                        <td>{getSectionName(t)}</td>
+                        <td>{getHolderName(t)}</td>
+                        <td>EGP {(t.price || 0).toLocaleString()}</td>
+                        <td>
+                          <Badge variant={TICKET_STATUS[t.reservationStatus]?.variant ?? 'soft'}>
+                            {TICKET_STATUS[t.reservationStatus]?.label ?? t.reservationStatus}
+                          </Badge>
+                        </td>
+                        <td className="table-actions">
+                          {t.reservationStatus !== 'CANCELLED' && (
+                            <button className="action-link ban" onClick={() => cancelTicket(t.id)}>Cancel</button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </div>
@@ -328,39 +359,6 @@ function EventExpandedDetails({ event }: { event: EventFullResponse }) {
   )
 }
 
-function EventRow({ event, isExpanded, onToggle }: {
-  event: EventFullResponse
-  isExpanded: boolean
-  onToggle: () => void
-}) {
-  const bookingModel = event.bookingModel || 'SEAT'
-
-  return (
-    <div className="event-row-wrap">
-      <div className={`event-row ${isExpanded ? 'expanded' : ''}`}>
-        <button className="event-row-chevron" onClick={onToggle}>
-          {isExpanded ? 'v' : '>'}
-        </button>
-        {event.PosterUrl && (
-          <img
-            src={API.base + event.PosterUrl}
-            alt={event.title}
-            style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
-          />
-        )}
-        <span className="event-row-name">{event.title}</span>
-        <Badge variant={MODE_LABEL[bookingModel]?.variant || 'soft'}>
-          {MODE_LABEL[bookingModel]?.label || bookingModel}
-        </Badge>
-        <Badge variant={STATUS_BADGE[event.status]?.variant ?? 'soft'}>
-          {STATUS_BADGE[event.status]?.label ?? event.status}
-        </Badge>
-      </div>
-      {isExpanded && <EventExpandedDetails event={event} />}
-    </div>
-  )
-}
-
 function EventCard({ event, isExpanded, onToggle }: {
   event: EventFullResponse
   isExpanded: boolean
@@ -369,20 +367,19 @@ function EventCard({ event, isExpanded, onToggle }: {
   const bookingModel = event.bookingModel || 'SEAT'
 
   return (
-    <div className="mgmt-card-wrap">
+    <div className={`mgmt-card-wrap ${isExpanded ? 'expanded' : ''}`}>
       <div
         className={`mgmt-card ${isExpanded ? 'expanded' : ''}`}
-        onClick={onToggle}
-        style={{ cursor: 'pointer' }}
       >
         {event.PosterUrl ? (
           <img
             src={API.base + event.PosterUrl}
             alt={event.title}
-            style={{ width: '100%', height: 180, objectFit: 'cover' }}
+            onClick={onToggle}
+            style={{ width: '100%', maxHeight: 280, objectFit: 'contain', display: 'block', background: '#f5f5f0', cursor: 'pointer' }}
           />
         ) : (
-          <div style={{ width: '100%', height: 180, background: 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
+          <div onClick={onToggle} style={{ width: '100%', aspectRatio: '2/3', background: 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 14, maxHeight: 280, cursor: 'pointer' }}>
             No poster
           </div>
         )}
@@ -399,6 +396,11 @@ function EventCard({ event, isExpanded, onToggle }: {
             </Badge>
           </div>
         </div>
+        <div className={`mgmt-card-expand ${isExpanded ? 'open' : ''}`}>
+          <div className="mgmt-card-expand-inner">
+            <EventExpandedDetails event={event} cardView />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -407,7 +409,6 @@ function EventCard({ event, isExpanded, onToggle }: {
 export default function EventManagement() {
   const navigate = useNavigate()
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [events, setEvents] = useState<EventFullResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
@@ -433,40 +434,11 @@ export default function EventManagement() {
 
   const toggle = (id: string) => setExpandedId((prev) => (prev === id ? null : id))
 
-  const expandedIdx = expandedId ? events.findIndex((ev) => ev.id === expandedId) : -1
-  const beforeEvents = expandedIdx >= 0 ? events.slice(0, expandedIdx) : []
-  const afterEvents = expandedIdx >= 0 ? events.slice(expandedIdx + 1) : []
-  const expandedEvent = expandedIdx >= 0 ? events[expandedIdx] : null
-
-  const renderCardGrid = (items: EventFullResponse[]) => (
-    <div className="mgmt-card-grid">
-      {items.map((ev) => (
-        <EventCard key={ev.id} event={ev} isExpanded={false} onToggle={() => toggle(ev.id)} />
-      ))}
-    </div>
-  )
-
   return (
     <div className="wrap">
       <div className="page-title-row">
         <h1 className="section-title" style={{ margin: 0 }}>Event Management</h1>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div className="mgmt-view-toggle">
-            <button
-              className={`mgmt-view-btn ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
-              title="List view"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-            </button>
-            <button
-              className={`mgmt-view-btn ${viewMode === 'card' ? 'active' : ''}`}
-              onClick={() => setViewMode('card')}
-              title="Card view"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>
-            </button>
-          </div>
           <Button variant="primary" onClick={() => navigate('/org/events/create')}>Create event</Button>
         </div>
       </div>
@@ -478,27 +450,11 @@ export default function EventManagement() {
         <p style={{ color: 'var(--text-secondary)' }}>No events found. Create your first event to get started.</p>
       )}
 
-      {viewMode === 'list' && events.map((ev) => (
-        <EventRow
-          key={ev.id}
-          event={ev}
-          isExpanded={expandedId === ev.id}
-          onToggle={() => toggle(ev.id)}
-        />
-      ))}
-
-      {viewMode === 'card' && (
-        <>
-          {beforeEvents.length > 0 && renderCardGrid(beforeEvents)}
-          {expandedEvent && (
-            <div style={{ marginTop: beforeEvents.length > 0 ? 20 : 0, marginBottom: afterEvents.length > 0 ? 20 : 0 }}>
-              <EventExpandedDetails event={expandedEvent} />
-            </div>
-          )}
-          {afterEvents.length > 0 && renderCardGrid(afterEvents)}
-          {!expandedEvent && renderCardGrid(events)}
-        </>
-      )}
+      <div className="mgmt-card-grid">
+        {events.map((ev) => (
+          <EventCard key={ev.id} event={ev} isExpanded={expandedId === ev.id} onToggle={() => toggle(ev.id)} />
+        ))}
+      </div>
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 24 }}>

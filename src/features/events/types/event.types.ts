@@ -31,6 +31,14 @@ export interface CreateEventRequest {
   startDate: string
   finishDate: string
   sections: CreateSectionRequest[]
+  reservations: EventReservation[]
+}
+
+export interface EventReservation {
+  price: number
+  label: string
+  sectionName: string
+  holderName: string
 }
 
 export interface SeatFullResponse {
