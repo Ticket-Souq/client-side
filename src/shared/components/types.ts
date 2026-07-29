@@ -67,7 +67,6 @@ export interface HeaderProps {
 }
 
 export interface FooterProps {
-  columns: FooterColumn[]
   tagline?: string
 }
 

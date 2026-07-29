@@ -1,3 +1,5 @@
+import { BRAND_NAME } from './constants'
+
 export default function LoadingOverlay({ message }: { message?: string }) {
   return (
     <div
@@ -21,7 +23,7 @@ export default function LoadingOverlay({ message }: { message?: string }) {
           marginBottom: "20px",
         }}
       >
-        TicketSouq
+        <img src="/Logo.png" alt="" style={{ height: 28, width: 'auto', marginRight: 8 }} />{BRAND_NAME.replace(' ', '')}
       </div>
       <div
         className="spinner-border"

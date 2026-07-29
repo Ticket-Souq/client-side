@@ -7,7 +7,7 @@ import { Button } from '../../../shared/components/form/Button/Button'
 import { ToastContainer, toast } from '../../../shared/components/display/Toast/Toast'
 import { formatDateTime } from '../../events/utils/eventFormatters'
 import { API } from '../../../shared/api'
-import { authFetch } from '../../../shared/auth'
+import { authFetch, hasUserRole } from '../../../shared/auth'
 import { getTemplateById } from '../../venues/api/venueApi'
 import { SeatMapPreview, type SeatReservation } from '../../../shared/components/seatmap/SeatMapPreview'
 import type { VenueTemplate, SeatMap } from '../../venues/components/types'
@@ -166,16 +166,12 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
 
   const saveEditing = async (sectionId: string) => {
     try {
-      const body: Record<string, unknown> = {
-        price: Number(editFields.price),
-      }
-      if (isZone) {
-        body.name = editFields.name
-      }
       const res = await authFetch(API.events.updateSection(sectionId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          price: Number(editFields.price),
+        }),
       })
       if (res.ok) {
         toast('Section updated', 'success')
@@ -447,11 +443,7 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
                   return (
                     <tr key={s.id}>
                       <td>
-                        {isEditing && isZone ? (
-                          <input className="form-input" style={{ height: 28, width: 140, padding: '0 10px', fontSize: 13 }} value={editFields.name} onChange={(e) => setEditFields((f) => ({ ...f, name: e.target.value }))} />
-                        ) : (
                           <Badge variant={SECTION_VARIANTS[idx % 3]} className="mono">{s.name}</Badge>
-                        )}
                       </td>
                       <td>
                         {isEditing ? (
@@ -557,7 +549,9 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
               Reserve Ticket (Venue)
             </Button>
           )}
-          <Button variant="danger" size="sm" onClick={handleCancelEvent}>Cancel Event</Button>
+          {hasUserRole('ORG_HEAD') && (
+            <Button variant="danger" size="sm" onClick={handleCancelEvent}>Cancel Event</Button>
+          )}
         </div>
       </div>
 

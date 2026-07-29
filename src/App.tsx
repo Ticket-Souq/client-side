@@ -20,9 +20,6 @@ import CustomerEvents from './features/events/pages/CustomerEvents'
 import CustomerEventDetail from './features/events/pages/CustomerEventDetail'
 import ZonePurchase from './features/events/pages/ZonePurchase'
 import EventSelect from './features/events/pages/EventSelect'
-import Outlets from './features/events/pages/Outlets'
-import Contact from './features/events/pages/Contact'
-
 import Checkout from './features/booking/pages/Checkout'
 import PaymentSuccess from './features/booking/pages/PaymentSuccess'
 import PaymentCancel from './features/booking/pages/PaymentCancel'
@@ -41,8 +38,6 @@ import QRValidation from './features/organizations/pages/QRValidation'
 import OrgRefunds from './features/organizations/pages/Refunds'
 import OrgProfile from './features/organizations/pages/Profile'
 
-import AdminEvents from './features/admin/pages/AdminEvents'
-import VenueOversight from './features/admin/pages/VenueOversight'
 import AdminRefunds from './features/admin/pages/AdminRefunds'
 import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
@@ -93,8 +88,6 @@ function App() {
         <Route path="events/:eventId" element={<CustomerEventDetail />} />
         <Route path="events/:eventId/zone-purchase" element={<ZonePurchase />} />
         <Route path="events/:eventId/select" element={<EventSelect />} />
-        <Route path="outlets" element={<Outlets />} />
-        <Route path="contact" element={<Contact />} />
         <Route path="booking/checkout" element={<Checkout />} />
         <Route path="booking/success" element={<PaymentSuccess />} />
         <Route path="booking/cancel" element={<PaymentCancel />} />
@@ -119,8 +112,6 @@ function App() {
       {/* Admin */}
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="organizations" replace />} />
-        <Route path="events" element={<AdminEvents />} />
-        <Route path="venues" element={<VenueOversight />} />
         <Route path="monitoring" element={<SystemMonitoring />} />
         <Route path="logs" element={<Logs />} />
         <Route path="organizations" element={<OrganizationsManagement />} />

@@ -39,7 +39,8 @@ export function getRoles(token: string): string[] {
 
 export function hasRole(token: string, role: string): boolean {
   const roles = getRoles(token);
-  return roles.some((r) => r === role || r === `ROLE_${role}`);
+  const target = role.toUpperCase();
+  return roles.some((r) => r === target || r === `ROLE_${target}` || r.toUpperCase() === target);
 }
 
 export function isTokenExpired(token: string): boolean {

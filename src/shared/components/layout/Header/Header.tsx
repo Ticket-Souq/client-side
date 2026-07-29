@@ -4,7 +4,8 @@ import type { HeaderProps } from '../../types'
 import { Avatar } from '../../display/Avatar/Avatar'
 import { NotificationService } from '../../../../features/notifications/services/notificationService'
 import { useNotifications } from '../../../../features/notifications/hooks/useNotifications'
-import { clearTokens, getUserRoles, isAuthenticated } from '../../../auth'
+import { clearTokens, getUserRoles, hasUserRole, isAuthenticated } from '../../../auth'
+import { BRAND_NAME } from '../../../constants'
 import { useUserProfile } from '../../../hooks/useUserProfile'
 import { AuthService } from '../../../../features/auth/services/auth.service'
 import styles from './Header.module.css'
@@ -27,7 +28,7 @@ function getInitials(name?: string, email?: string): string {
 }
 
 function normaliseRole(raw: string): string {
-  return raw.replace(/^ROLE_/, '');
+  return raw.replace(/^ROLE_/, "").toUpperCase();
 }
 
 function roleDisplay(raw: string): string {
@@ -36,8 +37,6 @@ function roleDisplay(raw: string): string {
 
 const PUBLIC_LINKS = [
   { label: 'Events', href: '/customer/events' },
-  { label: 'Outlets', href: '/customer/outlets' },
-  { label: 'Contact', href: '/customer/contact' },
 ]
 
 const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
@@ -58,7 +57,6 @@ const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
   ],
   ORG_AGENT: [
     { label: 'Events', href: '/org/events' },
-    { label: 'Venues', href: '/org/venues' },
     { label: 'QR Validate', href: '/org/validate' },
   ],
   ORG_CONSUMER: [
@@ -134,8 +132,8 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
     <header className={styles.header}>
       <div className={styles.nav}>
         <Link to="/" className={styles.logo}>
-          <span className={styles.dot} />
-          TICKET SOUQ
+          <img src="/Logo.png" alt="" style={{ height: 28, width: 'auto' }} />
+          {BRAND_NAME.toUpperCase()}
         </Link>
         <nav className={styles.links}>
           {navLinks.map((link) => (
@@ -240,18 +238,20 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
                         </svg>
                         Logout
                       </button>
-                      <button
-                        className={`${styles.profileDropdownItem} ${styles.profileDropdownDanger}`}
-                        onClick={handleDeactivate}
-                        disabled={deactivateLoading}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="15" y1="9" x2="9" y2="15" />
-                          <line x1="9" y1="9" x2="15" y2="15" />
-                        </svg>
-                        {deactivateLoading ? 'Deactivating...' : 'Deactivate account'}
-                      </button>
+                      {!hasUserRole('ORG_AGENT') && !hasUserRole('ORG_CONSUMER') && (
+                        <button
+                          className={`${styles.profileDropdownItem} ${styles.profileDropdownDanger}`}
+                          onClick={handleDeactivate}
+                          disabled={deactivateLoading}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                          </svg>
+                          {deactivateLoading ? 'Deactivating...' : 'Deactivate account'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

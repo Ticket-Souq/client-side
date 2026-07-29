@@ -5,6 +5,9 @@ import './index.css'
 import './features/events/styles/events.css'
 import App from './App.tsx'
 import GlobalLoading from './shared/components/GlobalLoading'
+import { BRAND_NAME } from './shared/constants'
+
+document.title = BRAND_NAME
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

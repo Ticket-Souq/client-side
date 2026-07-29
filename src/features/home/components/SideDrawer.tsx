@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { authFetch, getAccessToken, clearTokens, getUserRoles } from "../../../shared/auth";
 import { useUserProfile } from "../../../shared/hooks/useUserProfile";
 import { API } from "../../../shared/api";
+import { BRAND_NAME } from "../../../shared/constants";
 
 interface MenuItem {
   label: string;
@@ -37,10 +38,12 @@ const ROLE_MENUS: Record<string, MenuItem[]> = {
     { label: "Refunds", path: "/org/refunds" },
   ],
   ORG_AGENT: [
+    { label: "Dashboard", path: "/org/dashboard" },
     { label: "Events", path: "/org/events" },
     { label: "Create Event", path: "/org/events/create" },
-    { label: "Venues", path: "/org/venues" },
+    { label: "Organization", path: "/org/organization" },
     { label: "QR Validate", path: "/org/validate" },
+    { label: "Refunds", path: "/org/refunds" },
   ],
   ORG_CONSUMER: [
     { label: "QR Validate", path: "/org/validate" },
@@ -64,7 +67,7 @@ function getInitials(name?: string, email?: string): string {
 }
 
 function normaliseRole(raw: string): string {
-  return raw.replace(/^ROLE_/, "");
+  return raw.replace(/^ROLE_/, "").toUpperCase();
 }
 
 function roleDisplay(raw: string): string {
@@ -151,7 +154,7 @@ export default function SideDrawer({ open, onClose }: SideDrawerProps) {
       >
         <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
           <span className="fw-bold" style={{ color: "var(--color-accent)", fontSize: "18px" }}>
-            TicketSouq
+            <img src="/Logo.png" alt="" style={{ height: 28, width: 'auto', marginRight: 8 }} />{BRAND_NAME.replace(' ', '')}
           </span>
           <button
             onClick={onClose}
