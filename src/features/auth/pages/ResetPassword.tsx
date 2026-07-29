@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
-import ErrorPopup from '../../../shared/ErrorPopup';
+import { toast } from '../../../shared/components/display/Toast/Toast';
 import AuthCard from '../components/AuthCard';
 import AuthCardHeader from '../components/AuthCardHeader';
 import AuthTextField from '../components/AuthTextField';
@@ -32,10 +33,16 @@ export default function ResetPassword() {
       },
     });
 
+  useEffect(() => {
+    if (error) {
+      toast(error.message || error.error);
+      setError(null);
+    }
+  }, [error, setError]);
+
   return (
     <>
       {loading && <LoadingOverlay message="Resetting your password..." />}
-      <ErrorPopup error={error} onClose={() => setError(null)} />
       <AuthCard>
         <AuthCardHeader
           eyebrow="Password reset"

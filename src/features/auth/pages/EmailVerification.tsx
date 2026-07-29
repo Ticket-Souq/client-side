@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
-import ErrorPopup from '../../../shared/ErrorPopup';
+import { toast } from '../../../shared/components/display/Toast/Toast';
 import AuthCard from '../components/AuthCard';
 import AuthCardHeader from '../components/AuthCardHeader';
 import AuthTextField from '../components/AuthTextField';
@@ -50,6 +50,13 @@ export default function EmailVerification() {
   );
 
   useEffect(() => {
+    if (error) {
+      toast(error.message || error.error);
+      setError(null);
+    }
+  }, [error, setError]);
+
+  useEffect(() => {
     if (emailFromUrl && step === 'email' && !autoSent.current) {
       autoSent.current = true;
       sendCode(emailFromUrl);
@@ -70,7 +77,6 @@ export default function EmailVerification() {
       {(loading || sendLoading) && (
         <LoadingOverlay message={step === 'email' ? 'Sending verification code...' : 'Verifying your email...'} />
       )}
-      <ErrorPopup error={error} onClose={() => setError(null)} />
       <AuthCard>
         <AuthCardHeader
           eyebrow="Verification"

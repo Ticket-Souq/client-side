@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
-import ErrorPopup from '../../../shared/ErrorPopup';
+import { toast } from '../../../shared/components/display/Toast/Toast';
 import AuthCard from '../components/AuthCard';
 import AuthCardHeader from '../components/AuthCardHeader';
 import AuthTextField from '../components/AuthTextField';
@@ -54,6 +54,13 @@ export default function Register() {
       },
     });
 
+  useEffect(() => {
+    if (error) {
+      toast(error.message || error.error);
+      setError(null);
+    }
+  }, [error, setError]);
+
   const handleTabChange = useCallback(
     (newTab: AuthTabType) => {
       setTab(newTab);
@@ -64,7 +71,6 @@ export default function Register() {
   return (
     <>
       {loading && <LoadingOverlay message="Creating your account..." />}
-      <ErrorPopup error={error} onClose={() => setError(null)} />
       <AuthCard>
         <AuthCardHeader
           eyebrow="Get started"

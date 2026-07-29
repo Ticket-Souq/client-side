@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { setTokens } from '../../../shared/auth';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
-import ErrorPopup from '../../../shared/ErrorPopup';
+import { toast } from '../../../shared/components/display/Toast/Toast';
 import AuthCard from '../components/AuthCard';
 import AuthCardHeader from '../components/AuthCardHeader';
 import AuthTextField from '../components/AuthTextField';
@@ -36,10 +37,16 @@ export default function Login() {
       },
     });
 
+  useEffect(() => {
+    if (error) {
+      toast(error.message || error.error);
+      setError(null);
+    }
+  }, [error, setError]);
+
   return (
     <>
       {loading && <LoadingOverlay message="Signing in..." />}
-      <ErrorPopup error={error} onClose={() => setError(null)} />
       <AuthCard>
         <AuthCardHeader
           eyebrow="Welcome back"

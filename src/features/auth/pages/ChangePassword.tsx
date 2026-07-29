@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
-import ErrorPopup from '../../../shared/ErrorPopup';
+import { toast } from '../../../shared/components/display/Toast/Toast';
 import AuthCard from '../components/AuthCard';
 import AuthCardHeader from '../components/AuthCardHeader';
 import AuthPasswordField from '../components/AuthPasswordField';
@@ -35,10 +35,16 @@ export default function ChangePassword() {
       },
     });
 
+  useEffect(() => {
+    if (error) {
+      toast(error.message || error.error);
+      setError(null);
+    }
+  }, [error, setError]);
+
   return (
     <>
       {loading && <LoadingOverlay message="Changing your password..." />}
-      <ErrorPopup error={error} onClose={() => setError(null)} />
       <AuthCard>
         <AuthCardHeader
           eyebrow="Security"
