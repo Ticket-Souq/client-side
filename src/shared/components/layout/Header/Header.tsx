@@ -4,6 +4,7 @@ import type { HeaderProps } from '../../types'
 import { Avatar } from '../../display/Avatar/Avatar'
 import { NotificationService } from '../../../../features/notifications/services/notificationService'
 import { useNotifications } from '../../../../features/notifications/hooks/useNotifications'
+import { useActiveReservation } from '../../../hooks/useActiveReservation'
 import { clearTokens, getUserRoles, hasUserRole, isAuthenticated } from '../../../auth'
 import { BRAND_NAME } from '../../../constants'
 import { useUserProfile } from '../../../hooks/useUserProfile'
@@ -89,6 +90,7 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
   const profileRef = useRef<HTMLDivElement>(null)
   const [deactivateLoading, setDeactivateLoading] = useState(false)
   const { notifications, loading, markRead, markAllRead } = useNotifications()
+  const hasActiveReservation = useActiveReservation()
 
   useEffect(() => {
     NotificationService.getUnreadCount().then(setUnreadCount).catch(() => {})
@@ -230,8 +232,20 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
         <div className={styles.actions}>
           {primaryRole === 'CUSTOMER' && (
             <>
-              <Link to="/customer/reservations" className={styles.myTickets}>My Reservations</Link>
-              <Link to="/customer/tickets" className={styles.myTickets}>My Tickets</Link>
+                <Link to="/customer/tickets" className={styles.myTickets}>My Tickets</Link>
+                <Link
+                to="/customer/reservations"
+                className={`${styles.reservationsLink}${hasActiveReservation ? ` ${styles.activeReservation}` : ''}`}
+                aria-label="My Reservations"
+                title="My Reservations"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="14" r="8" />
+                  <path d="M12 14l2.5-2.5" />
+                  <path d="M10 2h4" />
+                  <path d="M12 2v2" />
+                </svg>
+              </Link>
             </>
           )}
           {authed ? (

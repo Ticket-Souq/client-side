@@ -1,4 +1,5 @@
 import { authFetch } from '../../../shared/auth'
+import { parseError } from '../../../shared/apiError'
 import { API } from '../../../shared/api'
 
 export interface LockSeatsResponse {
@@ -8,14 +9,10 @@ export interface LockSeatsResponse {
   lockedSeats: string[]
 }
 
-export interface LockZonesResponse {
+export interface LockZoneResponse {
   reservationId: string
   status: string
   expiresAt: string
-  zones: { zoneId: string; quantity: number }[]
-}
-
-export interface ZoneLockItem {
   zoneId: string
   quantity: number
 }
@@ -27,21 +24,21 @@ export async function acquireSeatLocks(eventId: string, seatIds: string[]): Prom
     body: JSON.stringify({ seatIds }),
   })
   if (!res.ok) {
-    const text = await res.text()
-    throw new Error(text || `Lock seats failed (${res.status})`)
+    const err = await parseError(res)
+    throw new Error(err.message)
   }
   return res.json()
 }
 
-export async function acquireZoneLocks(eventId: string, zones: ZoneLockItem[]): Promise<LockZonesResponse> {
-  const res = await authFetch(API.locks.acquireZones(eventId), {
+export async function acquireZoneLock(eventId: string, zoneId: string, quantity: number): Promise<LockZoneResponse> {
+  const res = await authFetch(API.locks.acquireZone(eventId), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ zones }),
+    body: JSON.stringify({ zoneId, quantity }),
   })
   if (!res.ok) {
-    const text = await res.text()
-    throw new Error(text || `Lock zones failed (${res.status})`)
+    const err = await parseError(res)
+    throw new Error(err.message)
   }
   return res.json()
 }
@@ -53,7 +50,7 @@ export async function releaseLocks(reservationId: string): Promise<void> {
     body: JSON.stringify({ reservationId }),
   })
   if (!res.ok) {
-    const text = await res.text()
-    throw new Error(text || `Release locks failed (${res.status})`)
+    const err = await parseError(res)
+    throw new Error(err.message)
   }
 }

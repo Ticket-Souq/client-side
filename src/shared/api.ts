@@ -63,7 +63,7 @@ export const API = {
   },
   locks: {
     acquireSeats: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/seats`,
-    acquireZones: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/zones/batch`,
+    acquireZone: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/zones`,
     release: `${BASE_URL}/api/v1/event/locks/release`,
   },
   venues: {

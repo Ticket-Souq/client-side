@@ -93,6 +93,29 @@
 }
 .myTickets:hover { color: #15150f; }
 
+.reservationsLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3c3b34;
+  text-decoration: none;
+  padding: 4px;
+}
+.reservationsLink:hover { color: #15150f; }
+.activeReservation {
+  color: var(--yellow, #ffc629);
+  animation: reservationZoom 1s ease-in-out infinite;
+}
+.activeReservation:hover { color: var(--yellow, #ffc629); }
+@keyframes reservationZoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .activeReservation { animation: none; }
+}
+
 .searchDropdown {
   position: absolute;
   top: calc(100% + 8px);

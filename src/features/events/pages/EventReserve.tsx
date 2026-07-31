@@ -7,20 +7,11 @@ import type { SeatReservation } from '../../../shared/components/seatmap/SeatMap
 import type { SeatMap } from '../../venues/components/types'
 import { getTemplateById } from '../../venues/api/venueApi'
 import { formatEventDate, formatPrice } from '../utils/eventFormatters'
-import { releaseLocks } from '../services/lockApi'
+import { releaseLocks, acquireSeatLocks, acquireZoneLock } from '../services/lockApi'
+import { toast, ToastContainer } from '../../../shared/components/display/Toast/Toast'
+import { loadReservation, saveReservation, clearReservation } from '../../../shared/booking/reservationStorage'
 
-const STORAGE_KEY = "reservation";
-
-function loadReservation() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-
-function clearReservation() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
-}
+const MAX_TICKETS = 10;
 
 interface SelectedTicket {
   key: string
@@ -41,6 +32,7 @@ export default function EventReserve() {
   const [holderNames, setHolderNames] = useState<Record<string, string>>({})
   const [hasActiveReservation, setHasActiveReservation] = useState<{ reservationId: string } | null>(null)
   const [releasing, setReleasing] = useState(false)
+  const [locking, setLocking] = useState(false)
 
   useEffect(() => {
     const stored = loadReservation()
@@ -140,6 +132,7 @@ export default function EventReserve() {
         })
         return updated
       }
+      if (prev.length >= MAX_TICKETS) return prev
       const info = sectionPriceMap.get(cellId)
       return [...prev, { key: eventSeatId, templateCellId: cellId, label: `${rowLabel}${seatNumber}`, sectionName: info?.sectionName ?? '', price: info?.price ?? 0, sectionId }]
     })
@@ -151,11 +144,13 @@ export default function EventReserve() {
       const next = current + delta
       if (next < 0) return prev
       const section = sections.find((s) => s.id === sectionId)
-      const max = section?.remainingCapacity ?? section?.capacity ?? 0
+      const max = Math.min(section?.remainingCapacity ?? section?.capacity ?? 0, MAX_TICKETS)
       if (next > max) return prev
       return { ...prev, [sectionId]: next }
     })
   }
+
+  const activeZoneId = Object.keys(quantities).find((id) => (quantities[id] ?? 0) > 0)
 
   const selectedTickets = isZone ? zoneTickets : selectedSeats
   const totalPrice = useMemo(() => selectedTickets.reduce((sum, t) => sum + t.price, 0), [selectedTickets])
@@ -163,6 +158,45 @@ export default function EventReserve() {
 
   const canProceed = totalTickets > 0 &&
     selectedTickets.every((t, i) => i === 0 || (holderNames[t.key]?.trim() ?? '') !== '')
+
+  const proceedToCheckout = async () => {
+    if (!canProceed || locking) return
+    if (totalTickets > MAX_TICKETS) {
+      toast(`A maximum of ${MAX_TICKETS} tickets per reservation`, 'error')
+      return
+    }
+    setLocking(true)
+    try {
+      let resp: { reservationId: string; expiresAt: string }
+      if (isZone) {
+        resp = await acquireZoneLock(event.id, selectedTickets[0].sectionId, selectedTickets.length)
+      } else {
+        resp = await acquireSeatLocks(event.id, selectedTickets.map((t) => t.key))
+      }
+      saveReservation({
+        reservationId: resp.reservationId,
+        eventId: event.id,
+        bookingModel: event.bookingModel,
+        seatIds: selectedTickets.map((t) => t.key),
+        expiresAt: resp.expiresAt,
+        tickets: selectedTickets,
+        holderNames,
+      })
+      navigate('/customer/booking/checkout', {
+        state: {
+          reservationId: resp.reservationId,
+          tickets: selectedTickets,
+          eventId: event.id,
+          bookingModel: event.bookingModel,
+          holderNames,
+        },
+      })
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to lock selection', 'error')
+    } finally {
+      setLocking(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -230,6 +264,12 @@ export default function EventReserve() {
         <p className="section-sub" style={{ margin: '4px 0 0' }}>
           {event.title} &middot; {formatEventDate(event.startDate, event.finishDate)} &middot; {event.location || 'TBD'}
         </p>
+        <p style={{ margin: '8px 0 0', fontSize: 12, color: '#9ca3af' }}>
+          {isZone
+            ? 'You can select tickets from only one zone · up to '
+            : 'Up to '}
+          {MAX_TICKETS} tickets per reservation
+        </p>
       </section>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 32, alignItems: 'start' }}>
@@ -245,8 +285,9 @@ export default function EventReserve() {
                 {sections.map((section) => {
                   const qty = quantities[section.id] ?? 0
                   const max = section.remainingCapacity ?? section.capacity ?? 0
+                  const otherDisabled = activeZoneId !== undefined && activeZoneId !== section.id
                   return (
-                    <div key={section.id} className="card-white" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
+                    <div key={section.id} className="card-white" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', opacity: otherDisabled ? 0.45 : 1 }}>
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 600 }}>{section.name}</div>
                         <div style={{ fontSize: 12, color: '#726f63', marginTop: 2 }}>
@@ -268,12 +309,13 @@ export default function EventReserve() {
                         <span style={{ fontSize: 18, fontWeight: 700, minWidth: 28, textAlign: 'center' }}>{qty}</span>
                         <button
                           onClick={() => updateQty(section.id, 1)}
-                          disabled={qty >= max}
+                          disabled={qty >= max || otherDisabled || qty >= MAX_TICKETS}
+                          title={otherDisabled ? 'Only one zone can be selected' : qty >= MAX_TICKETS ? `Maximum of ${MAX_TICKETS} tickets per reservation` : undefined}
                           style={{
                             width: 32, height: 32, borderRadius: 8, border: '1px solid var(--color-border)',
-                            background: qty >= max ? '#f5f5f0' : '#fff', cursor: qty >= max ? 'not-allowed' : 'pointer',
+                            background: qty >= max || otherDisabled || qty >= MAX_TICKETS ? '#f5f5f0' : '#fff', cursor: qty >= max || otherDisabled || qty >= MAX_TICKETS ? 'not-allowed' : 'pointer',
                             fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: qty >= max ? '#d1d5db' : '#1f1f1f', fontFamily: 'inherit',
+                            color: qty >= max || otherDisabled || qty >= MAX_TICKETS ? '#d1d5db' : '#1f1f1f', fontFamily: 'inherit',
                           }}
                         >+</button>
                       </div>
@@ -283,7 +325,14 @@ export default function EventReserve() {
               </div>
             )
           ) : templateMap ? (
-            <SeatMapPreview map={templateMap} reservations={reservations} onSeatSelect={handleSeatSelect} selectedCellIds={selectedCellIds} cellSize={28} cellGap={4} />
+            <>
+              {selectedSeats.length >= MAX_TICKETS && (
+                <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: '#fffbeb', border: '1px solid #fde68a', fontSize: 12, color: '#92400e' }}>
+                  Maximum of {MAX_TICKETS} seats reached. Deselect a seat to pick another.
+                </div>
+              )}
+              <SeatMapPreview map={templateMap} reservations={reservations} onSeatSelect={handleSeatSelect} selectedCellIds={selectedCellIds} cellSize={28} cellGap={4} />
+            </>
           ) : (
             <div style={{ padding: 40, textAlign: 'center', color: '#726f63', fontSize: 14 }}>
               Loading seat map...
@@ -341,15 +390,11 @@ export default function EventReserve() {
 
               <button
                 className="btn btn-primary"
-                style={{ width: '100%', border: 'none', cursor: canProceed ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canProceed ? 1 : 0.5 }}
-                disabled={!canProceed}
-                onClick={() =>
-                  navigate('/customer/booking/checkout', {
-                    state: { tickets: selectedTickets, eventId: event.id, bookingModel: event.bookingModel, holderNames },
-                  })
-                }
+                style={{ width: '100%', border: 'none', cursor: canProceed && !locking ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canProceed && !locking ? 1 : 0.5 }}
+                disabled={!canProceed || locking}
+                onClick={proceedToCheckout}
               >
-                Proceed to Checkout
+                {locking ? 'Locking your selection...' : 'Proceed to Checkout'}
               </button>
             </div>
           ) : (
@@ -359,6 +404,8 @@ export default function EventReserve() {
           )}
         </div>
       </div>
+
+      <ToastContainer />
     </main>
   )
 }

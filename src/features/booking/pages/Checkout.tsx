@@ -8,35 +8,9 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { createPaymentIntent } from "../../payment/services/paymentService";
-import { acquireSeatLocks, acquireZoneLocks, releaseLocks } from "../../events/services/lockApi";
+import { releaseLocks } from "../../events/services/lockApi";
 import { formatPrice } from "../../events/utils/eventFormatters";
-
-const STORAGE_KEY = "reservation";
-
-interface StoredReservation {
-  reservationId: string;
-  eventId: string;
-  bookingModel: string;
-  seatIds: string[];
-  expiresAt: string;
-  tickets: TicketState[];
-  holderNames: Record<string, string>;
-}
-
-function loadReservation(): StoredReservation | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-
-function saveReservation(data: StoredReservation) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
-}
-
-function clearReservation() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
-}
+import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
 
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "pk_test_xxxxxxxxx",
@@ -51,6 +25,7 @@ interface TicketState {
 }
 
 interface LocationState {
+  reservationId?: string;
   tickets: TicketState[];
   eventId: string;
   bookingModel: string;
@@ -248,19 +223,28 @@ export default function Checkout() {
   const { state } = useLocation() as { state: LocationState | null };
 
   // Prefer location state, fall back to stored reservation
-  const stored = !state?.tickets?.length ? loadReservation() : null;
-  const tickets = state?.tickets ?? stored?.tickets ?? [];
-  const eventId = state?.eventId ?? stored?.eventId ?? "";
-  const bookingModel = state?.bookingModel ?? stored?.bookingModel ?? "";
+  const saved = loadReservation();
+  const tickets = state?.tickets?.length ? state.tickets : (saved?.tickets ?? []);
+  const eventId = state?.eventId ?? saved?.eventId ?? "";
+  const bookingModel = state?.bookingModel ?? saved?.bookingModel ?? "";
   const total = tickets.reduce((sum, t) => sum + t.price, 0);
 
-  const [reservationId, setReservationId] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState(600);
+  const [reservation] = useState<{ reservationId: string; initialSec: number } | null>(() => {
+    const seatIds = tickets.map((t) => t.key);
+    if (!tickets.length || !eventId || !bookingModel) return null;
+    const saved = loadReservation();
+    if (saved && saved.eventId === eventId && JSON.stringify(saved.seatIds) === JSON.stringify(seatIds)) {
+      const expiresMs = new Date(saved.expiresAt).getTime();
+      const initialSec = Math.max(0, Math.floor((expiresMs - Date.now()) / 1000));
+      if (initialSec > 0) return { reservationId: saved.reservationId, initialSec };
+    }
+    return null;
+  });
+
+  const reservationId = state?.reservationId ?? reservation?.reservationId ?? null;
+  const [timeLeft, setTimeLeft] = useState(reservation?.initialSec ?? 600);
   const [timedOut, setTimedOut] = useState(false);
-  const [lockError, setLockError] = useState<string | null>(null);
-  const [locking, setLocking] = useState(true);
   const releasedRef = useRef(false);
-  const lockStartedRef = useRef(false);
 
   const doRelease = useCallback(async (resId: string) => {
     if (releasedRef.current) return;
@@ -268,60 +252,6 @@ export default function Checkout() {
     clearReservation();
     try { await releaseLocks(resId); } catch { /* ignore */ }
   }, []);
-
-  useEffect(() => {
-    if (!tickets.length || !eventId || !bookingModel) {
-      setLocking(false);
-      return;
-    }
-    if (lockStartedRef.current) return;
-    lockStartedRef.current = true;
-
-    const seatIds = tickets.map((t) => t.key);
-
-    // Restore existing reservation from storage
-    const stored = loadReservation();
-    if (stored && stored.eventId === eventId && JSON.stringify(stored.seatIds) === JSON.stringify(seatIds)) {
-      const expiresMs = new Date(stored.expiresAt).getTime();
-      const initialSec = Math.max(0, Math.floor((expiresMs - Date.now()) / 1000));
-      if (initialSec > 0) {
-        setReservationId(stored.reservationId);
-        setTimeLeft(initialSec);
-        setLockError(null);
-        setLocking(false);
-        return;
-      }
-    }
-
-    (async () => {
-      try {
-        let resp: { reservationId: string; expiresAt: string };
-        if (bookingModel === "ZONE") {
-          const zoneMap: Record<string, number> = {};
-          for (const t of tickets) {
-            zoneMap[t.sectionId] = (zoneMap[t.sectionId] ?? 0) + 1;
-          }
-          const zones = Object.entries(zoneMap).map(([zoneId, quantity]) => ({ zoneId, quantity }));
-          resp = await acquireZoneLocks(eventId, zones);
-        } else {
-          resp = await acquireSeatLocks(eventId, seatIds);
-        }
-
-        saveReservation({ reservationId: resp.reservationId, eventId, bookingModel, seatIds, expiresAt: resp.expiresAt, tickets, holderNames: state?.holderNames ?? {} });
-        setReservationId(resp.reservationId);
-        const expiresMs = new Date(resp.expiresAt).getTime();
-        const nowMs = Date.now();
-        const initialSec = Math.max(0, Math.floor((expiresMs - nowMs) / 1000));
-        setTimeLeft(initialSec);
-        setLockError(null);
-        setLocking(false);
-      } catch (err) {
-        clearReservation();
-        setLockError(err instanceof Error ? err.message : "Failed to lock selection");
-        setLocking(false);
-      }
-    })();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (timedOut || !reservationId) return;
@@ -334,38 +264,15 @@ export default function Checkout() {
     return () => clearInterval(id);
   }, [timeLeft, timedOut, reservationId, doRelease]);
 
-  if (!tickets.length || !eventId || !bookingModel) {
+  if (!tickets.length || !eventId || !bookingModel || !reservationId) {
     return (
       <div className="container py-5 text-center">
         <h2>No reservation data found</h2>
+        <p style={{ color: "#726f63", fontSize: 14 }}>Please select your tickets again.</p>
         <button className="btn btn-accent mt-3" onClick={() => navigate("/")}>
           Browse Events
         </button>
       </div>
-    );
-  }
-
-  if (locking) {
-    return (
-      <main className="wrap zone-page" style={{ paddingTop: 40 }}>
-        <div style={{ textAlign: "center", padding: 40, color: "#726f63" }}>
-          Locking your selection...
-        </div>
-      </main>
-    );
-  }
-
-  if (lockError) {
-    return (
-      <main className="wrap zone-page" style={{ paddingTop: 40 }}>
-        <div style={{ textAlign: "center", padding: 40, background: "#fef2f2", borderRadius: 12, border: "1px solid #fecaca", maxWidth: 480, margin: "0 auto" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#dc2626", margin: "0 0 8px" }}>Unable to reserve</h2>
-          <p style={{ fontSize: 14, color: "#726f63", margin: "0 0 16px" }}>{lockError}</p>
-          <button className="btn btn-primary" style={{ border: "none", cursor: "pointer" }} onClick={() => navigate(-1)}>
-            Go back
-          </button>
-        </div>
-      </main>
     );
   }
 

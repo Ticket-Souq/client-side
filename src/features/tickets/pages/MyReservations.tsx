@@ -3,31 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { EventApi } from "../../events/services/eventApi";
 import { formatPrice } from "../../events/utils/eventFormatters";
 import { releaseLocks } from "../../events/services/lockApi";
+import { Modal } from "../../../shared/components";
+import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
 import type { EventFullResponse } from "../../events/types/event.types";
 import styles from "../styles/tickets.module.css";
-
-const STORAGE_KEY = "reservation";
-
-interface StoredReservation {
-  reservationId: string;
-  eventId: string;
-  bookingModel: string;
-  seatIds: string[];
-  expiresAt: string;
-  tickets: { key: string; label: string; sectionName: string; price: number; sectionId: string }[];
-  holderNames: Record<string, string>;
-}
-
-function loadReservation(): StoredReservation | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-
-function clearReservation() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
-}
 
 export default function MyReservations() {
   const navigate = useNavigate();
@@ -35,6 +14,7 @@ export default function MyReservations() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [cancelled, setCancelled] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const stored = loadReservation();
 
   const expired = stored ? new Date(stored.expiresAt).getTime() <= Date.now() : false;
@@ -47,6 +27,15 @@ export default function MyReservations() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleCancelReservation = async () => {
+    setCancelling(true);
+    try { await releaseLocks(stored!.reservationId); } catch { /* ignore */ }
+    clearReservation();
+    setCancelled(true);
+    setCancelling(false);
+    setShowCancelModal(false);
+  };
 
   if (!stored) {
     return (
@@ -133,19 +122,41 @@ export default function MyReservations() {
             className="btn btn-ghost"
             disabled={cancelling}
             style={{ border: "1px solid var(--color-border)", cursor: cancelling ? "not-allowed" : "pointer" }}
-            onClick={async () => {
-              if (!window.confirm("Cancel this reservation and release your ticket locks?")) return;
-              setCancelling(true);
-              try { await releaseLocks(stored.reservationId); } catch { /* ignore */ }
-              clearReservation();
-              setCancelled(true);
-              setCancelling(false);
-            }}
+            onClick={() => setShowCancelModal(true)}
           >
             {cancelling ? "Cancelling..." : "Cancel Reservation"}
           </button>
         </div>
       </div>
+
+      <Modal
+        open={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        title="Cancel reservation"
+        actions={
+          <>
+            <button
+              className="btn btn-ghost"
+              style={{ border: "1px solid var(--color-border)", cursor: "pointer" }}
+              onClick={() => setShowCancelModal(false)}
+            >
+              Keep reservation
+            </button>
+            <button
+              className="btn btn-accent"
+              style={{ cursor: cancelling ? "not-allowed" : "pointer" }}
+              disabled={cancelling}
+              onClick={handleCancelReservation}
+            >
+              {cancelling ? "Cancelling..." : "Cancel Reservation"}
+            </button>
+          </>
+        }
+      >
+        <p style={{ fontSize: 14, color: "#726f63", margin: 0 }}>
+          Cancel this reservation and release your ticket locks?
+        </p>
+      </Modal>
     </div>
   );
 }
