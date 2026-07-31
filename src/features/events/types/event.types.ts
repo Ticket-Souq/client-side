@@ -67,6 +67,7 @@ export interface EventFullResponse {
   eventCategoryName: string
   organization: string
   PosterUrl: string
+  bannerUrl: string | null
   status: EventStatus
   bookingModel: BookingModel
   startDate: string
@@ -96,6 +97,9 @@ export interface EventCardResponse {
   id: string
   title: string
   posterUrl: string
+  bannerUrl?: string | null
+  location?: string
+  categoryName?: string
   status: string
   startDate: string
   endDate?: string

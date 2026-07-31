@@ -130,7 +130,6 @@ export const MOCK_EVENTS_DETAIL: EventDetail[] = MOCK_CARDS.map((card) => {
     zones: card.id === 'evt-1' || card.id === 'evt-7' ? makeZones() : undefined,
     lineup: LINEUPS[card.id] || undefined,
     duration: DURATIONS[card.id] || '3 hours',
-    doorsOpen: '1 hour before',
     capacity: card.ticketsAvailable + card.ticketsSold,
   }
 })

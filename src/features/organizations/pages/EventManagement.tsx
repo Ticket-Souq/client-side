@@ -286,7 +286,26 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
       const parsed = JSON.parse(tpl.layout) as SeatMap
       const res = await authFetch(API.tickets.organizerByEvent(event.id))
       const tks: OrganizerTicket[] = res.ok ? await res.json() : []
+
+      // Build reservations from organizer tickets
       const reservations = buildReservationsFromTickets(parsed, tks)
+      const reservedCellIds = new Set(reservations.map((r) => r.cellId))
+
+      // Also include seats already booked/locked from event sections
+      for (const section of event.sections) {
+        for (const seat of section.seats) {
+          if (seat.status !== 'AVAILABLE' && seat.templateSeatId && !reservedCellIds.has(seat.templateSeatId)) {
+            reservedCellIds.add(seat.templateSeatId)
+            reservations.push({
+              cellId: seat.templateSeatId,
+              rowLabel: '',
+              seatNumber: '',
+              holderName: seat.status === 'BOOKED_ORGANIZER' ? 'Organizer' : 'Sold',
+            })
+          }
+        }
+      }
+
       setReserveVenueSeatMap(parsed)
       setReserveVenueReservations(reservations)
     } catch {
@@ -294,7 +313,7 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
     } finally {
       setReserveVenueLoading(false)
     }
-  }, [event.venueTemplateId, event.id, buildReservationsFromTickets])
+  }, [event.venueTemplateId, event.id, event.sections, buildReservationsFromTickets])
 
   const handleCancelEvent = async () => {
     try {
@@ -642,12 +661,12 @@ function EventCard({ event, isExpanded, onToggle, onRefresh }: {
       <div
         className={`mgmt-card ${isExpanded ? 'expanded' : ''}`}
       >
-        {event.PosterUrl ? (
+        {(isExpanded && event.bannerUrl) || event.PosterUrl ? (
           <img
-            src={API.base + event.PosterUrl}
+            src={API.base + (isExpanded && event.bannerUrl ? event.bannerUrl : event.PosterUrl)}
             alt={event.title}
             onClick={onToggle}
-            style={{ width: '100%', maxHeight: 280, objectFit: 'contain', display: 'block', background: '#f5f5f0', cursor: 'pointer' }}
+            style={{ width: '100%', maxHeight: isExpanded ? 480 : 280, objectFit: 'contain', display: 'block', background: '#f5f5f0', cursor: 'pointer' }}
           />
         ) : (
           <div onClick={onToggle} style={{ width: '100%', aspectRatio: '2/3', background: 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 14, maxHeight: 280, cursor: 'pointer' }}>

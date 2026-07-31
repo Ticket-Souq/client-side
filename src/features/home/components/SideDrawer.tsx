@@ -16,6 +16,7 @@ const PUBLIC_MENU: MenuItem[] = [
 const ROLE_MENUS: Record<string, MenuItem[]> = {
   CUSTOMER: [
     { label: "Browse Events", path: "/customer/events" },
+    { label: "My Reservations", path: "/customer/reservations" },
     { label: "My Tickets", path: "/customer/tickets" },
   ],
   ADMIN: [

@@ -1,165 +1,200 @@
+import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { UserProfileProvider } from '../../../shared/hooks/useUserProfile'
 import { LayoutShell } from '../../../shared/components/layout/LayoutShell'
+import { EventApi } from '../../events/services/eventApi'
+import { API } from '../../../shared/api'
+import type { EventCardResponse } from '../../events/types/event.types'
+import { formatDate } from '../../events/utils/eventFormatters'
 import styles from '../styles/Landing.module.css'
 
-const artClasses = [styles.artBeams, styles.artWaves, styles.artGrid, styles.artConfetti]
+function getNext7DaysBounds() {
+  const now = new Date()
+  const start = new Date(now)
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
+  end.setHours(23, 59, 59, 999)
+  return { start, end }
+}
+
+function isInRange(dateStr: string, start: Date, end: Date) {
+  const d = new Date(dateStr)
+  return d >= start && d <= end
+}
+
+function formatMonth(dateStr: string) {
+  const d = new Date(dateStr)
+  return d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+}
+
+function formatDay(dateStr: string) {
+  return new Date(dateStr).getDate().toString().padStart(2, '0')
+}
+
+function imgSrc(url: string | null | undefined) {
+  return url ? `${API.base}${url}` : ''
+}
+
+const ART_CLASSES = [styles.artBeams, styles.artWaves, styles.artGrid, styles.artConfetti]
+
+function artClass(i: number) { return ART_CLASSES[i % ART_CLASSES.length] }
 
 export default function Landing() {
+  const navigate = useNavigate()
+  const [heroSlide, setHeroSlide] = useState(0)
+  const [events, setEvents] = useState<EventCardResponse[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await EventApi.list(0, 50)
+        if (!cancelled) setEvents(res.content)
+      } catch {
+        // API unavailable
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  const { heroEvents, categoryMap } = useMemo(() => {
+    const { start, end } = getNext7DaysBounds()
+    const inWindow: EventCardResponse[] = []
+    const rest: EventCardResponse[] = []
+    for (const ev of events) {
+      if (isInRange(ev.startDate, start, end)) {
+        inWindow.push(ev)
+      } else {
+        rest.push(ev)
+      }
+    }
+    inWindow.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+    rest.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+    const hero = inWindow.length > 0 ? inWindow : rest.slice(0, 6)
+    const map = new Map<string, EventCardResponse[]>()
+    for (const ev of events) {
+      const cat = ev.categoryName || 'General'
+      if (!map.has(cat)) map.set(cat, [])
+      map.get(cat)!.push(ev)
+    }
+    return { heroEvents: hero, categoryMap: map }
+  }, [events])
+
+  useEffect(() => {
+    if (heroEvents.length > 0 && heroSlide >= heroEvents.length) setHeroSlide(0)
+  }, [heroEvents.length, heroSlide])
+
+  useEffect(() => {
+    if (heroEvents.length < 2) return
+    const id = setInterval(() => setHeroSlide((s) => (s + 1) % heroEvents.length), 5000)
+    return () => clearInterval(id)
+  }, [heroEvents.length])
+
   return (
     <UserProfileProvider>
       <LayoutShell>
         <main className={styles.wrap}>
+        {loading ? null : heroEvents.length > 0 && (
         <section className={styles.heroSection}>
-          <p className={styles.heroEyebrow}>Featured — Cairo, this weekend</p>
-          <div className={styles.ticketCard}>
-            <div className={styles.ticketArt}>
-              <div className={styles.beam} />
-              <div className={styles.beam} />
-              <div className={styles.beam} />
-              <div className={styles.ticketMainContent}>
-                <span className={styles.ticketTag}>Live music</span>
-                <h1 className={styles.ticketTitle}>
-                  NILE NIGHTS<br />FESTIVAL
-                </h1>
-                <div className={styles.ticketMeta}>
-                  <span>Fri, 25 Jul · 7:00 PM</span>
-                  <span>Cairo Festival Grounds</span>
+          <p className={styles.heroEyebrow}>Events in the next 7 days</p>
+          <div style={{ position: 'relative' }}>
+            <div className={styles.tapeWrap}>
+              <div className={styles.tapeTrack} style={{ transform: `translateX(-${heroSlide * 100}%)` }}>
+                {heroEvents.map((event) => (
+                  <div key={event.id} className={styles.tapeSlide}>
+                    <div className={styles.ticketCard} style={{ cursor: 'pointer' }} onClick={() => navigate(`/events/${event.id}`)}>
+                      <div className={styles.ticketArt} style={event.bannerUrl ? { background: 'none' } : {}}>
+                        {event.bannerUrl ? (
+                          <img
+                            src={imgSrc(event.bannerUrl)}
+                            alt={event.title}
+                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : null}
+                        {!event.bannerUrl && (
+                          <>
+                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(rgba(255,198,41,0.5), transparent)' }} />
+                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(rgba(255,198,41,0.5), transparent)', left: '22%' }} />
+                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(rgba(255,198,41,0.5), transparent)', left: '58%' }} />
+                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(rgba(255,198,41,0.5), transparent)', left: '81%' }} />
+                          </>
+                        )}
+                        <div className={styles.ticketMainContent}>
+                          <span className={styles.ticketTag}>{event.categoryName || event.category || 'Event'}</span>
+                          <h1 className={styles.ticketTitle}>{event.title}</h1>
+                          <div className={styles.ticketMeta}>
+                            <span>{formatDate(event.startDate)}</span>
+                            <span>{event.location || event.venueName || 'TBD'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={styles.ticketStub}>
+                        <span className={`${styles.stubNotch} ${styles.stubNotchTop}`} />
+                        <div className={styles.stubRow}>
+                          <span className={styles.stubLabel}>Category</span>
+                          <span className={styles.stubValue}>{event.categoryName || event.category || 'General'}</span>
+                        </div>
+                        <div className={styles.stubRow}>
+                          <span className={styles.stubLabel}>Location</span>
+                          <span className={styles.stubValue}>{event.location || event.venueName || 'TBD'}</span>
+                        </div>
+                        <button className={`${styles.btn} ${styles.btnPrimary} ${styles.stubCta}`}>View Details</button>
+                        <span className={`${styles.stubNotch} ${styles.stubNotchBottom}`} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {heroEvents.length > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+              {heroEvents.map((_, i) => (
+                <button key={i} onClick={() => setHeroSlide(i)}
+                  style={{ width: 10, height: 10, borderRadius: '50%', border: 'none', background: i === heroSlide ? '#ffc629' : '#eae7dc', cursor: 'pointer', padding: 0, transition: 'background 0.25s, transform 0.25s', transform: i === heroSlide ? 'scale(1.4)' : 'scale(1)' }}
+                  aria-label={`Go to slide ${i + 1}`} />
+              ))}
+            </div>
+          )}
+        </section>
+        )}
+
+        {!loading && [...categoryMap.entries()].map(([catName, catEvents]) => (
+          <section key={catName} className={styles.rowSection}>
+            <div className={styles.rowHead}>
+              <h2 className={styles.rowTitle}>{catName}</h2>
+            </div>
+            <div className={styles.hscroll}>
+              {catEvents.map((event) => (
+                <div key={event.id} className={styles.ecard} style={{ cursor: 'pointer' }} onClick={() => navigate(`/events/${event.id}`)}>
+                  {event.posterUrl ? (
+                    <img src={imgSrc(event.posterUrl)} alt={event.title}
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div className={`${styles.art} ${artClass(catEvents.indexOf(event))}`} />
+                  )}
+                  <span className={styles.corner}>{formatMonth(event.startDate)}</span>
+                  <div className={styles.overlay}>
+                    <p className={styles.evTitle}>{event.title}</p>
+                    <p className={styles.evMeta}>{formatDate(event.startDate)} · {event.location || event.venueName || 'TBD'}</p>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-            <div className={styles.ticketStub}>
-              <span className={`${styles.stubNotch} ${styles.stubNotchTop}`} />
-              <div className={styles.stubRow}>
-                <span className={styles.stubLabel}>Admission</span>
-                <span className={styles.stubValue}>General entry</span>
-              </div>
-              <div className={styles.stubRow}>
-                <span className={styles.stubLabel}>Gate opens</span>
-                <span className={styles.stubValue}>6:00 PM</span>
-              </div>
-              <div>
-                <span className={styles.stubLabel}>From</span>
-                <p className={styles.stubPrice}>EGP 450</p>
-              </div>
-              <button className={`${styles.btn} ${styles.btnPrimary} ${styles.stubCta}`} style={{ pointerEvents: 'none', opacity: 0.5 }} disabled>
-                Book now
-              </button>
-              <span className={`${styles.stubNotch} ${styles.stubNotchBottom}`} />
-            </div>
-          </div>
-        </section>
+          </section>
+        ))}
 
-        <section className={styles.rowSection}>
-          <div className={styles.rowHead}>
-            <h2 className={styles.rowTitle}>This week in Cairo</h2>
-            <a href="#" className={styles.rowSeeall}>
-              See all <span className={styles.rowSeeallArrow}>&rarr;</span>
-            </a>
-          </div>
-          <div className={styles.hscroll}>
-            <EventCard art={artClasses[0]} corner="JUL" title="Rooftop Jazz Sessions" meta="Wed 22 Jul · Zamalek" />
-            <EventCard art={artClasses[1]} corner="JUL" title="Aqua Splash Weekend" meta="Sat 25 Jul · 6th of October" />
-            <EventCard art={artClasses[2]} corner="JUL" title="Stand-up Comedy Night" meta="Thu 23 Jul · Downtown" />
-            <EventCard art={artClasses[1]} corner="JUL" title="Design & Coffee Meetup" meta="Fri 24 Jul · Maadi" />
-            <EventCard art={artClasses[3]} corner="JUL" title="Family Fun Carnival" meta="Sat 25 Jul · New Cairo" />
-            <EventCard art={artClasses[1]} corner="JUL" title="Sunset DJ Set" meta="Sun 26 Jul · North Coast" />
-          </div>
-        </section>
-
-        <section className={styles.rowSection}>
-          <div className={styles.rowHead}>
-            <h2 className={styles.rowTitle}>Aqua parks</h2>
-            <a href="#" className={styles.rowSeeall}>
-              See all <span className={styles.rowSeeallArrow}>&rarr;</span>
-            </a>
-          </div>
-          <div className={styles.hscroll}>
-            <EventCard art={artClasses[1]} corner="AUG" title="Wave Pool Day Pass" meta="Daily · 6th of October" />
-            <EventCard art={artClasses[1]} corner="AUG" title="Slides & Splash Zone" meta="Daily · Alexandria" />
-            <EventCard art={artClasses[3]} corner="AUG" title="Kids Water Carnival" meta="Weekends · Giza" />
-            <EventCard art={artClasses[1]} corner="AUG" title="Lazy River Pass" meta="Daily · New Capital" />
-            <EventCard art={artClasses[0]} corner="AUG" title="Night Splash Party" meta="Fri & Sat · Sheikh Zayed" />
-          </div>
-        </section>
-
-        <section className={styles.rowSection}>
-          <div className={styles.rowHead}>
-            <h2 className={styles.rowTitle}>Concerts & festivals</h2>
-            <a href="#" className={styles.rowSeeall}>
-              See all <span className={styles.rowSeeallArrow}>&rarr;</span>
-            </a>
-          </div>
-          <div className={styles.hscroll}>
-            <EventCard art={artClasses[2]} corner="SEP" title="Electric Nights Tour" meta="Fri 12 Sep · Cairo Arena" />
-            <EventCard art={artClasses[0]} corner="SEP" title="Oud & Strings Evening" meta="Sat 13 Sep · Opera House" />
-            <EventCard art={artClasses[1]} corner="SEP" title="Desert Beats Festival" meta="Fri 19 Sep · North Coast" />
-            <EventCard art={artClasses[1]} corner="SEP" title="Acoustic Sunset Series" meta="Sun 21 Sep · Zamalek" />
-            <EventCard art={artClasses[3]} corner="SEP" title="Youth Music Showcase" meta="Sat 27 Sep · Maadi" />
-            <EventCard art={artClasses[1]} corner="SEP" title="Indie Rock Night" meta="Fri 3 Oct · Downtown" />
-          </div>
-        </section>
-
-        <section className={styles.portalSection}>
-          <h2 className={styles.portalSectionTitle}>Choose your portal</h2>
-          <p className={styles.portalSectionDesc}>3 independent platforms, one ticket ecosystem</p>
-          <div className={styles.portalGrid}>
-            <a href="/customer/events" className={styles.portalCard}>
-              <div className={styles.portalIcon}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#15150f" strokeWidth="1.5">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-              </div>
-              <span className={styles.portalName}>Customer</span>
-              <span className={styles.portalDesc}>Browse events, book tickets, manage your reservations</span>
-              <span className={styles.portalBtn}>Enter</span>
-            </a>
-            <a href="/org/events" className={styles.portalCard}>
-              <div className={styles.portalIcon}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#15150f" strokeWidth="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <path d="M3 9h18" />
-                  <path d="M9 21V9" />
-                </svg>
-              </div>
-              <span className={styles.portalName}>Organizer</span>
-              <span className={styles.portalDesc}>Manage venues, events, tickets & your organization</span>
-              <span className={styles.portalBtn}>Enter</span>
-            </a>
-            <a href="/admin/organizations" className={styles.portalCard}>
-              <div className={styles.portalIcon}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#15150f" strokeWidth="1.5">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-              </div>
-              <span className={styles.portalName}>Admin</span>
-              <span className={styles.portalDesc}>Platform oversight, approvals, system monitoring</span>
-              <span className={styles.portalBtn}>Enter</span>
-            </a>
-          </div>
-        </section>
+        {!loading && heroEvents.length === 0 && categoryMap.size === 0 && (
+          <section className={styles.heroSection}>
+            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>No events available yet.</p>
+          </section>
+        )}
       </main>
       </LayoutShell>
     </UserProfileProvider>
-  )
-}
-
-interface EventCardProps {
-  art: string
-  corner: string
-  title: string
-  meta: string
-}
-
-function EventCard({ art, corner, title, meta }: EventCardProps) {
-  return (
-    <div className={styles.ecard}>
-      <div className={`${styles.art} ${art}`} />
-      <span className={styles.corner}>{corner}</span>
-      <div className={styles.overlay}>
-        <p className={styles.evTitle}>{title}</p>
-        <p className={styles.evMeta}>{meta}</p>
-      </div>
-    </div>
   )
 }

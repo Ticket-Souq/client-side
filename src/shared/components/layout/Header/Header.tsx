@@ -8,6 +8,9 @@ import { clearTokens, getUserRoles, hasUserRole, isAuthenticated } from '../../.
 import { BRAND_NAME } from '../../../constants'
 import { useUserProfile } from '../../../hooks/useUserProfile'
 import { AuthService } from '../../../../features/auth/services/auth.service'
+import { EventApi } from '../../../../features/events/services/eventApi'
+import { API } from '../../../api'
+import type { EventCardResponse } from '../../../../features/events/types/event.types'
 import styles from './Header.module.css'
 import notifStyles from '../../../../features/notifications/notifications.module.css'
 
@@ -35,14 +38,11 @@ function roleDisplay(raw: string): string {
   return normaliseRole(raw).replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
 
-const PUBLIC_LINKS = [
-  { label: 'Events', href: '/customer/events' },
+const PUBLIC_LINKS: { label: string; href: string }[] = [
 ]
 
 const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
   CUSTOMER: [
-    { label: 'Events', href: '/customer/events' },
-    { label: 'My Tickets', href: '/customer/tickets' },
   ],
   ADMIN: [
     { label: 'Organizations', href: '/admin/organizations' },
@@ -78,6 +78,13 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<EventCardResponse[]>([])
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchDone, setSearchDone] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
   const notifRef = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
   const [deactivateLoading, setDeactivateLoading] = useState(false)
@@ -92,14 +99,31 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
   }, [])
 
   useEffect(() => {
-    if (!notifOpen && !profileOpen) return
+    if (!searchQuery.trim()) { setSearchResults([]); setSearchOpen(false); setSearchLoading(false); setSearchDone(false); return }
+    clearTimeout(debounceRef.current)
+    setSearchLoading(true)
+    setSearchOpen(true)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await EventApi.search({ title: searchQuery.trim(), size: 8 })
+        setSearchResults(res.content)
+      } catch { setSearchResults([]) }
+      setSearchLoading(false)
+      setSearchDone(true)
+    }, 300)
+    return () => clearTimeout(debounceRef.current)
+  }, [searchQuery])
+
+  useEffect(() => {
+    if (!notifOpen && !profileOpen && !searchOpen) return
     const handleClickOutside = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false)
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false)
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [notifOpen, profileOpen])
+  }, [notifOpen, profileOpen, searchOpen])
 
   const handleMarkRead = useCallback((id: string) => {
     markRead(id)
@@ -146,7 +170,70 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
             </Link>
           ))}
         </nav>
+        {(!authed || primaryRole === 'CUSTOMER') && (
+        <div className={styles.searchWrap} ref={searchRef}>
+          <svg className={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            className={styles.searchInput}
+            type="search"
+            placeholder="Search events…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => { if (searchResults.length > 0) setSearchOpen(true) }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (searchOpen && searchResults.length > 0) {
+                  navigate(`/events/${searchResults[0].id}`)
+                } else if (searchQuery.trim()) {
+                  const params = new URLSearchParams()
+                  params.set('q', searchQuery.trim())
+                  navigate(`/?${params.toString()}`)
+                }
+                setSearchQuery('')
+                setSearchOpen(false)
+              }
+            }}
+          />
+          {searchOpen && searchResults.length > 0 && (
+            <div className={styles.searchDropdown}>
+              {searchResults.map((ev) => (
+                <div key={ev.id} className={styles.searchItem} onClick={() => { navigate(`/events/${ev.id}`); setSearchQuery(''); setSearchOpen(false) }}>
+                  <img
+                    src={ev.posterUrl ? `${API.base}${ev.posterUrl}` : ''}
+                    alt=""
+                    className={styles.searchThumb}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                  />
+                  <div className={styles.searchInfo}>
+                    <span className={styles.searchTitle}>{ev.title}</span>
+                    <span className={styles.searchMeta}>{ev.categoryName || ev.category || ''}{ev.location ? ` · ${ev.location}` : ''}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {searchOpen && searchLoading && (
+            <div className={styles.searchDropdown}>
+              <div className={styles.searchLoading}>Searching…</div>
+            </div>
+          )}
+          {searchOpen && searchDone && !searchLoading && searchResults.length === 0 && (
+            <div className={styles.searchDropdown}>
+              <div className={styles.searchEmpty}>No events found</div>
+            </div>
+          )}
+        </div>
+        )}
         <div className={styles.actions}>
+          {primaryRole === 'CUSTOMER' && (
+            <>
+              <Link to="/customer/reservations" className={styles.myTickets}>My Reservations</Link>
+              <Link to="/customer/tickets" className={styles.myTickets}>My Tickets</Link>
+            </>
+          )}
           {authed ? (
             <>
               {/* Notifications bell */}

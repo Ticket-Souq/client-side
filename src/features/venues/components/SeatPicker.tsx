@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import "./seat-map.css";
-import { listVenueTemplates, getVenueTemplate } from "../api/venueApi";
+import { getTemplateById } from "../api/venueApi";
 import type { SeatMap, Category } from "./types";
 
 interface SeatPickerProps {
   venueId: string;
   onSeatClick: (seat: SeatObject) => void;
+  sections?: { seats: { id: string; templateSeatId: string | null; status: string }[] }[];
 }
 
 export interface SeatObject {
@@ -21,25 +21,19 @@ const MAX_SELECTION = 5;
 const SEL_COLOR = "#0d6efd";
 const TAKEN_COLOR = "#6c757d";
 
-export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
+export function SeatPicker({ venueId, onSeatClick, sections }: SeatPickerProps) {
   const [map, setMap] = useState<SeatMap | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    if (!venueId) return;
     setLoading(true);
     setError(null);
     (async () => {
       try {
-        const templates = await listVenueTemplates(venueId);
-        if (cancelled) return;
-        if (templates.length === 0) {
-          setError("No templates available for this venue");
-          setLoading(false);
-          return;
-        }
-        const template = await getVenueTemplate(venueId, templates[0].id);
+        const template = await getTemplateById(venueId);
         if (cancelled) return;
         const parsed = JSON.parse(template.layout) as SeatMap;
         if (parsed && parsed.rows) {
@@ -57,6 +51,19 @@ export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
     return () => { cancelled = true; };
   }, [venueId]);
 
+  const takenTemplateIds: Set<string> = useMemo(() => {
+    if (!sections) return new Set()
+    const ids = new Set<string>()
+    for (const sec of sections) {
+      for (const seat of sec.seats) {
+        if (seat.status !== 'AVAILABLE' && seat.templateSeatId) {
+          ids.add(seat.templateSeatId)
+        }
+      }
+    }
+    return ids
+  }, [sections])
+
   const seats: SeatObject[] = useMemo(() => {
     if (!map) return [];
     const catById = new Map(map.categories.map((c) => [c.id, c]));
@@ -66,18 +73,19 @@ export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
       row.cells.forEach((cell, ci) => {
         if (cell.type !== "seat") return;
         const cat = cell.categoryId ? catById.get(cell.categoryId) : undefined;
+        const isTaken = takenTemplateIds.has(cell.id) || cell.status !== "available";
         result.push({
           id: cell.id,
           rowLabel: row.label,
           colNumber: Number(cell.number ?? (ci + 1)),
-          status: cell.status === "available" ? "available" : "taken",
+          status: isTaken ? "taken" : "available",
           categoryId: cat?.id ?? "",
           categoryColor: cat?.color ?? "#3b82f6",
         });
       });
     }
     return result;
-  }, [map]);
+  }, [map, takenTemplateIds]);
 
   const categories: Category[] = useMemo(() => map?.categories ?? [], [map]);
 
@@ -94,102 +102,86 @@ export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
     return Array.from(m.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [seats]);
 
-  const select = useCallback((seat: SeatObject) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.add(seat.id);
-      return next;
-    });
-    onSeatClick(seat);
-  }, [onSeatClick]);
-
-  const deselect = useCallback((seat: SeatObject) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.delete(seat.id);
-      return next;
-    });
-    onSeatClick(seat);
-  }, [onSeatClick]);
-
-  const handleContextMenu = useCallback((e: React.MouseEvent, seat: SeatObject) => {
-    e.preventDefault();
+  const toggleSeat = useCallback((seat: SeatObject) => {
     if (seat.status === "taken") return;
     const isSelected = selectedIds.has(seat.id);
     if (isSelected) {
-      deselect(seat);
-      return;
-    }
-    if (selectedIds.size >= MAX_SELECTION) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(seat.id);
+        return next;
+      });
+      onSeatClick(seat);
+    } else if (selectedIds.size >= MAX_SELECTION) {
       setRejectedId(seat.id);
       setTimeout(() => setRejectedId(null), 400);
-      return;
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.add(seat.id);
+        return next;
+      });
+      onSeatClick(seat);
     }
-    select(seat);
-  }, [selectedIds, select, deselect]);
-
-  const handleClick = useCallback((seat: SeatObject) => {
-    if (seat.status === "taken") return;
-    if (!selectedIds.has(seat.id)) return;
-    deselect(seat);
-  }, [selectedIds, deselect]);
+  }, [selectedIds, onSeatClick]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-10">
-        <span className="text-sm text-neutral-400">Loading seats...</span>
+      <div style={{ padding: 40, textAlign: 'center', color: '#726f63', fontSize: 14 }}>
+        Loading seats...
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-10">
-        <span className="text-sm text-red-400">{error}</span>
+      <div style={{ padding: 40, textAlign: 'center', color: '#dc2626', fontSize: 14 }}>
+        {error}
       </div>
     );
   }
 
   if (seats.length === 0) {
     return (
-      <div className="flex items-center justify-center p-10">
-        <span className="text-sm text-neutral-500">No seats available</span>
+      <div style={{ padding: 40, textAlign: 'center', color: '#726f63', fontSize: 14 }}>
+        No seats available
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4" style={{ fontFamily: "var(--font-body)" }}>
-      <div className="flex gap-3 flex-wrap text-xs justify-center">
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: 16 }}>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', fontSize: 12 }}>
         {categories.map((c) => (
-          <span key={c.id} className="flex items-center gap-1.5">
-            <span
-              className="w-3 h-3 rounded-sm"
-              style={{ backgroundColor: c.color }}
-            />
+          <span key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: c.color, display: 'inline-block' }} />
             {c.name}
           </span>
         ))}
-        <span className="flex items-center gap-1.5 text-neutral-500">
-          <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: TAKEN_COLOR }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#726f63' }}>
+          <span style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: TAKEN_COLOR, display: 'inline-block' }} />
           Taken
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: SEL_COLOR }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: SEL_COLOR, display: 'inline-block' }} />
           Selected
         </span>
       </div>
 
-      <div
-        className="rounded-lg bg-neutral-900 border border-neutral-800 p-6 overflow-auto"
-        style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
-      >
+      <div style={{
+        borderRadius: 8,
+        background: '#1a1a1a',
+        border: '1px solid #333',
+        padding: 24,
+        overflow: 'auto',
+        maxWidth: '100%',
+      }}>
         {rows.map(([label, rowSeats]) => (
-          <div key={label} className="flex items-center gap-2 mb-1.5">
-            <span className="w-6 text-xs text-neutral-500 text-right flex-shrink-0">
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ width: 24, fontSize: 11, color: '#9ca3af', textAlign: 'right', flexShrink: 0 }}>
               {label}
             </span>
-            <div className="flex gap-1.5">
+            <div style={{ display: 'flex', gap: 4 }}>
               {rowSeats.map((seat) => {
                 const isSelected = selectedIds.has(seat.id);
                 const isTaken = seat.status === "taken";
@@ -201,22 +193,29 @@ export function SeatPicker({ venueId, onSeatClick }: SeatPickerProps) {
                 return (
                   <button
                     key={seat.id}
-                    onClick={() => handleClick(seat)}
-                    onContextMenu={(e) => handleContextMenu(e, seat)}
+                    onClick={() => toggleSeat(seat)}
                     disabled={isTaken}
-                    title={
-                      isTaken
-                        ? "Taken"
-                        : `${seat.rowLabel}${seat.colNumber}`
-                    }
-                    className={`w-7 h-7 rounded text-[9px] font-medium flex items-center justify-center transition select-none ${
-                      isTaken
-                        ? "cursor-not-allowed text-white"
-                        : isSelected
-                          ? "ring-2 ring-white text-white cursor-pointer"
-                          : "hover:brightness-125 text-white cursor-pointer"
-                    } ${isRejected ? "shake" : ""}`}
-                    style={{ backgroundColor: bgColor }}
+                    title={isTaken ? "Taken" : `${seat.rowLabel}${seat.colNumber}`}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 4,
+                      fontSize: 9,
+                      fontWeight: 600,
+                      border: isRejected ? '2px solid #dc2626' : 'none',
+                      color: '#fff',
+                      backgroundColor: bgColor,
+                      cursor: isTaken ? 'not-allowed' : 'pointer',
+                      opacity: isTaken ? 0.6 : 1,
+                      transition: 'transform 0.12s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      outline: isSelected ? '2px solid #fff' : 'none',
+                      outlineOffset: 1,
+                    }}
+                    onMouseEnter={(e) => { if (!isTaken) e.currentTarget.style.transform = 'scale(1.12)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
                   >
                     {seat.colNumber}
                   </button>

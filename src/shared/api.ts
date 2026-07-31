@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const VITE_API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = VITE_API_URL !== undefined ? VITE_API_URL : 'http://localhost:8080';
 
 export const API = {
   base: BASE_URL,
@@ -59,6 +60,11 @@ export const API = {
     organizerByEvent: (eventId: string) => `${BASE_URL}/api/v1/ticket/organizer/${eventId}`,
     reserveOrganizer: `${BASE_URL}/api/v1/ticket/reserve/organizer`,
     updateStatus: (id: string) => `${BASE_URL}/api/v1/ticket/${id}/status`,
+  },
+  locks: {
+    acquireSeats: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/seats`,
+    acquireZones: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/zones/batch`,
+    release: `${BASE_URL}/api/v1/event/locks/release`,
   },
   venues: {
     list: `${BASE_URL}/api/v1/venue`,

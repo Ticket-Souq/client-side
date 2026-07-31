@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -7,23 +7,95 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { v4 as uuid } from "uuid";
 import { createPaymentIntent } from "../../payment/services/paymentService";
-import { mockEvents } from "../../events/data/mockEvents";
-import type { SeatObject } from "../../venues/components/SeatPicker";
+import { acquireSeatLocks, acquireZoneLocks, releaseLocks } from "../../events/services/lockApi";
+import { formatPrice } from "../../events/utils/eventFormatters";
+
+const STORAGE_KEY = "reservation";
+
+interface StoredReservation {
+  reservationId: string;
+  eventId: string;
+  bookingModel: string;
+  seatIds: string[];
+  expiresAt: string;
+  tickets: TicketState[];
+  holderNames: Record<string, string>;
+}
+
+function loadReservation(): StoredReservation | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveReservation(data: StoredReservation) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
+}
+
+function clearReservation() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+}
 
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "pk_test_xxxxxxxxx",
 );
 
-interface LocationState {
-  seats: SeatObject[];
-  eventId: string;
+interface TicketState {
+  key: string;
+  label: string;
+  sectionName: string;
+  price: number;
+  sectionId: string;
 }
 
-const unitPrice = 50;
+interface LocationState {
+  tickets: TicketState[];
+  eventId: string;
+  bookingModel: string;
+  holderNames: Record<string, string>;
+}
 
-function CheckoutForm({ seats, event, total }: { seats: SeatObject[]; event: typeof mockEvents[number]; total: number }) {
+function formatTimer(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+function TimerBanner({ timeLeft }: { timeLeft: number }) {
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        padding: "10px 16px", marginBottom: 24, borderRadius: 8,
+        background: timeLeft <= 120 ? "#fef2f2" : timeLeft <= 300 ? "#fffbeb" : "#f0fdf4",
+        border: `1px solid ${timeLeft <= 120 ? "#fecaca" : timeLeft <= 300 ? "#fde68a" : "#bbf7d0"}`,
+      }}
+    >
+      <span style={{ fontSize: 13, color: "#726f63" }}>Reservation lock</span>
+      <span
+        style={{
+          fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums", letterSpacing: 1,
+          color: timeLeft <= 120 ? "#dc2626" : timeLeft <= 300 ? "#d97706" : "#059669",
+        }}
+      >
+        {formatTimer(timeLeft)}
+      </span>
+    </div>
+  );
+}
+
+function CheckoutForm({
+  reservationId, tickets, eventId, total, timedOut, setTimedOut,
+}: {
+  reservationId: string;
+  tickets: TicketState[];
+  eventId: string;
+  total: number;
+  timedOut: boolean;
+  setTimedOut: (v: boolean) => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -32,16 +104,15 @@ function CheckoutForm({ seats, event, total }: { seats: SeatObject[]; event: typ
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || timedOut) return;
     setLoading(true);
     setError(null);
 
     try {
       const payment = await createPaymentIntent({
-        reservationID: uuid(),
-        customerID: uuid(),
-        eventID: uuid(),
+        reservationID: reservationId,
+        customerID: reservationId,
+        eventID: eventId,
         amount: total,
         currency: "USD",
       });
@@ -70,24 +141,40 @@ function CheckoutForm({ seats, event, total }: { seats: SeatObject[]; event: typ
       }
 
       if (paymentIntent?.status === "succeeded") {
+        clearReservation();
         navigate("/customer/booking/success", {
-          state: { paymentID: payment.paymentID, seats, event, total },
+          state: { paymentID: payment.paymentID, tickets, total },
         });
       } else {
-        navigate("/customer/booking/cancel", { state: { seats, eventId: event.id } });
+        clearReservation();
+        await releaseLocks(reservationId).catch(() => {});
+        setTimedOut(true);
       }
     } catch (err) {
+      clearReservation();
+      await releaseLocks(reservationId).catch(() => {});
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
+  if (timedOut) {
+    return (
+      <div style={{ textAlign: "center", padding: 40, background: "#fef2f2", borderRadius: 12, border: "1px solid #fecaca" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#dc2626", margin: "0 0 8px" }}>Session expired</h2>
+        <p style={{ fontSize: 14, color: "#726f63", margin: "0 0 16px" }}>Your reservation time has expired. Please go back and try again.</p>
+        <button className="btn btn-primary" style={{ border: "none", cursor: "pointer" }} onClick={() => navigate(`/events/${eventId}`)}>
+          Back to event
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="container py-5">
         <div className="row justify-content-center g-4">
-          {/* Order Summary */}
           <div className="col-lg-5">
             <div
               className="p-4 shadow-card"
@@ -97,41 +184,31 @@ function CheckoutForm({ seats, event, total }: { seats: SeatObject[]; event: typ
                 border: "1px solid var(--color-border)",
               }}
             >
-              <h5
-                className="fw-bold mb-3"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {event.title}
+              <h5 className="fw-bold mb-3" style={{ fontFamily: "var(--font-display)" }}>
+                Order Summary
               </h5>
-              <p className="mb-1 text-secondary-custom" style={{ fontSize: "13px" }}>
-                {event.dateTime} · {event.venueName}
-              </p>
-              <hr />
               <p className="fw-semibold mb-2" style={{ fontSize: "13px" }}>
-                Seats ({seats.length})
+                Tickets ({tickets.length})
               </p>
-              <div
-                className="mb-3"
-                style={{
-                  fontSize: "13px",
-                  color: "var(--color-text-secondary)",
-                }}
-              >
-                {seats.map((s) => `${s.rowLabel}${s.colNumber}`).join(", ")}
+              <div className="mb-3" style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                <ul style={{ margin: 0, paddingLeft: 16 }}>
+                  {tickets.map((t, i) => (
+                    <li key={t.key}>
+                      {t.label}{t.sectionName ? ` (${t.sectionName})` : ""}
+                      {t.price > 0 && ` — ${formatPrice(t.price)}`}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div
-                className="d-flex justify-content-between fw-bold"
-                style={{ fontSize: "15px" }}
-              >
+              <div className="d-flex justify-content-between fw-bold" style={{ fontSize: "15px" }}>
                 <span>Total</span>
                 <span style={{ color: "var(--color-accent)" }}>
-                  ${total.toFixed(2)}
+                  EGP {total.toFixed(2)}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Payment Form */}
           <div className="col-lg-5">
             <div
               className="p-4 shadow-card"
@@ -141,28 +218,22 @@ function CheckoutForm({ seats, event, total }: { seats: SeatObject[]; event: typ
                 border: "1px solid var(--color-border)",
               }}
             >
-              <h5
-                className="fw-bold mb-3"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
+              <h5 className="fw-bold mb-3" style={{ fontFamily: "var(--font-display)" }}>
                 Payment
               </h5>
               <PaymentElement />
               {error && (
-                <div
-                  className="alert alert-danger py-2 mt-3"
-                  style={{ fontSize: "13px" }}
-                >
+                <div className="alert alert-danger py-2 mt-3" style={{ fontSize: "13px" }}>
                   {error}
                 </div>
               )}
               <button
                 type="submit"
                 className="btn btn-accent w-100 mt-3 py-2 fw-semibold"
-                disabled={!stripe || loading}
+                disabled={!stripe || loading || timedOut}
                 style={{ fontSize: "15px" }}
               >
-                {loading ? "Processing…" : `Pay $${total.toFixed(2)}`}
+                {loading ? "Processing…" : `Pay EGP ${total.toFixed(2)}`}
               </button>
             </div>
           </div>
@@ -174,35 +245,150 @@ function CheckoutForm({ seats, event, total }: { seats: SeatObject[]; event: typ
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { state } = useLocation() as { state: LocationState };
-  const event = mockEvents.find((e) => e.id === state?.eventId);
-  const seats = state?.seats ?? [];
-  const total = seats.length * unitPrice;
+  const { state } = useLocation() as { state: LocationState | null };
 
-  if (!event || seats.length === 0) {
+  // Prefer location state, fall back to stored reservation
+  const stored = !state?.tickets?.length ? loadReservation() : null;
+  const tickets = state?.tickets ?? stored?.tickets ?? [];
+  const eventId = state?.eventId ?? stored?.eventId ?? "";
+  const bookingModel = state?.bookingModel ?? stored?.bookingModel ?? "";
+  const total = tickets.reduce((sum, t) => sum + t.price, 0);
+
+  const [reservationId, setReservationId] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState(600);
+  const [timedOut, setTimedOut] = useState(false);
+  const [lockError, setLockError] = useState<string | null>(null);
+  const [locking, setLocking] = useState(true);
+  const releasedRef = useRef(false);
+  const lockStartedRef = useRef(false);
+
+  const doRelease = useCallback(async (resId: string) => {
+    if (releasedRef.current) return;
+    releasedRef.current = true;
+    clearReservation();
+    try { await releaseLocks(resId); } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    if (!tickets.length || !eventId || !bookingModel) {
+      setLocking(false);
+      return;
+    }
+    if (lockStartedRef.current) return;
+    lockStartedRef.current = true;
+
+    const seatIds = tickets.map((t) => t.key);
+
+    // Restore existing reservation from storage
+    const stored = loadReservation();
+    if (stored && stored.eventId === eventId && JSON.stringify(stored.seatIds) === JSON.stringify(seatIds)) {
+      const expiresMs = new Date(stored.expiresAt).getTime();
+      const initialSec = Math.max(0, Math.floor((expiresMs - Date.now()) / 1000));
+      if (initialSec > 0) {
+        setReservationId(stored.reservationId);
+        setTimeLeft(initialSec);
+        setLockError(null);
+        setLocking(false);
+        return;
+      }
+    }
+
+    (async () => {
+      try {
+        let resp: { reservationId: string; expiresAt: string };
+        if (bookingModel === "ZONE") {
+          const zoneMap: Record<string, number> = {};
+          for (const t of tickets) {
+            zoneMap[t.sectionId] = (zoneMap[t.sectionId] ?? 0) + 1;
+          }
+          const zones = Object.entries(zoneMap).map(([zoneId, quantity]) => ({ zoneId, quantity }));
+          resp = await acquireZoneLocks(eventId, zones);
+        } else {
+          resp = await acquireSeatLocks(eventId, seatIds);
+        }
+
+        saveReservation({ reservationId: resp.reservationId, eventId, bookingModel, seatIds, expiresAt: resp.expiresAt, tickets, holderNames: state?.holderNames ?? {} });
+        setReservationId(resp.reservationId);
+        const expiresMs = new Date(resp.expiresAt).getTime();
+        const nowMs = Date.now();
+        const initialSec = Math.max(0, Math.floor((expiresMs - nowMs) / 1000));
+        setTimeLeft(initialSec);
+        setLockError(null);
+        setLocking(false);
+      } catch (err) {
+        clearReservation();
+        setLockError(err instanceof Error ? err.message : "Failed to lock selection");
+        setLocking(false);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (timedOut || !reservationId) return;
+    if (timeLeft <= 0) {
+      setTimedOut(true);
+      doRelease(reservationId);
+      return;
+    }
+    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [timeLeft, timedOut, reservationId, doRelease]);
+
+  if (!tickets.length || !eventId || !bookingModel) {
     return (
       <div className="container py-5 text-center">
         <h2>No reservation data found</h2>
-        <button
-          className="btn btn-accent mt-3"
-          onClick={() => navigate("/customer/events")}
-        >
+        <button className="btn btn-accent mt-3" onClick={() => navigate("/")}>
           Browse Events
         </button>
       </div>
     );
   }
 
+  if (locking) {
+    return (
+      <main className="wrap zone-page" style={{ paddingTop: 40 }}>
+        <div style={{ textAlign: "center", padding: 40, color: "#726f63" }}>
+          Locking your selection...
+        </div>
+      </main>
+    );
+  }
+
+  if (lockError) {
+    return (
+      <main className="wrap zone-page" style={{ paddingTop: 40 }}>
+        <div style={{ textAlign: "center", padding: 40, background: "#fef2f2", borderRadius: 12, border: "1px solid #fecaca", maxWidth: 480, margin: "0 auto" }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#dc2626", margin: "0 0 8px" }}>Unable to reserve</h2>
+          <p style={{ fontSize: 14, color: "#726f63", margin: "0 0 16px" }}>{lockError}</p>
+          <button className="btn btn-primary" style={{ border: "none", cursor: "pointer" }} onClick={() => navigate(-1)}>
+            Go back
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <Elements
-      stripe={stripePromise}
-      options={{
-        mode: "payment",
-        amount: Math.round(total * 100),
-        currency: "usd",
-      }}
-    >
-      <CheckoutForm seats={seats} event={event} total={total} />
-    </Elements>
+    <main className="wrap zone-page" style={{ paddingTop: 24 }}>
+      <TimerBanner timeLeft={timeLeft} />
+      <Elements
+        stripe={stripePromise}
+        options={{
+          mode: "payment",
+          amount: Math.round(total * 100),
+          currency: "usd",
+        }}
+      >
+        <CheckoutForm
+          reservationId={reservationId!}
+          tickets={tickets}
+          eventId={eventId}
+          total={total}
+          timedOut={timedOut}
+          setTimedOut={setTimedOut}
+        />
+      </Elements>
+    </main>
   );
 }

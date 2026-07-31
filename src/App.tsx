@@ -16,16 +16,15 @@ import ResetPassword from './features/auth/pages/ResetPassword'
 import EmailVerification from './features/auth/pages/EmailVerification'
 import ChangePassword from './features/auth/pages/ChangePassword'
 
-import CustomerEvents from './features/events/pages/CustomerEvents'
 import CustomerEventDetail from './features/events/pages/CustomerEventDetail'
-import ZonePurchase from './features/events/pages/ZonePurchase'
-import EventSelect from './features/events/pages/EventSelect'
+import EventReserve from './features/events/pages/EventReserve'
 import Checkout from './features/booking/pages/Checkout'
 import PaymentSuccess from './features/booking/pages/PaymentSuccess'
 import PaymentCancel from './features/booking/pages/PaymentCancel'
 
 const MyTickets = lazy(() => import('./features/tickets/pages/MyTickets'))
 const TicketDetail = lazy(() => import('./features/tickets/pages/TicketDetail'))
+const MyReservations = lazy(() => import('./features/tickets/pages/MyReservations'))
 
 import EventManagement from './features/organizations/pages/EventManagement'
 import EventCreate from './features/organizations/pages/EventCreate'
@@ -84,15 +83,22 @@ function App() {
       {/* Customer */}
       <Route path="customer" element={<CustomerLayout />}>
         <Route index element={<Navigate to="events" replace />} />
-        <Route path="events" element={<CustomerEvents />} />
+        <Route path="events" element={<Navigate to="/" replace />} />
         <Route path="events/:eventId" element={<CustomerEventDetail />} />
-        <Route path="events/:eventId/zone-purchase" element={<ZonePurchase />} />
-        <Route path="events/:eventId/select" element={<EventSelect />} />
+        <Route path="events/:eventId/reserve" element={<EventReserve />} />
         <Route path="booking/checkout" element={<Checkout />} />
         <Route path="booking/success" element={<PaymentSuccess />} />
         <Route path="booking/cancel" element={<PaymentCancel />} />
+        <Route path="reservations" element={<MyReservations />} />
         <Route path="tickets" element={<MyTickets />} />
         <Route path="tickets/:ticketId" element={<TicketDetail />} />
+      </Route>
+
+      {/* Public event detail & reservation */}
+      <Route path="events">
+        <Route index element={<Navigate to="/" replace />} />
+        <Route path=":eventId" element={<CustomerEventDetail />} />
+        <Route path=":eventId/reserve" element={<EventReserve />} />
       </Route>
 
       {/* Organization */}

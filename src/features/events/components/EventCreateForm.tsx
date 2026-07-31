@@ -124,7 +124,7 @@ interface EventFormState {
 }
 
 interface Props {
-  onSubmit?: (data: CreateEventRequest, posterFile: File | null) => void
+  onSubmit?: (data: CreateEventRequest, posterFile: File | null, bannerFile: File | null) => void
   onCancel?: () => void
   loading?: boolean
 }
@@ -166,6 +166,9 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
   const [posterFile, setPosterFile] = useState<File | null>(null)
   const [posterPreview, setPosterPreview] = useState<string>('')
   const posterInputRef = useRef<HTMLInputElement>(null)
+  const [bannerFile, setBannerFile] = useState<File | null>(null)
+  const [bannerPreview, setBannerPreview] = useState<string>('')
+  const bannerInputRef = useRef<HTMLInputElement>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const selectedVenue = useMemo(
@@ -296,6 +299,14 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
     setPosterPreview(URL.createObjectURL(file))
   }
 
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+    setBannerFile(file)
+    setBannerPreview(URL.createObjectURL(file))
+  }
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     setFieldErrors({})
@@ -332,7 +343,7 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
       reservations,
       isSeatBased,
     })
-    onSubmit?.(request, posterFile)
+    onSubmit?.(request, posterFile, bannerFile)
   }
 
   return (
@@ -490,6 +501,56 @@ export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
               )}
             </div>
             {fieldErrors.poster && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:6, textAlign:'center' }}>{fieldErrors.poster}</span>}
+          </div>
+          <div style={{ flexShrink: 0, width: 220 }}>
+            <label className="form-label">Banner image</label>
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: 'none' }}
+              onChange={handleBannerChange}
+            />
+            <div
+              style={{
+                border: '2px dashed var(--border)',
+                borderRadius: 14,
+                padding: bannerPreview ? 0 : '32px 16px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                transition: 'border-color 150ms ease, background 150ms ease',
+                background: '#fafaf7',
+                width: 220,
+                minHeight: 280,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+              onClick={() => bannerInputRef.current?.click()}
+            >
+              {bannerPreview ? (
+                <img
+                  src={bannerPreview}
+                  alt="Banner preview"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
+                />
+              ) : (
+                <>
+                  <div style={{ fontSize: 36, marginBottom: 8 }}>🖼️</div>
+                  <p style={{ margin: 0, fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+                    Upload banner
+                  </p>
+                  <p style={{ margin: '4px 0 0', fontFamily: "'Inter', sans-serif", fontSize: 12, color: 'var(--text-secondary)' }}>
+                    JPG, PNG or WebP
+                  </p>
+                  <p style={{ margin: '4px 0 0', fontFamily: "'Inter', sans-serif", fontSize: 12, color: 'var(--text-secondary)' }}>
+                    Recommended 1920×1080px
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

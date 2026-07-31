@@ -32,6 +32,28 @@ export function formatShortDate(dateStr: string): string {
   })
 }
 
+export function formatEventDate(startDate: string, endDate?: string | null): string {
+  const start = new Date(startDate)
+  const end = endDate ? new Date(endDate) : null
+
+  const dateOpts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
+  const timeOpts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' }
+
+  const dateStr = start.toLocaleDateString('en-US', dateOpts)
+
+  if (!end || start.toDateString() === end.toDateString()) {
+    const startTime = start.toLocaleTimeString('en-US', timeOpts)
+    const endTime = end?.toLocaleTimeString('en-US', timeOpts)
+    if (endTime && startTime !== endTime) {
+      return `${dateStr} · ${startTime} – ${endTime}`
+    }
+    return `${dateStr} · ${startTime}`
+  }
+
+  const endStr = end.toLocaleDateString('en-US', dateOpts)
+  return `${dateStr} – ${endStr}`
+}
+
 export function formatPrice(price: number, currency: string = 'EGP'): string {
   return `${currency} ${price.toLocaleString()}`
 }

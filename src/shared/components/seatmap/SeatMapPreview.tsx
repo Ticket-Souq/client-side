@@ -8,15 +8,18 @@ export interface SeatReservation {
   holderName: string
 }
 
-const PREVIEW_CELL = 18
-const PREVIEW_GAP = 3
+const CELL_SIZE = 18
+const CELL_GAP = 3
 
-export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve, onSeatSelect }: {
+export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve, onSeatSelect, selectedCellIds, cellSize = CELL_SIZE, cellGap = CELL_GAP }: {
   map: SeatMap
   reservations?: SeatReservation[]
   onReserve?: (r: SeatReservation) => void
   onUnreserve?: (cellId: string) => void
   onSeatSelect?: (cellId: string, rowLabel: string, seatNumber: string) => void
+  selectedCellIds?: Set<string>
+  cellSize?: number
+  cellGap?: number
 }) {
   const catById = useMemo(() => new Map(map.categories.map((c) => [c.id, c])), [map.categories])
   const reservedMap = useMemo(() => new Map(reservations.map((r) => [r.cellId, r])), [reservations])
@@ -29,13 +32,13 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
       if (row.aisle) continue
       let w = 0
       for (const cell of row.cells) {
-        w += PREVIEW_CELL
-        w += PREVIEW_GAP
+        w += cellSize
+        w += cellGap
       }
       if (w > max) max = w
     }
     return max || 1
-  }, [map.rows])
+  }, [map.rows, cellSize, cellGap])
 
   const handleSeatClick = (cellId: string, rowLabel: string, seatNumber: string) => {
     if (reservedMap.has(cellId)) {
@@ -76,35 +79,41 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
         {map.rows.map((row) => {
           if (row.aisle) {
             return (
-              <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: PREVIEW_GAP, marginBottom: PREVIEW_GAP, minHeight: 8, width: maxRowWidth + 24 }}>
+              <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: cellGap, marginBottom: cellGap, minHeight: 8, width: maxRowWidth + 24 }}>
                 <span style={{ width: 24, flexShrink: 0 }} />
                 <div style={{ flex: 1, borderTop: '1px dashed #374151' }} />
               </div>
             )
           }
           return (
-            <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: PREVIEW_GAP, marginBottom: PREVIEW_GAP }}>
-              <span style={{ width: 24, fontSize: 10, color: '#6b7280', textAlign: 'right', flexShrink: 0, paddingRight: 2 }}>
+            <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: cellGap, marginBottom: cellGap }}>
+              <span style={{ width: 24, fontSize: cellSize > 20 ? 12 : 10, color: '#6b7280', textAlign: 'right', flexShrink: 0, paddingRight: 2 }}>
                 {row.label}
               </span>
-              <div style={{ display: 'flex', gap: PREVIEW_GAP, width: maxRowWidth }}>
+              <div style={{ display: 'flex', gap: cellGap, width: maxRowWidth }}>
                 {row.cells.map((cell, ci) => {
                   if (cell.type !== 'seat') {
-                    return <div key={cell.id} style={{ width: PREVIEW_CELL, height: PREVIEW_CELL, flexShrink: 0 }} />
+                    return <div key={cell.id} style={{ width: cellSize, height: cellSize, flexShrink: 0 }} />
                   }
                   const cat = cell.categoryId ? catById.get(cell.categoryId) : undefined
                   const res = reservedMap.get(cell.id)
                   const isReserved = !!res
+                  const isSelected = selectedCellIds?.has(cell.id) ?? false
+                  const seatFont = cellSize > 20 ? 11 : 8
                   return (
                     <div
                       key={cell.id}
                       title={isReserved ? `${row.label}${cell.number ?? ''} — ${res.holderName}` : `${row.label}${cell.number ?? ''}${cat ? ' · ' + cat.name : ''}`}
                       onClick={() => handleSeatClick(cell.id, row.label, cell.number ?? String(ci + 1))}
                       style={{
-                        width: PREVIEW_CELL, height: PREVIEW_CELL, borderRadius: 3,
-                        backgroundColor: isReserved ? '#16a34a' : (cat?.color ?? '#3b82f6'), opacity: isReserved ? 1 : 0.8,
+                        width: cellSize, height: cellSize, borderRadius: 3,
+                        backgroundColor: isReserved ? '#16a34a' : (cat?.color ?? '#3b82f6'),
+                        opacity: isReserved ? 1 : (isSelected ? 1 : 0.8),
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 8, color: '#000', fontWeight: 600, border: '1px solid #000',
+                        fontSize: seatFont, color: '#000', fontWeight: 600,
+                        border: isSelected ? '2px solid #fff' : '1px solid #000',
+                        outline: isSelected ? '2px solid #2563eb' : 'none',
+                        outlineOffset: isSelected ? 1 : 0,
                         cursor: 'pointer', transition: 'transform 100ms ease',
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.3)' }}
@@ -130,7 +139,6 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
         </div>
       )}
 
-      {/* Legend */}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, paddingTop: 8, borderTop: '1px solid #1f2937', justifyContent: 'center' }}>
         {map.categories.map((c) => (
           <span key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#000' }}>
@@ -142,9 +150,14 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
           <span style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: '#16a34a', border: '1px solid #000' }} />
           Reserved
         </span>
+        {selectedCellIds && selectedCellIds.size > 0 && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#000' }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: '#2563eb', border: '1px solid #fff' }} />
+            Selected
+          </span>
+        )}
       </div>
 
-      {/* Name input modal */}
       {pendingCell && !onSeatSelect && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}

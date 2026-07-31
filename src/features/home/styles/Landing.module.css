@@ -267,7 +267,10 @@
 }
 
 .rowSection {
-  padding: 52px 0;
+  padding: 36px 0;
+}
+.rowSection + .rowSection {
+  padding-top: 0;
 }
 
 .rowHead {
@@ -314,7 +317,7 @@
 .ecard {
   position: relative;
   flex: 0 0 220px;
-  height: 290px;
+  height: 340px;
   border-radius: 14px;
   overflow: hidden;
   scroll-snap-align: start;
@@ -608,4 +611,28 @@
     padding-left: 20px;
     padding-right: 20px;
   }
+}
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cardAnimate {
+  animation: cardEnter 0.35s ease-out;
+}
+
+.tapeTrack {
+  display: flex;
+  transition: transform 0.4s ease;
+}
+
+.tapeSlide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.tapeWrap {
+  overflow: hidden;
+  border-radius: 14px;
 }

@@ -47,11 +47,14 @@ export const EventApi = {
     return res.json()
   },
 
-  async create(data: CreateEventRequest, posterFile: File | null): Promise<void> {
+  async create(data: CreateEventRequest, posterFile: File | null, bannerFile: File | null): Promise<void> {
     const formData = new FormData()
     formData.append('event', new Blob([JSON.stringify(data)], { type: 'application/json' }))
     if (posterFile) {
       formData.append('poster', posterFile)
+    }
+    if (bannerFile) {
+      formData.append('banner', bannerFile)
     }
     const res = await authFetch(API.events.create, {
       method: 'POST',

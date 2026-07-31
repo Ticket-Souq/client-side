@@ -26,12 +26,6 @@ export default function CustomerEvents() {
 
   return (
     <main className="wrap">
-      <section className="page-head discover-head">
-        <div>
-          <h1 className="page-title display">Discover Events</h1>
-          <p className="section-sub" style={{ margin: '4px 0 0' }}>Find events, book tickets, and enjoy experiences across Egypt</p>
-        </div>
-      </section>
 
       <div className="filter-bar">
         <input className="form-input" type="search" placeholder="Search events by name, venue…" value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -48,23 +42,6 @@ export default function CustomerEvents() {
 
       {!loading && !query && featured && (
         <>
-          <a
-            href={`/events/${featured.id}`}
-            className="featured-event"
-            style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-            onClick={(e) => { e.preventDefault(); navigate(`/events/${featured.id}`) }}
-          >
-            <div className="feat-art">
-              <div className="feat-content">
-                <span className="feat-tag">Featured</span>
-                <h2 className="feat-title">{featured.title}</h2>
-                <p className="feat-meta">{formatDate(featured.startDate)} · {featured.venueName || 'TBD'}</p>
-                <p className="feat-desc">Don't miss this incredible event.</p>
-                <span className="btn btn-primary">Get Tickets</span>
-              </div>
-            </div>
-          </a>
-
           <section className="row-section">
             <div className="row-head">
               <h2 className="row-title">All Events</h2>
@@ -115,13 +92,6 @@ export default function CustomerEvents() {
             {searchResults.map((event, i) => (
               <div key={event.id} className="event-card" style={{ cursor: 'pointer' }} onClick={() => navigate(`/events/${event.id}`)}>
                 <div className={`art ${artClass(i)}`} style={{ height: 120, borderRadius: 'var(--radius) var(--radius) 0 0' }} />
-                <div className="event-card-body">
-                  <span className="badge badge-ink mono">{event.category || 'Event'}</span>
-                  <h3 className="event-card-title">{event.title}</h3>
-                  <p className="event-card-meta">{formatDate(event.startDate)} · {event.venueName || 'TBD'}</p>
-                  <p className="event-card-price">{event.priceFrom != null ? `From EGP ${event.priceFrom}` : 'Free'}</p>
-                  <span className="btn btn-primary btn-sm" style={{ width: '100%' }}>View Details</span>
-                </div>
               </div>
             ))}
           </div>
