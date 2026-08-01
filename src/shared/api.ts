@@ -77,4 +77,11 @@ export const API = {
     templates: (venueId: string) => `${BASE_URL}/api/v1/venue/${venueId}/templates`,
     templateById: (venueId: string, templateId: string) => `${BASE_URL}/api/v1/venue/${venueId}/templates/${templateId}`,
   },
+  analytics: {
+    overviewKpis: () => `${BASE_URL}/api/v1/analytics/overview/kpis`,
+    overviewSalesPace: (eventId?: string) => `${BASE_URL}/api/v1/analytics/overview/sales-pace${eventId ? `?eventId=${eventId}` : ''}`,
+    overviewEvents: (sort: string, page: number, size: number) => `${BASE_URL}/api/v1/analytics/overview/events?sort=${sort}&page=${page}&size=${size}`,
+    eventSummary: (eventId: string) => `${BASE_URL}/api/v1/analytics/events/${eventId}/summary`,
+    eventSalesTimeline: (eventId: string, granularity: string) => `${BASE_URL}/api/v1/analytics/events/${eventId}/sales-timeline?granularity=${granularity}`,
+  },
 };

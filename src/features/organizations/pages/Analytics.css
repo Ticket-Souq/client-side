@@ -1,6 +1,28 @@
 .hero-rev-label{font-size:16px;font-weight:400;margin:0;color:rgba(255,255,255,0.6);}
 .stat-change{font-family:'IBM Plex Mono',monospace;font-size:15px;color:rgba(255,255,255,0.6);margin:5px 0 0;}
 .stat-change .up{color:#66bb6a;}
+.stat-change .down{color:#ef5350;}
+
+.analytics-loading{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--text-secondary);padding:48px 0;text-align:center;}
+.analytics-error{font-family:'IBM Plex Mono',monospace;font-size:14px;color:#ef5350;padding:32px 0;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;}
+.analytics-empty{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--text-secondary);padding:24px;text-align:center;}
+
+.event-row{cursor:pointer;padding:4px 6px;border-radius:6px;transition:background 150ms ease;}
+.event-row:hover{background:var(--border);}
+
+.drilldown{padding:28px 0 72px;display:flex;flex-direction:column;gap:23px;}
+.drilldown-header{display:flex;align-items:center;gap:18px;}
+.drilldown-title{margin:0;}
+.drilldown-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.drilldown-kpi{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.drilldown-kpi-label{font-size:13px;color:var(--text-secondary);margin:0 0 8px;}
+.drilldown-kpi-value{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;margin:0;color:var(--ink);}
+.drilldown-kpi-sub{font-size:14px;font-weight:400;color:var(--text-secondary);}
+
+@media (max-width:860px){
+  .chart-grid{grid-template-columns:1fr;}
+  .drilldown-kpis{grid-template-columns:1fr 1fr;}
+}
 
 .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:23px;padding:28px 0 72px;}
 
@@ -16,29 +38,15 @@
 .bar-soft{background:var(--border);}
 .bar-deep{background:var(--yellow-deep);}
 
-.donut-placeholder{width:138px;height:138px;border-radius:50%;background:conic-gradient(var(--yellow) 0 58%, var(--border) 58% 76%, var(--ink-soft) 76% 88%, var(--yellow-deep) 88% 100%);margin:0 auto;}
-.donut-legend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:18px;}
-.donut-legend span{font-size:14px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
-.donut-legend span::before{content:'';width:12px;height:12px;border-radius:2px;display:inline-block;background:var(--c);}
-
 .hbar{margin-bottom:14px;}
 .hbar-label{font-size:14px;font-weight:500;margin:0 0 5px;display:flex;justify-content:space-between;}
 .hbar-track{height:12px;background:var(--border);border-radius:999px;overflow:hidden;}
 .hbar-fill{height:100%;border-radius:999px;transition:width 400ms ease;}
 
-.line-placeholder{height:184px;position:relative;background:linear-gradient(90deg, var(--yellow) 1px, transparent 1px), linear-gradient(180deg, var(--border) 1px, transparent 1px);background-size:16.66% 20%;border-radius:8px;overflow:hidden;}
-.line-placeholder::after{content:'';position:absolute;bottom:20%;left:4%;width:92%;height:60%;background:linear-gradient(125deg, transparent 30%, var(--yellow) 30% 32%, transparent 32% 45%, var(--yellow) 45% 47%, transparent 47% 58%, var(--yellow) 58% 60%, transparent 60% 72%, var(--yellow) 72% 74%, transparent 74%);border-radius:4px;opacity:0.6;}
-
 .stat-list{display:flex;flex-direction:column;gap:16px;}
 .stat-item{display:flex;justify-content:space-between;align-items:center;font-size:16px;}
 .stat-item span:last-child{font-family:'IBM Plex Mono',monospace;font-weight:500;}
 .stat-divider{border:none;border-top:1px solid var(--border);margin:5px 0;}
-
-.pie-placeholder{display:flex;align-items:center;gap:28px;justify-content:center;}
-.pie-vis{width:126px;height:126px;border-radius:50%;background:conic-gradient(var(--yellow) 0 42%, var(--ink-soft) 42% 65%, var(--border) 65% 81%, var(--yellow-deep) 81% 100%);}
-.pie-legend{display:flex;flex-direction:column;gap:9px;}
-.pie-legend span{font-size:14px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
-.pie-legend span::before{content:'';width:12px;height:12px;border-radius:2px;display:inline-block;background:var(--c);}
 
 @media (max-width:860px){
   .chart-grid{grid-template-columns:1fr;}
