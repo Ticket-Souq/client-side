@@ -34,7 +34,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({
           <span className={styles.value}>{price}</span>
         </div>
         <div className={styles.right}>
-          <QRCode code={ticketCode} />
+          <QRCode value={ticketCode} />
           <span className={styles.code}>{ticketCode}</span>
         </div>
       </div>

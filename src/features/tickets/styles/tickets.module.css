@@ -136,16 +136,30 @@
 
 /* ─── Ticket Card ─── */
 .ticketCardDetail {
-  background: #fff;
+  position: relative;
+  background: #414141;
+    z-index: 1;
   border: 1px solid #eae7dc;
   border-radius: 14px;
   overflow: hidden;
 }
 
+/* ─── Banner background ─── */
+.ticketArtBg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(1) contrast(.5);
+  /*opacity: 0.35;*/
+  pointer-events: none;
+}
+
 /* ─── Art Band ─── */
 .ticketArtBand {
   height: 55px;
-  background: linear-gradient(135deg, #1a1a14, #2d2d24);
+  background: linear-gradient(135deg, #d49e23, #2d2d24);
   position: relative;
   overflow: hidden;
 }
@@ -184,7 +198,7 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #726f63;
+  color: #d49e23;
   margin-top: 8px;
 }
 
@@ -195,16 +209,29 @@
 .ticketValue {
   font-size: 18px;
   font-weight: 600;
-  color: #15150f;
+  color: #fff;
 }
 
 .ticketRight {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
   flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.printButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.printing .printButton {
+  visibility: hidden;
 }
 
 .ticketCode {
@@ -250,6 +277,21 @@
   text-align: center;
   padding: 60px 0;
   color: #726f63;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 6px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
 }
 
 .error {

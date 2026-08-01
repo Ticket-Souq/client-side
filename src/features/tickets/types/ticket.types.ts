@@ -4,6 +4,7 @@ export type DisplayStatus = 'confirmed' | 'used' | 'expired' | 'cancelled'
 
 export interface TicketResponse {
   id: string
+  eventId: string
   ticketType: TicketType
   eventTitle: string
   eventStartDate: string
@@ -14,9 +15,10 @@ export interface TicketResponse {
   reservationStatus: ReservationStatus
   consumed: boolean
   zoneCategory: string | null
-  row: number | null
+  row: string | null
   seatNumber: number | null
   seatCategory: string | null
+  holderName: string | null
   createdAt: string
 }
 
@@ -50,11 +52,11 @@ export function deriveGroupDisplayStatus(tickets: TicketResponse[]): DisplayStat
 export function formatDate(iso: string): string {
   const d = new Date(iso)
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const month = months[d.getUTCMonth()]
-  const day = d.getUTCDate()
-  const year = d.getUTCFullYear()
-  const hours = d.getUTCHours()
-  const minutes = String(d.getUTCMinutes()).padStart(2, '0')
+  const month = months[d.getMonth()]
+  const day = d.getDate()
+  const year = d.getFullYear()
+  const hours = d.getHours()
+  const minutes = String(d.getMinutes()).padStart(2, '0')
   const ampm = hours >= 12 ? 'PM' : 'AM'
   const h12 = hours % 12 || 12
   return `${month} ${day}, ${year} · ${h12}:${minutes} ${ampm}`

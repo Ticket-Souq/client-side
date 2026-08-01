@@ -1,16 +1,18 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
+import { formatPrice } from "../../events/utils/eventFormatters";
 
 interface SuccessState {
-  paymentID: string;
-  seats: { rowLabel: string; colNumber: number }[];
-  event: { title: string };
-  total: number;
+  tickets?: { label: string; sectionName: string; price: number }[];
+  total?: number;
+  eventId?: string;
 }
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
-  const { state } = useLocation() as { state: SuccessState };
+  const { state } = useLocation() as { state?: SuccessState };
+  const tickets = state?.tickets ?? [];
+  const total = state?.total ?? 0;
 
   return (
     <div className="container py-5 text-center" style={{ maxWidth: "500px" }}>
@@ -26,16 +28,23 @@ export default function PaymentSuccess() {
         Payment Successful
       </h2>
       <p className="text-secondary-custom mb-1">
-        {state?.event?.title ?? "Your tickets"}
+        {tickets.length} ticket{tickets.length !== 1 ? "s" : ""} confirmed
       </p>
-      <p className="text-secondary-custom mb-1">
-        {state?.seats?.map((s) => `${s.rowLabel}${s.colNumber}`).join(", ")}
-      </p>
+      {tickets.length > 0 && (
+        <ul className="text-secondary-custom mb-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {tickets.map((t, i) => (
+            <li key={i} style={{ fontSize: 14 }}>
+              {t.label}
+              {t.sectionName ? ` (${t.sectionName})` : ""}
+            </li>
+          ))}
+        </ul>
+      )}
       <p
         className="fw-bold mb-4"
         style={{ color: "var(--color-accent)", fontSize: "18px" }}
       >
-        ${state?.total?.toFixed(2)}
+        {formatPrice(total)}
       </p>
       <div className="d-flex gap-3 justify-content-center">
         <button

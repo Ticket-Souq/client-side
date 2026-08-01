@@ -84,11 +84,13 @@
 .searchInput:focus { border-color: #ffc629; }
 .searchInput::placeholder { color: #726f63; }
 .myTickets {
-  font-size: 15px;
-  font-weight: 500;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #3c3b34;
   text-decoration: none;
-  padding: 6px 0;
+  padding: 4px;
   margin-right: 8px;
 }
 .myTickets:hover { color: #15150f; }

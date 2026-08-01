@@ -17,6 +17,19 @@ export interface LockZoneResponse {
   quantity: number
 }
 
+export interface ReservationTicketInput {
+  seatId?: string
+  sectionId?: string
+  holderName: string
+  label?: string
+}
+
+export interface ReservationRequest {
+  eventId: string
+  reservationId: string
+  tickets: ReservationTicketInput[]
+}
+
 export async function acquireSeatLocks(eventId: string, seatIds: string[]): Promise<LockSeatsResponse> {
   const res = await authFetch(API.locks.acquireSeats(eventId), {
     method: 'POST',
@@ -48,6 +61,18 @@ export async function releaseLocks(reservationId: string): Promise<void> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ reservationId }),
+  })
+  if (!res.ok) {
+    const err = await parseError(res)
+    throw new Error(err.message)
+  }
+}
+
+export async function beginReservation(req: ReservationRequest): Promise<void> {
+  const res = await authFetch(API.locks.reserve, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req),
   })
   if (!res.ok) {
     const err = await parseError(res)

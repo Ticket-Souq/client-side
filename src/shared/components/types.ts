@@ -141,7 +141,9 @@ export interface AvatarProps {
 }
 
 export interface QRCodeProps {
-  code: string
+  value: string
+  size?: number
+  logo?: string
 }
 
 export interface ModalProps {

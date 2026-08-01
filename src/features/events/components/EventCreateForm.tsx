@@ -52,7 +52,7 @@ function buildCreateRequest(params: BuildRequestParams): CreateEventRequest {
               const isReserved = reservedIds.has(cell.id)
               seats.push({
                 id: cell.id,
-                lable: cell.number ?? `${row.label}${cell.number ?? ''}`,
+                lable: `${row.label}${cell.number ?? ''}`,
                 status: isReserved ? 'BOOKED_ORGANIZER' as SeatStatus : 'AVAILABLE' as SeatStatus,
               })
             }

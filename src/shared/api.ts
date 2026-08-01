@@ -35,7 +35,8 @@ export const API = {
     markAllRead: `${BASE_URL}/api/v1/notification/read-all`,
   },
   reservations: {
-    list: `${BASE_URL}/api/v1/reservations`,
+    list: `${BASE_URL}/api/v1/reservation`,
+    byId: (id: string) => `${BASE_URL}/api/v1/reservation/${id}`,
   },
   users: {
     profile: `${BASE_URL}/api/v1/user/profile`,
@@ -65,6 +66,7 @@ export const API = {
     acquireSeats: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/seats`,
     acquireZone: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/zones`,
     release: `${BASE_URL}/api/v1/event/locks/release`,
+    reserve: `${BASE_URL}/api/v1/event/locks/reserve`,
   },
   venues: {
     list: `${BASE_URL}/api/v1/venue`,

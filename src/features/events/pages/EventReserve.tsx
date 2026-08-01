@@ -10,6 +10,8 @@ import { formatEventDate, formatPrice } from '../utils/eventFormatters'
 import { releaseLocks, acquireSeatLocks, acquireZoneLock } from '../services/lockApi'
 import { toast, ToastContainer } from '../../../shared/components/display/Toast/Toast'
 import { loadReservation, saveReservation, clearReservation } from '../../../shared/booking/reservationStorage'
+import { authFetch } from '../../../shared/auth'
+import { API } from '../../../shared/api'
 
 const MAX_TICKETS = 10;
 
@@ -30,19 +32,17 @@ export default function EventReserve() {
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [selectedSeats, setSelectedSeats] = useState<SelectedTicket[]>([])
   const [holderNames, setHolderNames] = useState<Record<string, string>>({})
-  const [hasActiveReservation, setHasActiveReservation] = useState<{ reservationId: string } | null>(null)
-  const [releasing, setReleasing] = useState(false)
-  const [locking, setLocking] = useState(false)
-
-  useEffect(() => {
+  const [hasActiveReservation, setHasActiveReservation] = useState<{ reservationId: string } | null>(() => {
     const stored = loadReservation()
     if (stored?.tickets?.length) {
       const expiresMs = new Date(stored.expiresAt).getTime()
-      if (expiresMs > Date.now()) {
-        setHasActiveReservation({ reservationId: stored.reservationId })
-      }
+      if (expiresMs > Date.now()) return { reservationId: stored.reservationId }
     }
-  }, [])
+    return null
+  })
+  const [hasTicketsInEvent, setHasTicketsInEvent] = useState(false)
+  const [releasing, setReleasing] = useState(false)
+  const [locking, setLocking] = useState(false)
 
   useEffect(() => {
     if (!event?.venueTemplateId || event.bookingModel !== 'SEAT') return
@@ -53,6 +53,21 @@ export default function EventReserve() {
       } catch { /* ignore */ }
     })()
   }, [event?.venueTemplateId, event?.bookingModel])
+
+  useEffect(() => {
+    if (!event?.id) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await authFetch(API.tickets.list)
+        if (!res.ok) return
+        const tickets: { eventId?: string; reservationStatus?: string }[] = await res.json()
+        if (cancelled) return
+        setHasTicketsInEvent(tickets.some((t) => t.eventId === event.id && t.reservationStatus === 'ACTIVE'))
+      } catch { /* ignore */ }
+    })()
+    return () => { cancelled = true }
+  }, [event?.id])
 
   const isZone = event?.bookingModel === 'ZONE'
   const sections = useMemo(() => event?.sections ?? [], [event?.sections])
@@ -156,8 +171,9 @@ export default function EventReserve() {
   const totalPrice = useMemo(() => selectedTickets.reduce((sum, t) => sum + t.price, 0), [selectedTickets])
   const totalTickets = selectedTickets.length
 
+  const allGuests = hasTicketsInEvent
   const canProceed = totalTickets > 0 &&
-    selectedTickets.every((t, i) => i === 0 || (holderNames[t.key]?.trim() ?? '') !== '')
+    selectedTickets.every((t, i) => (!allGuests && i === 0) || (holderNames[t.key]?.trim() ?? '') !== '')
 
   const proceedToCheckout = async () => {
     if (!canProceed || locking) return
@@ -353,9 +369,9 @@ export default function EventReserve() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {selectedTickets.map((ticket, i) => (
                   <div key={ticket.key}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: i > 0 ? 6 : 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: allGuests || i > 0 ? 6 : 0 }}>
                       <span style={{ fontSize: 14, fontWeight: 600 }}>
-                        {ticket.label} — {i === 0 ? 'For you' : `Guest ${i}`}
+                        {ticket.label} — {allGuests ? `Guest ${i + 1}` : i === 0 ? 'For you' : `Guest ${i}`}
                       </span>
                       {ticket.price > 0 && (
                         <span style={{ fontSize: 13, color: '#726f63' }}>{formatPrice(ticket.price)}</span>
@@ -364,7 +380,7 @@ export default function EventReserve() {
                     {ticket.sectionName && (
                       <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{ticket.sectionName}</div>
                     )}
-                    {i > 0 && (
+                    {(allGuests || i > 0) && (
                       <input
                         type="text"
                         placeholder="Enter holder name"
