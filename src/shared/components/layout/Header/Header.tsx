@@ -7,7 +7,8 @@ import { useNotifications } from '../../../../features/notifications/hooks/useNo
 import { useActiveReservation } from '../../../hooks/useActiveReservation'
 import { clearTokens, getUserRoles, hasUserRole, isAuthenticated } from '../../../auth'
 import { BRAND_NAME } from '../../../constants'
-import { useUserProfile } from '../../../hooks/useUserProfile'
+import { useUserProfile } from '../../../hooks/useUserProfileContext'
+import { useConfirm } from '../../../hooks/useConfirm'
 import { AuthService } from '../../../../features/auth/services/auth.service'
 import { EventApi } from '../../../../features/events/services/eventApi'
 import { API } from '../../../api'
@@ -86,10 +87,11 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchDone, setSearchDone] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const notifRef = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
   const [deactivateLoading, setDeactivateLoading] = useState(false)
+  const { confirm, dialog } = useConfirm()
   const { notifications, loading, markRead, markAllRead } = useNotifications()
   const hasActiveReservation = useActiveReservation()
 
@@ -145,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
   }, [navigate])
 
   const handleDeactivate = useCallback(async () => {
-    if (!confirm('Are you sure you want to deactivate your account? This action requires contacting support to reactivate.')) return
+    if (!(await confirm('Are you sure you want to deactivate your account? This action requires contacting support to reactivate.', { confirmLabel: 'Deactivate', danger: true }))) return
     setDeactivateLoading(true)
     try {
       await AuthService.deactivateAccount()
@@ -153,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
       navigate('/auth/login')
     } catch { /* ignore */ }
     setDeactivateLoading(false)
-  }, [navigate])
+  }, [navigate, confirm])
 
   return (
     <header className={styles.header}>
@@ -384,6 +386,7 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
           )}
         </div>
       </div>
+      {dialog}
     </header>
   )
 }

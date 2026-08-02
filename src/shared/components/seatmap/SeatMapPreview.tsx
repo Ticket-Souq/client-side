@@ -31,10 +31,7 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
     for (const row of map.rows) {
       if (row.aisle) continue
       let w = 0
-      for (const cell of row.cells) {
-        w += cellSize
-        w += cellGap
-      }
+      w += row.cells.length * (cellSize + cellGap)
       if (w > max) max = w
     }
     return max || 1

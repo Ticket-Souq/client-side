@@ -6,15 +6,6 @@ export interface NavLink {
   active?: boolean
 }
 
-export interface FeaturedEventProps {
-  title: string
-  meta: string
-  description: string
-  tag?: string
-  ctaLabel?: string
-  href?: string
-}
-
 export interface HeaderProps {
   role?: Role
   links: NavLink[]
@@ -23,6 +14,11 @@ export interface HeaderProps {
 
 export interface FooterProps {
   tagline?: string
+}
+
+export interface FooterColumn {
+  title: string
+  links: { label: string; href: string }[]
 }
 
 export interface ButtonProps {

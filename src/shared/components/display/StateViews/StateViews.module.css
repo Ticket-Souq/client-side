@@ -1,0 +1,9 @@
+.base {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-secondary);
+}
+
+.error {
+  color: #c62828;
+}
