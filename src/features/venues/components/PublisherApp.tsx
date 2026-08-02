@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import "./seat-map.css";
 import { SeatMapCreator } from "./SeatMapCreator";
 import { useVenue, VenueProvider, makeDefaultMap } from "../context/VenueContext";
-import { ToastContainer, toast } from "../../../shared/components/display/Toast/Toast";
+import { toast } from "../../../shared/components/display/Toast/Toast";
+import { useConfirm } from "../../../shared/hooks/useConfirm";
 import {
   getVenueById,
   listVenues,
@@ -22,7 +23,6 @@ export function PublisherApp({ initialVenueId }: Props) {
   return (
     <VenueProvider>
       <PublisherInner initialVenueId={initialVenueId} />
-      <ToastContainer />
     </VenueProvider>
   );
 }
@@ -34,8 +34,9 @@ function PublisherInner({
 }) {
   const { state, dispatch } = useVenue();
   const map = state.map;
-  const [publishing, setPublishing] = useState(false);
-  const [venues, setVenues] = useState<Venue[]>([]);
+  const [, setPublishing] = useState(false);
+  const { confirm, dialog } = useConfirm();
+  const [, setVenues] = useState<Venue[]>([]);
   const [templates, setTemplates] = useState<VenueTemplate[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [venueMeta, setVenueMeta] = useState({
@@ -114,7 +115,7 @@ function PublisherInner({
 
   const handleDeleteTemplate = useCallback(
     async (venueId: string, templateId: string) => {
-      if (!confirm("Delete this template?")) return;
+      if (!(await confirm("Delete this template?"))) return;
       try {
         await deleteVenueTemplate(venueId, templateId);
         await fetchTemplates(venueId);
@@ -122,7 +123,7 @@ function PublisherInner({
         toast("Failed to delete template: " + (e as Error).message);
       }
     },
-    [fetchTemplates],
+    [fetchTemplates, confirm],
   );
 
   const handlePublish = useCallback(async () => {
@@ -167,6 +168,7 @@ function PublisherInner({
         onLoadTemplate={handleLoadTemplate}
         onDeleteTemplate={handleDeleteTemplate}
       />
+      {dialog}
     </div>
   );
 }

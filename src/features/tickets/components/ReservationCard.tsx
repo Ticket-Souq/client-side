@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import { Button } from '../../../shared/components'
 import TicketStatusBadge from './TicketStatusBadge'
-import type { TicketGroup, DisplayStatus } from '../types/ticket.types'
-import { formatDate, formatPrice, deriveGroupDisplayStatus } from '../types/ticket.types'
+import { deriveGroupDisplayStatus, type DisplayStatus, type TicketGroup } from '../types/ticket.types'
+import { formatDateTime, formatPrice } from '../../../shared/format'
 import styles from '../styles/tickets.module.css'
 
 interface Props {
@@ -21,7 +21,7 @@ function ReservationCard({ group, onViewTickets }: Props) {
         <div className={styles.resInfo}>
           <h2 className={styles.resEvent}>{group.eventTitle}</h2>
           <div className={styles.resMeta}>
-            <span>{formatDate(group.eventStartDate)}</span>
+            <span>{formatDateTime(group.eventStartDate)}</span>
           </div>
           <div className={styles.resSummary}>
             <span className={styles.resSeats}>{ticketCount} {ticketCount === 1 ? 'ticket' : 'tickets'}</span>

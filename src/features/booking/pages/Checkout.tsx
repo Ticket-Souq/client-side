@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { releaseLocks, beginReservation } from "../../events/services/lockApi";
-import { formatPrice } from "../../events/utils/eventFormatters";
+import { formatPrice } from "../../../shared/format";
 import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
 
 interface TicketState {

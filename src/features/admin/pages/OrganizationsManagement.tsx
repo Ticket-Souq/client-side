@@ -1,6 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
-import { authFetch } from '../../../shared/auth'
+import { useState } from 'react'
+import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
+import { useFetch } from '../../../shared/hooks/useFetch'
+import { PageHeader } from '../../../shared/components/layout/PageHeader/PageHeader'
+import { StatChips } from '../../../shared/components/display/StatChips/StatChips'
+import { StatusBadge, type StatusBadgeOption } from '../../../shared/components/display/StatusBadge/StatusBadge'
+import { LoadingState, ErrorState } from '../../../shared/components/display/StateViews/StateViews'
 
 type OrgStatus = 'PENDING' | 'APPROVED' | 'BANNED' | 'REJECTED'
 
@@ -12,57 +17,36 @@ interface OrgRow {
   orgHeadId: string
 }
 
-const STATUS_BADGE: Record<OrgStatus, string> = {
-  PENDING: 'badge badge-soft',
-  APPROVED: 'badge badge-yellow',
-  BANNED: 'badge badge-red',
-  REJECTED: 'badge badge-ink',
-}
-
-const STATUS_LABEL: Record<OrgStatus, string> = {
-  PENDING: 'Pending',
-  APPROVED: 'Approved',
-  BANNED: 'Banned',
-  REJECTED: 'Rejected',
+const ORG_STATUS_OPTIONS: Record<string, StatusBadgeOption> = {
+  PENDING: { label: 'Pending', variant: 'soft' },
+  APPROVED: { label: 'Approved', variant: 'yellow' },
+  BANNED: { label: 'Banned', variant: 'red' },
+  REJECTED: { label: 'Rejected', variant: 'ink' },
 }
 
 export default function OrganizationsManagement() {
-  const [orgs, setOrgs] = useState<OrgRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, loading, error, refresh } = useFetch<OrgRow[]>(
+    () => request<OrgRow[]>(API.admin.organizations),
+    'Failed to load organizations',
+  )
+  const orgs = data ?? []
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All statuses')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-
-  const fetchOrgs = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await authFetch(API.admin.organizations)
-      if (!res.ok) throw new Error('Failed to load organizations')
-      const data: OrgRow[] = await res.json()
-      setOrgs(data)
-    } catch {
-      setError('Failed to load organizations')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchOrgs() }, [fetchOrgs])
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const handleAction = async (orgId: string, action: 'approve' | 'reject' | 'ban') => {
     setActionLoading(orgId)
+    setActionError(null)
     try {
       const url =
         action === 'approve' ? API.admin.orgApprove(orgId) :
         action === 'reject' ? API.admin.orgReject(orgId) :
         API.admin.orgBan(orgId)
-      const res = await authFetch(url, { method: 'POST' })
-      if (!res.ok) throw new Error('Action failed')
-      await fetchOrgs()
+      await request(url, { method: 'POST' })
+      await refresh()
     } catch {
-      setError(`Failed to ${action} organization`)
+      setActionError(`Failed to ${action} organization`)
     } finally {
       setActionLoading(null)
     }
@@ -123,19 +107,20 @@ export default function OrganizationsManagement() {
 
   return (
     <div className="wrap oversight-page" style={{ padding: '36px 0' }}>
-      <div className="page-head">
-        <div>
-          <h1 className="section-title" style={{ margin: 0 }}>Organization Management</h1>
-          <p className="section-sub" style={{ margin: '4px 0 0' }}>
-            Review, approve, and manage all event organizer accounts.
-          </p>
-        </div>
-        <div className="oversight-stats" style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-          <span className="stat-chip">{totalCount} Total</span>
-          <span className="stat-chip pending-chip">{pendingCount} Pending</span>
-          <span className="stat-chip flagged-chip">{bannedCount} Banned</span>
-        </div>
-      </div>
+      <PageHeader
+        title="Organization Management"
+        subtitle="Review, approve, and manage all event organizer accounts."
+        actions={
+          <StatChips
+            items={[
+              { label: 'Total', value: totalCount },
+              { label: 'Pending', value: pendingCount, tone: 'pending' },
+              { label: 'Banned', value: bannedCount, tone: 'flagged' },
+            ]}
+            style={{ margin: 0 }}
+          />
+        }
+      />
 
       <div className="filter-bar" style={{ marginBottom: 24 }}>
         <input
@@ -155,8 +140,8 @@ export default function OrganizationsManagement() {
         </select>
       </div>
 
-      {loading && <p style={{ textAlign: 'center', padding: 32, color: 'var(--text-secondary)' }}>Loading…</p>}
-      {error && <p style={{ textAlign: 'center', padding: 32, color: 'var(--color-error)' }}>{error}</p>}
+      {loading && <LoadingState />}
+      {(error || actionError) && <ErrorState message={(error ?? actionError) ?? 'Something went wrong'} />}
 
       {!loading && !error && (
         <div className="card-white table-wrap">
@@ -180,7 +165,7 @@ export default function OrganizationsManagement() {
                 <tr key={org.id}>
                   <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><strong>{org.name}</strong></td>
                   <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{org.headEmail}</td>
-                  <td><span className={STATUS_BADGE[org.status]}>{STATUS_LABEL[org.status]}</span></td>
+                  <td><StatusBadge status={org.status} options={ORG_STATUS_OPTIONS} /></td>
                   <td>{actionButtons(org)}</td>
                 </tr>
               ))}

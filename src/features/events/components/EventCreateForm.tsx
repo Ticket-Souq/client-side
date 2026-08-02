@@ -3,7 +3,7 @@ import type { CreateEventRequest, CreateSectionRequest, CreateSeatRequest, SeatS
 import { EventApi } from '../services/eventApi'
 import { listVenues, listVenueTemplates, getVenueTemplate } from '../../venues/api/venueApi'
 import type { Venue, VenueTemplate, SeatMap } from '../../venues/components/types'
-import { toast, ToastContainer } from '../../../shared/components/display/Toast/Toast'
+import { toast } from '../../../shared/components/display/Toast/Toast'
 import { SeatMapPreview, type SeatReservation } from '../../../shared/components/seatmap/SeatMapPreview'
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -730,8 +730,6 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
       </div>
 
     </form>
-
-      <ToastContainer />
     </>
   )
 }

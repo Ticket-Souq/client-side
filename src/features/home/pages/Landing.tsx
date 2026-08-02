@@ -5,7 +5,9 @@ import { LayoutShell } from '../../../shared/components/layout/LayoutShell'
 import { EventApi } from '../../events/services/eventApi'
 import { API } from '../../../shared/api'
 import type { EventCardResponse } from '../../events/types/event.types'
-import { formatDate } from '../../events/utils/eventFormatters'
+import { formatDate } from '../../../shared/format'
+import { useFetch } from '../../../shared/hooks/useFetch'
+import { EmptyState } from '../../../shared/components/display/StateViews/StateViews'
 import styles from '../styles/Landing.module.css'
 
 function getNext7DaysBounds() {
@@ -27,6 +29,7 @@ function formatMonth(dateStr: string) {
   const d = new Date(dateStr)
   return d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
 }
+
 function imgSrc(url: string | null | undefined) {
   return url ? `${API.base}${url}` : ''
 }
@@ -38,23 +41,8 @@ function artClass(i: number) { return ART_CLASSES[i % ART_CLASSES.length] }
 export default function Landing() {
   const navigate = useNavigate()
   const [heroSlide, setHeroSlide] = useState(0)
-  const [events, setEvents] = useState<EventCardResponse[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const res = await EventApi.list(0, 50)
-        if (!cancelled) setEvents(res.content)
-      } catch {
-        // API unavailable
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [])
+  const { data, loading } = useFetch<EventCardResponse[]>(async () => (await EventApi.list(0, 50)).content, '')
+  const events = data ?? []
 
   const { heroEvents, categoryMap } = useMemo(() => {
     const { start, end } = getNext7DaysBounds()
@@ -185,7 +173,7 @@ export default function Landing() {
 
         {!loading && heroEvents.length === 0 && categoryMap.size === 0 && (
           <section className={styles.heroSection}>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>No events available yet.</p>
+            <EmptyState message="No events available yet." style={{ fontSize: 14 }} />
           </section>
         )}
       </main>

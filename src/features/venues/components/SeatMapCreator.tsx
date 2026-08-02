@@ -16,6 +16,7 @@ import "./seat-map.css";
 import { useVenue } from "../context/VenueContext";
 import type { Cell, Row, SeatMap, VenueTemplate, VerticalAisle } from "./types";
 import { ContextMenu, type MenuItem } from "./ContextMenu";
+import { useConfirm } from "../../../shared/hooks/useConfirm";
 
 function useKeys() {
   const { state, dispatch } = useVenue();
@@ -174,6 +175,7 @@ function TopBar({
   const { map, zoom, history } = state;
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
+  const { confirm, dialog } = useConfirm();
 
   return (
     <header className="flex flex-wrap items-center gap-2 border-b border-venue-800 bg-venue-900 px-3 py-2">
@@ -194,7 +196,7 @@ function TopBar({
 
       <div className="flex-1" />
       <button className="venue-btn venue-btn-primary" onClick={onPublish}>Publish layout</button>
-      <button className="venue-btn venue-btn-danger" onClick={() => confirm("Reset to a fresh map?") && dispatch({ type: "RESET" })}>
+      <button className="venue-btn venue-btn-danger" onClick={async () => { if (await confirm("Reset to a fresh map?")) dispatch({ type: "RESET" }); }}>
         Reset layout
       </button>
       {onToggleVenues && (
@@ -205,6 +207,7 @@ function TopBar({
           <PanelLeft size={14} /> Templates
         </button>
       )}
+      {dialog}
     </header>
   );
 }

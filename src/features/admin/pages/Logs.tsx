@@ -1,6 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
-import { authFetch } from '../../../shared/auth'
+import { useState } from 'react'
+import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
+import { useFetch } from '../../../shared/hooks/useFetch'
+import { formatDateTime } from '../../../shared/format'
+import { PageHeader } from '../../../shared/components/layout/PageHeader/PageHeader'
+import { LoadingState, ErrorState } from '../../../shared/components/display/StateViews/StateViews'
 
 interface AuditLog {
   action: string
@@ -10,19 +14,13 @@ interface AuditLog {
 }
 
 export default function Logs() {
-  const [allLogs, setAllLogs] = useState<AuditLog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
   const [actionFilter, setActionFilter] = useState('')
   const [madeByFilter, setMadeByFilter] = useState('')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
 
-  const fetchLogs = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
+  const { data, loading, error } = useFetch<AuditLog[]>(
+    async () => {
       let url = API.admin.auditLogs
       const params = new URLSearchParams()
       if (fromDate && toDate) {
@@ -31,21 +29,13 @@ export default function Logs() {
       }
       const qs = params.toString()
       if (qs) url += '?' + qs
+      return request<AuditLog[]>(url)
+    },
+    'Failed to load audit logs',
+    [fromDate, toDate],
+  )
 
-      const res = await authFetch(url)
-      if (!res.ok) throw new Error('Failed to load audit logs')
-      const data: AuditLog[] = await res.json()
-      setAllLogs(data)
-    } catch {
-      setError('Failed to load audit logs')
-    } finally {
-      setLoading(false)
-    }
-  }, [fromDate, toDate])
-
-  useEffect(() => { fetchLogs() }, [fetchLogs])
-
-  const logs = allLogs.filter(log => {
+  const logs = (data ?? []).filter(log => {
     if (actionFilter.trim() && !log.action.toLowerCase().includes(actionFilter.trim().toLowerCase())) return false
     if (madeByFilter.trim() && !log.madeByEmail.toLowerCase().includes(madeByFilter.trim().toLowerCase())) return false
     return true
@@ -62,14 +52,10 @@ export default function Logs() {
 
   return (
     <div className="wrap oversight-page" style={{ padding: '36px 0' }}>
-      <div className="page-head">
-        <div>
-          <h1 className="section-title" style={{ margin: 0 }}>Audit Logs</h1>
-          <p className="section-sub" style={{ margin: '4px 0 0' }}>
-            Track all admin and system actions across the platform.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Audit Logs"
+        subtitle="Track all admin and system actions across the platform."
+      />
 
       <div className="filter-bar" style={{ marginBottom: 24, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -126,8 +112,8 @@ export default function Logs() {
         )}
       </div>
 
-      {loading && <p style={{ textAlign: 'center', padding: 32, color: 'var(--text-secondary)' }}>Loading…</p>}
-      {error && <p style={{ textAlign: 'center', padding: 32, color: '#c62828' }}>{error}</p>}
+      {loading && <LoadingState />}
+      {error && <ErrorState message={error} />}
 
       {!loading && !error && (
         <div className="card-white table-wrap">
@@ -169,7 +155,7 @@ export default function Logs() {
                   </td>
                   <td style={{ color: 'var(--text-secondary)' }}>{log.reason}</td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                    {new Date(log.madeAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    {formatDateTime(log.madeAt)}
                   </td>
                 </tr>
               ))}

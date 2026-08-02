@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useEvent } from '../hooks/useEvent'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
 import { EmptyState } from '../components/EmptyState'
-import { formatEventDate, formatPrice } from '../utils/eventFormatters'
+import { formatEventDate, formatPrice } from '../../../shared/format'
 import { API } from '../../../shared/api'
 
 export default function CustomerEventDetail() {

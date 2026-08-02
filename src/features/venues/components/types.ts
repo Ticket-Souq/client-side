@@ -70,12 +70,6 @@ export interface CreateVenueRequest {
   type: VenueType;
 }
 
-export interface UpdateVenueRequest {
-  name?: string;
-  address?: string;
-  type?: VenueType;
-}
-
 export interface PaginatedResponse<T> {
   content: T[];
   totalPages: number;

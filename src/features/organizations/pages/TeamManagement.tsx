@@ -1,7 +1,10 @@
 import { useState, useMemo, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { authFetch } from '../../../shared/auth'
+import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
+import { toast } from '../../../shared/components/display/Toast/Toast'
+import { PageHeader } from '../../../shared/components/layout/PageHeader/PageHeader'
+import { StatChips } from '../../../shared/components/display/StatChips/StatChips'
+import { LoadingState } from '../../../shared/components/display/StateViews/StateViews'
 import './TeamManagement.css'
 
 interface Member {
@@ -30,18 +33,14 @@ export default function TeamManagement() {
   const [modalOpen, setModalOpen] = useState(false)
   const [agentCount, setAgentCount] = useState('')
   const [consumerCount, setConsumerCount] = useState('')
-  const [toast, setToast] = useState('')
   const [generatedAccounts, setGeneratedAccounts] = useState<GeneratedAccount[]>([])
 
   const fetchMembers = async () => {
     try {
-      const res = await authFetch(API.org.members)
-      if (!res.ok) throw new Error('Failed to load members')
-      const data = await res.json()
+      const data = await request<Member[]>(API.org.members)
       setMembers(data)
     } catch {
-      setToast('Failed to load team members')
-      setTimeout(() => setToast(''), 4000)
+      toast('Failed to load team members', 'error')
     } finally {
       setLoading(false)
     }
@@ -68,18 +67,16 @@ export default function TeamManagement() {
     const url = member.active ? API.org.deactivate : API.org.activate
     const method = member.active ? 'DELETE' : 'POST'
     try {
-      const res = await authFetch(url, {
+      await request(url, {
         method,
         headers: { 'Content-Type': 'text/plain' },
         body: member.userId,
       })
-      if (!res.ok) throw new Error('Failed to update')
       setMembers(members.map((m) =>
         m.userId === member.userId ? { ...m, active: !m.active } : m
       ))
     } catch {
-      setToast('Failed to update member status')
-      setTimeout(() => setToast(''), 4000)
+      toast('Failed to update member status', 'error')
     }
   }
 
@@ -89,21 +86,17 @@ export default function TeamManagement() {
     if (agents === 0 && consumers === 0) return
 
     try {
-      const res = await authFetch(API.org.generateAccounts, {
+      const data = await request<GeneratedAccount[]>(API.org.generateAccounts, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agentCount: agents, consumerCount: consumers }),
+        body: { agentCount: agents, consumerCount: consumers },
       })
-      if (!res.ok) throw new Error('Failed to generate accounts')
-      const data: GeneratedAccount[] = await res.json()
       setGeneratedAccounts(data)
       setModalOpen(false)
       setAgentCount('')
       setConsumerCount('')
       fetchMembers()
     } catch {
-      setToast('Failed to generate accounts')
-      setTimeout(() => setToast(''), 4000)
+      toast('Failed to generate accounts', 'error')
     }
   }
 
@@ -122,17 +115,22 @@ export default function TeamManagement() {
 
   return (
     <main className="wrap members-page">
-      <div className="members-head">
-        <h1 className="section-title" style={{ margin: 0 }}>Team Members</h1>
-        <button className="btn btn-primary btn-sm" onClick={() => setModalOpen(true)}>Generate Members</button>
-      </div>
+      <PageHeader
+        title="Team Members"
+        className="members-head"
+        actions={
+          <button className="btn btn-primary btn-sm" onClick={() => setModalOpen(true)}>Generate Members</button>
+        }
+      />
 
-      <div className="stat-chips">
-        <div className="stat-chip"><span className="stat-chip-num">{stats.agents}</span> Agents</div>
-        <div className="stat-chip"><span className="stat-chip-num">{stats.consumers}</span> Consumers</div>
-        <div className="stat-chip"><span className="stat-chip-num">{stats.active}</span> Active</div>
-        <div className="stat-chip"><span className="stat-chip-num">{stats.inactive}</span> Inactive</div>
-      </div>
+      <StatChips
+        items={[
+          { label: 'Agents', value: stats.agents },
+          { label: 'Consumers', value: stats.consumers },
+          { label: 'Active', value: stats.active },
+          { label: 'Inactive', value: stats.inactive },
+        ]}
+      />
 
       <div className="tabs">
         {TABS.map((t) => (
@@ -143,7 +141,7 @@ export default function TeamManagement() {
       <div className="card-white" style={{ padding: 0 }}>
         <div className="table-wrap">
           {loading ? (
-            <p style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>Loading...</p>
+            <LoadingState message="Loading..." />
           ) : (
             <table className="table">
               <thead>
@@ -229,25 +227,6 @@ export default function TeamManagement() {
             </div>
           </div>
         </div>
-      )}
-
-      {toast && createPortal(
-        <div style={{
-          position: 'fixed',
-          bottom: 32,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'var(--ink)',
-          color: 'var(--white)',
-          padding: '14px 28px',
-          borderRadius: 999,
-          fontSize: 14,
-          fontWeight: 600,
-          fontFamily: "'Inter', sans-serif",
-          zIndex: 9999,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-        }}>{toast}</div>,
-        document.body,
       )}
     </main>
   )

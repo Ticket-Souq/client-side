@@ -4,10 +4,14 @@ import { createPortal } from 'react-dom'
 import { EventApi } from '../../events/services/eventApi'
 import { Badge } from '../../../shared/components/display/Badge/Badge'
 import { Button } from '../../../shared/components/form/Button/Button'
-import { ToastContainer, toast } from '../../../shared/components/display/Toast/Toast'
-import { formatDateTime } from '../../events/utils/eventFormatters'
+import { toast } from '../../../shared/components/display/Toast/Toast'
+import { StatusBadge } from '../../../shared/components/display/StatusBadge/StatusBadge'
+import { StatChips } from '../../../shared/components/display/StatChips/StatChips'
+import { LoadingState, EmptyState } from '../../../shared/components/display/StateViews/StateViews'
+import { formatDateTime, formatPrice } from '../../../shared/format'
 import { API } from '../../../shared/api'
-import { authFetch, hasUserRole } from '../../../shared/auth'
+import { hasUserRole } from '../../../shared/auth'
+import { request } from '../../../shared/http'
 import { getTemplateById } from '../../venues/api/venueApi'
 import { SeatMapPreview, type SeatReservation } from '../../../shared/components/seatmap/SeatMapPreview'
 import type { VenueTemplate, SeatMap } from '../../venues/components/types'
@@ -96,11 +100,8 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
   const fetchOrganizerTickets = useCallback(async () => {
     setTicketsLoading(true)
     try {
-      const res = await authFetch(API.tickets.organizerByEvent(event.id))
-      if (res.ok) {
-        const data = await res.json()
-        setTickets(data)
-      }
+      const data = await request<OrganizerTicket[]>(API.tickets.organizerByEvent(event.id))
+      setTickets(data)
     } catch {
       // silently fail
     } finally {
@@ -117,42 +118,36 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
     const sectionName = reserveModal.sectionName
     const section = event.sections.find((s) => s.name === sectionName)
     try {
-      const res = await authFetch(API.tickets.reserveOrganizer, {
+      const ticketData = await request<OrganizerTicket>(API.tickets.reserveOrganizer, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           eventId: event.id,
           label: sectionName,
           holderName: ticketName.trim(),
           price: section?.price ?? null,
           sectionName,
-        }),
+        },
       })
-      if (res.ok) {
-        const ticketData: OrganizerTicket = await res.json()
-        if (section) {
-          const sectionRes = await authFetch(API.events.organizerReserveSection(section.id), {
+      if (section) {
+        try {
+          await request(API.events.organizerReserveSection(section.id), {
             method: 'PATCH',
           })
-          if (!sectionRes.ok) {
-            // Rollback: cancel the ticket since event-service rejected the operation
-            await authFetch(API.tickets.updateStatus(ticketData.id), {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ reservationStatus: 'CANCELLED' }),
-            })
-            toast('Failed to reserve ticket', 'error')
-            return
-          }
+        } catch {
+          // Rollback: cancel the ticket since event-service rejected the operation
+          await request(API.tickets.updateStatus(ticketData.id), {
+            method: 'PATCH',
+            body: { reservationStatus: 'CANCELLED' },
+          })
+          toast('Failed to reserve ticket', 'error')
+          return
         }
-        toast('Ticket reserved!', 'success')
-        setReserveModal(null)
-        setTicketName('')
-        onRefresh?.()
-        fetchOrganizerTickets()
-      } else {
-        toast('Failed to reserve ticket', 'error')
       }
+      toast('Ticket reserved!', 'success')
+      setReserveModal(null)
+      setTicketName('')
+      onRefresh?.()
+      fetchOrganizerTickets()
     } catch {
       toast('Failed to reserve ticket', 'error')
     }
@@ -166,19 +161,14 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
 
   const saveEditing = async (sectionId: string) => {
     try {
-      const res = await authFetch(API.events.updateSection(sectionId), {
+      await request(API.events.updateSection(sectionId), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           price: Number(editFields.price),
-        }),
+        },
       })
-      if (res.ok) {
-        toast('Section updated', 'success')
-        onRefresh?.()
-      } else {
-        toast('Failed to update section', 'error')
-      }
+      toast('Section updated', 'success')
+      onRefresh?.()
     } catch {
       toast('Failed to update section', 'error')
     } finally {
@@ -189,21 +179,16 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
   const addNewRow = async () => {
     if (!newSection.name.trim() || !newSection.price || !newSection.capacity) return
     try {
-      const res = await authFetch(API.events.createSection(event.id), {
+      await request(API.events.createSection(event.id), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           name: newSection.name.trim(),
           price: Number(newSection.price),
           capacity: Number(newSection.capacity),
-        }),
+        },
       })
-      if (res.ok) {
-        toast('Section added', 'success')
-        onRefresh?.()
-      } else {
-        toast('Failed to add section', 'error')
-      }
+      toast('Section added', 'success')
+      onRefresh?.()
     } catch {
       toast('Failed to add section', 'error')
     } finally {
@@ -214,27 +199,21 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
 
   const cancelTicket = async (t: OrganizerTicket) => {
     try {
-      const res = await authFetch(API.tickets.updateStatus(t.id), {
+      await request(API.tickets.updateStatus(t.id), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reservationStatus: 'CANCELLED' }),
+        body: { reservationStatus: 'CANCELLED' },
       })
-      if (!res.ok) {
-        toast('Failed to cancel ticket', 'error')
-        return
-      }
       // Release seat in event-service if templateSeatId is known
       if (t.templateSeatId) {
-        await authFetch(API.events.seatStatusByTemplate(event.id, t.templateSeatId), {
+        await request(API.events.seatStatusByTemplate(event.id, t.templateSeatId), {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'AVAILABLE' }),
+          body: { status: 'AVAILABLE' },
         })
       } else {
         // Zone-based: release section capacity
         const section = event.sections.find((s) => s.name === (t.seatCategory || t.zoneCategory))
         if (section) {
-          await authFetch(API.events.organizerReleaseSection(section.id), {
+          await request(API.events.organizerReleaseSection(section.id), {
             method: 'PATCH',
           })
         }
@@ -284,8 +263,12 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
     try {
       const tpl: VenueTemplate = await getTemplateById(event.venueTemplateId)
       const parsed = JSON.parse(tpl.layout) as SeatMap
-      const res = await authFetch(API.tickets.organizerByEvent(event.id))
-      const tks: OrganizerTicket[] = res.ok ? await res.json() : []
+      let tks: OrganizerTicket[] = []
+      try {
+        tks = await request<OrganizerTicket[]>(API.tickets.organizerByEvent(event.id))
+      } catch {
+        tks = []
+      }
 
       // Build reservations from organizer tickets
       const reservations = buildReservationsFromTickets(parsed, tks)
@@ -353,43 +336,36 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
       }
     }
     try {
-      const res = await authFetch(API.tickets.reserveOrganizer, {
+      const ticketData = await request<OrganizerTicket>(API.tickets.reserveOrganizer, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           eventId: event.id,
           label: `${rowLabel}${seatNumber}`,
           holderName: reserveVenueName.trim(),
           price,
           sectionName,
           templateSeatId: cellId,
-        }),
+        },
       })
-      if (res.ok) {
-        const ticketData: OrganizerTicket = await res.json()
-        // Update seat status in event-service
-        const seatRes = await authFetch(API.events.seatStatusByTemplate(event.id, cellId), {
+      // Update seat status in event-service
+      try {
+        await request(API.events.seatStatusByTemplate(event.id, cellId), {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'BOOKED_ORGANIZER' }),
+          body: { status: 'BOOKED_ORGANIZER' },
         })
-        if (!seatRes.ok) {
-          // Rollback: cancel the ticket since event-service rejected the operation
-          await authFetch(API.tickets.updateStatus(ticketData.id), {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reservationStatus: 'CANCELLED' }),
-          })
-          toast('Failed to reserve ticket', 'error')
-          return
-        }
-        const newReservation: SeatReservation = { cellId, rowLabel, seatNumber, holderName: reserveVenueName.trim() }
-        setReserveVenueReservations((prev) => [...prev, newReservation])
-        toast('Ticket reserved!', 'success')
-        fetchOrganizerTickets()
-      } else {
+      } catch {
+        // Rollback: cancel the ticket since event-service rejected the operation
+        await request(API.tickets.updateStatus(ticketData.id), {
+          method: 'PATCH',
+          body: { reservationStatus: 'CANCELLED' },
+        })
         toast('Failed to reserve ticket', 'error')
+        return
       }
+      const newReservation: SeatReservation = { cellId, rowLabel, seatNumber, holderName: reserveVenueName.trim() }
+      setReserveVenueReservations((prev) => [...prev, newReservation])
+      toast('Ticket reserved!', 'success')
+      fetchOrganizerTickets()
     } catch {
       toast('Failed to reserve ticket', 'error')
     } finally {
@@ -402,20 +378,18 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
   return (
     <>
       <div className={cardView ? '' : 'event-row-card'}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-          <span className="stat-chip" style={{ background: '#e8f5e9', color: '#2e7d32' }}>
-            <span className="stat-chip-num">EGP {totalRevenue.toLocaleString()}</span>
-            Total Revenue
-          </span>
-          <span className="stat-chip" style={{ background: '#fff3e0', color: '#e65100' }}>
-            <span className="stat-chip-num">EGP {event.sections.reduce((sum, s) => sum + (s.capacity || 0) * (s.price || 0), 0).toLocaleString()}</span>
-            Max Revenue
-          </span>
-          <span className="stat-chip">
-            <span className="stat-chip-num">{totalSold}</span>
-            Tickets Sold
-          </span>
-        </div>
+        <StatChips
+          items={[
+            { label: 'Total Revenue', value: formatPrice(totalRevenue), style: { background: '#e8f5e9', color: '#2e7d32' } },
+            {
+              label: 'Max Revenue',
+              value: formatPrice(event.sections.reduce((sum, s) => sum + (s.capacity || 0) * (s.price || 0), 0)),
+              style: { background: '#fff3e0', color: '#e65100' },
+            },
+            { label: 'Tickets Sold', value: totalSold },
+          ]}
+          style={{ gap: 10, margin: '0 0 20px' }}
+        />
 
         <div className="detail-grid">
           <div className="detail-field">
@@ -468,7 +442,7 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
                         {isEditing ? (
                           <input className="price-input" type="number" value={editFields.price} onChange={(e) => setEditFields((f) => ({ ...f, price: e.target.value }))} />
                         ) : (
-                          <span style={{ fontWeight: 600 }}>EGP {(s.price || 0).toLocaleString()}</span>
+                          <span style={{ fontWeight: 600 }}>{formatPrice(s.price || 0)}</span>
                         )}
                       </td>
                       <td>{s.capacity}</td>
@@ -544,11 +518,9 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
                         <td><span className="mono" style={{ fontSize: 13 }}>{getSeatLabel(t)}</span></td>
                         <td>{getSectionName(t)}</td>
                         <td>{getHolderName(t)}</td>
-                        <td>EGP {(t.price || 0).toLocaleString()}</td>
+                        <td>{formatPrice(t.price || 0)}</td>
                         <td>
-                          <Badge variant={TICKET_STATUS[t.reservationStatus]?.variant ?? 'soft'}>
-                            {TICKET_STATUS[t.reservationStatus]?.label ?? t.reservationStatus}
-                          </Badge>
+                          <StatusBadge status={t.reservationStatus} options={TICKET_STATUS} fallback={{ label: t.reservationStatus, variant: 'soft' }} />
                         </td>
                         <td className="table-actions">
                           <button className="action-link ban" onClick={() => cancelTicket(t)}>Cancel</button>
@@ -681,9 +653,7 @@ function EventCard({ event, isExpanded, onToggle, onRefresh }: {
             <Badge variant={MODE_LABEL[bookingModel]?.variant || 'soft'}>
               {MODE_LABEL[bookingModel]?.label || bookingModel}
             </Badge>
-            <Badge variant={STATUS_BADGE[event.status]?.variant ?? 'soft'}>
-              {STATUS_BADGE[event.status]?.label ?? event.status}
-            </Badge>
+            <StatusBadge status={event.status} options={STATUS_BADGE} fallback={{ label: event.status, variant: 'soft' }} />
           </div>
         </div>
         <div className={`mgmt-card-expand ${isExpanded ? 'open' : ''}`}>
@@ -738,10 +708,10 @@ export default function EventManagement() {
       </div>
       <p className="section-sub" style={{ marginBottom: 28 }}>Manage, edit, and organise your events</p>
 
-      {loading && <p style={{ color: 'var(--text-secondary)' }}>Loading events...</p>}
+      {loading && <LoadingState message="Loading events..." />}
 
       {!loading && events.length === 0 && (
-        <p style={{ color: 'var(--text-secondary)' }}>No events found. Create your first event to get started.</p>
+        <EmptyState message="No events found. Create your first event to get started." />
       )}
 
       <div className="mgmt-card-grid">
@@ -759,7 +729,6 @@ export default function EventManagement() {
           <Button variant="ghost" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>Next</Button>
         </div>
       )}
-      <ToastContainer />
     </div>
   )
 }

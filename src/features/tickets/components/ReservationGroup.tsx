@@ -1,7 +1,7 @@
 import TicketStatusBadge from './TicketStatusBadge'
 import TicketCardItem from './TicketCardItem'
-import type { TicketGroup, DisplayStatus } from '../types/ticket.types'
-import { formatDate, deriveGroupDisplayStatus } from '../types/ticket.types'
+import { deriveGroupDisplayStatus, type DisplayStatus, type TicketGroup } from '../types/ticket.types'
+import { formatDateTime } from '../../../shared/format'
 import styles from '../styles/tickets.module.css'
 
 interface Props {
@@ -16,7 +16,7 @@ export default function ReservationGroup({ group }: Props) {
       <div className={styles.detailHead}>
         <h1 className={styles.detailEvent}>{group.eventTitle}</h1>
         <div className={styles.detailMeta}>
-          <span>{formatDate(group.eventStartDate)}</span>
+          <span>{formatDateTime(group.eventStartDate)}</span>
           <TicketStatusBadge status={status} />
         </div>
       </div>

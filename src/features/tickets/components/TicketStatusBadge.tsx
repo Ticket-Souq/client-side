@@ -1,18 +1,11 @@
-import { Badge } from '../../../shared/components'
+import { StatusBadge, type StatusBadgeOption } from '../../../shared/components/display/StatusBadge/StatusBadge'
 import type { DisplayStatus } from '../types/ticket.types'
 
-const statusVariant: Record<DisplayStatus, 'green' | 'orange' | 'soft' | 'red' | 'ink'> = {
-  confirmed: 'green',
-  used: 'soft',
-  expired: 'red',
-  cancelled: 'ink',
-}
-
-const statusLabel: Record<DisplayStatus, string> = {
-  confirmed: 'Active',
-  used: 'Used',
-  expired: 'Expired',
-  cancelled: 'Cancelled',
+const TICKET_STATUS_OPTIONS: Record<DisplayStatus, StatusBadgeOption> = {
+  confirmed: { label: 'Active', variant: 'green' },
+  used: { label: 'Used', variant: 'soft' },
+  expired: { label: 'Expired', variant: 'red' },
+  cancelled: { label: 'Cancelled', variant: 'ink' },
 }
 
 interface Props {
@@ -20,5 +13,5 @@ interface Props {
 }
 
 export default function TicketStatusBadge({ status }: Props) {
-  return <Badge variant={statusVariant[status]}>{statusLabel[status]}</Badge>
+  return <StatusBadge status={status} options={TICKET_STATUS_OPTIONS} />
 }

@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
-import { formatPrice } from "../../events/utils/eventFormatters";
+import { formatPrice } from "../../../shared/format";
 
 interface SuccessState {
   tickets?: { label: string; sectionName: string; price: number }[];

@@ -1,5 +1,7 @@
-import {lazy} from 'react'
-import {Routes, Route, Navigate} from 'react-router-dom'
+import { lazy } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+
+import { ToastContainer } from './shared/components/display/Toast/Toast'
 
 import CustomerLayout from './layouts/CustomerLayout'
 import OrganizerLayout from './layouts/OrganizerLayout'
@@ -32,13 +34,13 @@ import VenueManagement from './features/organizations/pages/VenueManagement'
 import TeamManagement from './features/organizations/pages/TeamManagement'
 import Analytics from './features/organizations/pages/Analytics'
 import QRValidation from './features/organizations/pages/QRValidation'
-
 import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
 
 function App() {
     return (
+        <>
         <Routes>
             {/* Landing (public, root) */}
             <Route path="/" element={<OrgRootRedirect/>}/>
@@ -96,6 +98,8 @@ function App() {
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace/>}/>
         </Routes>
+        <ToastContainer />
+    </>
     )
 }
 

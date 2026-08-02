@@ -10,7 +10,7 @@ import AuthSubmitButton from '../components/AuthSubmitButton';
 import AuthTabs from '../components/AuthTabs';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { emailRules, passwordRules, nameRules, orgNameRules } from '../schemas/auth.schemas';
-import type { AuthTabType } from '../types/auth.types';
+import type { AuthTabType, RegisterData } from '../types/auth.types';
 import { AuthService } from '../services/auth.service';
 
 export default function Register() {
@@ -40,7 +40,7 @@ export default function Register() {
           throw { status: 422, error: 'Validation Error', message: 'Passwords do not match' };
         }
 
-        const payload: Record<string, string> = {
+        const payload: RegisterData = {
           name: vals.name,
           email: vals.email,
           password: vals.password,

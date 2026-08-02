@@ -6,11 +6,11 @@ import { SeatMapPreview } from '../../../shared/components/seatmap/SeatMapPrevie
 import type { SeatReservation } from '../../../shared/components/seatmap/SeatMapPreview'
 import type { SeatMap } from '../../venues/components/types'
 import { getTemplateById } from '../../venues/api/venueApi'
-import { formatEventDate, formatPrice } from '../utils/eventFormatters'
+import { formatEventDate, formatPrice } from '../../../shared/format'
 import { releaseLocks, acquireSeatLocks, acquireZoneLock } from '../services/lockApi'
-import { toast, ToastContainer } from '../../../shared/components/display/Toast/Toast'
+import { toast } from '../../../shared/components/display/Toast/Toast'
 import { loadReservation, saveReservation, clearReservation } from '../../../shared/booking/reservationStorage'
-import { authFetch } from '../../../shared/auth'
+import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
 
 const MAX_TICKETS = 10;
@@ -59,9 +59,7 @@ export default function EventReserve() {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await authFetch(API.tickets.list)
-        if (!res.ok) return
-        const tickets: { eventId?: string; reservationStatus?: string }[] = await res.json()
+        const tickets = await request<{ eventId?: string; reservationStatus?: string }[]>(API.tickets.list)
         if (cancelled) return
         setHasTicketsInEvent(tickets.some((t) => t.eventId === event.id && t.reservationStatus === 'ACTIVE'))
       } catch { /* ignore */ }
@@ -176,7 +174,7 @@ export default function EventReserve() {
     selectedTickets.every((t, i) => (!allGuests && i === 0) || (holderNames[t.key]?.trim() ?? '') !== '')
 
   const proceedToCheckout = async () => {
-    if (!canProceed || locking) return
+    if (!canProceed || locking || !event) return
     if (totalTickets > MAX_TICKETS) {
       toast(`A maximum of ${MAX_TICKETS} tickets per reservation`, 'error')
       return
@@ -420,8 +418,6 @@ export default function EventReserve() {
           )}
         </div>
       </div>
-
-      <ToastContainer />
     </main>
   )
 }
