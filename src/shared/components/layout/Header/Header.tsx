@@ -233,7 +233,7 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
         </div>
         )}
         <div className={styles.actions}>
-          {primaryRole === 'CUSTOMER' && (
+          {authed && primaryRole === 'CUSTOMER' && (
             <>
                 <Link
                   to="/customer/tickets"

@@ -38,6 +38,8 @@ import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
 
+import { ErrorPage } from './shared/components/display/ErrorPage/ErrorPage'
+
 function App() {
     return (
         <>
@@ -54,6 +56,20 @@ function App() {
                 <Route path="reset-password" element={<ResetPassword/>}/>
                 <Route path="verify-email" element={<EmailVerification/>}/>
                 <Route path="change-password" element={<ChangePassword/>}/>
+            </Route>
+
+            {/* Error pages */}
+            <Route path="401" element={<AuthLayout />}>
+                <Route index element={<ErrorPage code="401" title="Unauthorized" message="Please sign in to access this page." actionLabel="Sign In" actionTo="/auth/login" />} />
+            </Route>
+            <Route path="403" element={<AuthLayout />}>
+                <Route index element={<ErrorPage code="403" title="Forbidden" message="You don't have permission to access this page." />} />
+            </Route>
+            <Route path="404" element={<AuthLayout />}>
+                <Route index element={<ErrorPage />} />
+            </Route>
+            <Route path="500" element={<AuthLayout />}>
+                <Route index element={<ErrorPage code="500" title="Server Error" message="Something went wrong. Please try again later." />} />
             </Route>
 
             {/* Customer */}
@@ -96,7 +112,7 @@ function App() {
             </Route>
 
             {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace/>}/>
+            <Route path="*" element={<ErrorPage />} />
         </Routes>
         <ToastContainer />
     </>

@@ -1,14 +1,20 @@
 import { Link } from 'react-router-dom'
 
 interface ErrorPageProps {
-  code: string
-  title: string
-  message: string
-  actionLabel: string
-  actionTo: string
+  code?: string
+  title?: string
+  message?: string
+  actionLabel?: string
+  actionTo?: string
 }
 
-export function ErrorPage({ code, title, message, actionLabel, actionTo }: ErrorPageProps) {
+export function ErrorPage({
+  code = '404',
+  title = 'Page Not Found',
+  message = "The page you're looking for doesn't exist.",
+  actionLabel = 'Go Home',
+  actionTo = '/',
+}: ErrorPageProps) {
   return (
     <div style={{ textAlign: 'center', padding: '80px 24px' }}>
       <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '72px', color: '#15150f', margin: '0 0 8px' }}>{code}</h1>
