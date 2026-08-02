@@ -1,6 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
 import { BRAND_NAME } from '../shared/constants';
-import { ToastContainer } from '../shared/components/display/Toast/Toast';
 import '../features/auth/styles/auth.css';
 
 function AuthHeader() {
@@ -41,7 +40,6 @@ export default function AuthLayout() {
         <Outlet />
       </main>
       <AuthFooter />
-      <ToastContainer />
     </div>
   );
 }

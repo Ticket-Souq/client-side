@@ -1,70 +1,47 @@
-import { fetchWithTimeout } from '../../../shared/fetchWithTimeout'
-import { authFetch } from '../../../shared/auth'
+import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
 import type { EventFilters, CreateEventRequest, PaginatedResponse, EventCardResponse, EventFullResponse } from '../types/event.types'
 
-function toQueryParams(filters: EventFilters): string {
-  const params = new URLSearchParams()
-  if (filters.title) params.set('title', filters.title)
-  if (filters.organization) params.set('organization', filters.organization)
-  if (filters.category) params.set('category', filters.category)
-  if (filters.status) params.set('status', filters.status)
-  if (filters.page !== undefined) params.set('page', String(filters.page))
-  if (filters.size !== undefined) params.set('size', String(filters.size))
-  return params.toString()
-}
-
 export const EventApi = {
   async search(filters: EventFilters): Promise<PaginatedResponse<EventCardResponse>> {
-    const qs = toQueryParams(filters)
-    const url = qs ? `${API.events.search}?${qs}` : API.events.list
-    const res = await fetchWithTimeout(url)
-    if (!res.ok) throw new Error(`Search failed: ${res.status}`)
-    return res.json()
+    return request<PaginatedResponse<EventCardResponse>>(API.events.search, {
+      auth: false,
+      query: {
+        title: filters.title,
+        organization: filters.organization,
+        category: filters.category,
+        status: filters.status,
+        page: filters.page,
+        size: filters.size,
+      },
+    })
   },
 
   async list(page: number = 0, size: number = 12): Promise<PaginatedResponse<EventCardResponse>> {
-    const res = await fetchWithTimeout(`${API.events.list}?page=${page}&size=${size}`)
-    if (!res.ok) throw new Error(`List failed: ${res.status}`)
-    return res.json()
+    return request<PaginatedResponse<EventCardResponse>>(API.events.list, { auth: false, query: { page, size } })
   },
 
   async getManagement(page: number = 0, size: number = 20): Promise<PaginatedResponse<EventFullResponse>> {
-    const res = await authFetch(`${API.events.management}?page=${page}&size=${size}`)
-    if (!res.ok) throw new Error(`Management list failed: ${res.status}`)
-    return res.json()
+    return request<PaginatedResponse<EventFullResponse>>(API.events.management, { query: { page, size } })
   },
 
   async getById(id: string): Promise<EventFullResponse> {
-    const res = await fetchWithTimeout(API.events.byId(id))
-    if (!res.ok) throw new Error(`Fetch event failed: ${res.status}`)
-    return res.json()
+    return request<EventFullResponse>(API.events.byId(id), { auth: false })
   },
 
   async getCategories(): Promise<string[]> {
-    const res = await fetchWithTimeout(API.events.categories)
-    if (!res.ok) throw new Error(`Fetch categories failed: ${res.status}`)
-    return res.json()
+    return request<string[]>(API.events.categories, { auth: false })
   },
 
   async create(data: CreateEventRequest, posterFile: File | null, bannerFile: File | null): Promise<void> {
     const formData = new FormData()
     formData.append('event', new Blob([JSON.stringify(data)], { type: 'application/json' }))
-    if (posterFile) {
-      formData.append('poster', posterFile)
-    }
-    if (bannerFile) {
-      formData.append('banner', bannerFile)
-    }
-    const res = await authFetch(API.events.create, {
-      method: 'POST',
-      body: formData,
-    })
-    if (!res.ok) throw new Error(`Create event failed: ${res.status}`)
+    if (posterFile) formData.append('poster', posterFile)
+    if (bannerFile) formData.append('banner', bannerFile)
+    return request<void>(API.events.create, { method: 'POST', body: formData })
   },
 
   async cancel(id: string): Promise<void> {
-    const res = await authFetch(API.events.cancel(id), { method: 'DELETE' })
-    if (!res.ok) throw new Error(`Cancel event failed: ${res.status}`)
+    return request<void>(API.events.cancel(id), { method: 'DELETE' })
   },
 }

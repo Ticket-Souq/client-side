@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { getMyTickets, getTicketById } from '../services/ticketService'
 import type { TicketResponse, TicketGroup } from '../types/ticket.types'
+import { useFetch } from '../../../shared/hooks/useFetch'
 
 function groupTickets(tickets: TicketResponse[]): TicketGroup[] {
   const map = new Map<string, TicketResponse[]>()
@@ -20,47 +21,22 @@ function groupTickets(tickets: TicketResponse[]): TicketGroup[] {
 }
 
 export function useTickets() {
-  const [tickets, setTickets] = useState<TicketResponse[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetch = () => {
-    setLoading(true)
-    setError(null)
-    getMyTickets()
-      .then(setTickets)
-      .catch(() => setError('Something went wrong'))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => { fetch() }, [])
-
+  const { data, loading, error, refresh } = useFetch(getMyTickets, 'Something went wrong')
+  const tickets = data ?? []
   const groups = useMemo(() => groupTickets(tickets), [tickets])
 
-  return { tickets, groups, loading, error, retry: fetch }
+  return { tickets, groups, loading, error, retry: refresh }
 }
 
 export function useTicket(id: string | undefined) {
-  const [ticket, setTicket] = useState<TicketResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetch = () => {
-    if (!id) { setLoading(false); return }
-    setLoading(true)
-    setError(null)
-    getTicketById(id)
-      .then((t) => {
-        if (!t) setError('Ticket not found')
-        else setTicket(t)
-      })
-      .catch(() => setError('Something went wrong'))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => { fetch() }, [id])
-
-  return { ticket, loading, error, retry: fetch }
+  const { data, loading, error, refresh } = useFetch<TicketResponse | null>(
+    async () => (id ? getTicketById(id) : null),
+    'Something went wrong',
+    [id],
+  )
+  const ticket = data ?? null
+  const notFound = !loading && !error && !!id && data == null
+  return { ticket, loading, error: notFound ? 'Ticket not found' : error, retry: refresh }
 }
 
 export function useGroupFromTickets(tickets: TicketResponse[], id: string | undefined) {

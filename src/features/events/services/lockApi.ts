@@ -1,5 +1,4 @@
-import { authFetch } from '../../../shared/auth'
-import { parseError } from '../../../shared/apiError'
+import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
 
 export interface LockSeatsResponse {
@@ -30,52 +29,18 @@ export interface ReservationRequest {
   tickets: ReservationTicketInput[]
 }
 
-export async function acquireSeatLocks(eventId: string, seatIds: string[]): Promise<LockSeatsResponse> {
-  const res = await authFetch(API.locks.acquireSeats(eventId), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ seatIds }),
-  })
-  if (!res.ok) {
-    const err = await parseError(res)
-    throw new Error(err.message)
-  }
-  return res.json()
+export function acquireSeatLocks(eventId: string, seatIds: string[]): Promise<LockSeatsResponse> {
+  return request<LockSeatsResponse>(API.locks.acquireSeats(eventId), { method: 'POST', body: { seatIds } })
 }
 
-export async function acquireZoneLock(eventId: string, zoneId: string, quantity: number): Promise<LockZoneResponse> {
-  const res = await authFetch(API.locks.acquireZone(eventId), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ zoneId, quantity }),
-  })
-  if (!res.ok) {
-    const err = await parseError(res)
-    throw new Error(err.message)
-  }
-  return res.json()
+export function acquireZoneLock(eventId: string, zoneId: string, quantity: number): Promise<LockZoneResponse> {
+  return request<LockZoneResponse>(API.locks.acquireZone(eventId), { method: 'POST', body: { zoneId, quantity } })
 }
 
-export async function releaseLocks(reservationId: string): Promise<void> {
-  const res = await authFetch(API.locks.release, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reservationId }),
-  })
-  if (!res.ok) {
-    const err = await parseError(res)
-    throw new Error(err.message)
-  }
+export function releaseLocks(reservationId: string): Promise<void> {
+  return request<void>(API.locks.release, { method: 'POST', body: { reservationId } })
 }
 
-export async function beginReservation(req: ReservationRequest): Promise<void> {
-  const res = await authFetch(API.locks.reserve, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(req),
-  })
-  if (!res.ok) {
-    const err = await parseError(res)
-    throw new Error(err.message)
-  }
+export function beginReservation(req: ReservationRequest): Promise<void> {
+  return request<void>(API.locks.reserve, { method: 'POST', body: req })
 }

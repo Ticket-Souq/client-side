@@ -1,22 +1,37 @@
-import { authFetch } from '../../../shared/auth'
+import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
-import { parseError } from '../../../shared/apiError'
+import { mockTickets } from '../data/mockTickets'
 import type { TicketResponse } from '../types/ticket.types'
 
-export async function getMyTickets(): Promise<TicketResponse[]> {
-  const res = await authFetch(API.tickets.list)
-  if (!res.ok) {
-    const err = await parseError(res)
-    throw err
+async function withMockFallback<T>(fetchFn: () => Promise<T>, fallback: () => T, reason: string): Promise<T> {
+  try {
+    return await fetchFn()
+  } catch (err) {
+    console.warn(`${reason}:`, err instanceof Error ? err.message : err)
+    return fallback()
   }
-  return res.json()
+}
+
+export async function getMyTickets(): Promise<TicketResponse[]> {
+  return withMockFallback(
+    () => request<TicketResponse[]>(API.tickets.list),
+    () => mockTickets,
+    'API error fetching tickets, using mock data',
+  )
 }
 
 export async function getTicketById(id: string): Promise<TicketResponse | null> {
-  const res = await authFetch(API.tickets.byId(id))
-  if (!res.ok) {
-    const err = await parseError(res)
-    throw err
-  }
-  return res.json()
+  return withMockFallback(
+    () => request<TicketResponse>(API.tickets.byId(id)),
+    () => mockTickets.find((t) => t.id === id) ?? null,
+    'API error fetching ticket, falling back to mock',
+  )
+}
+
+export async function getTicketsByReservation(reservationId: string): Promise<TicketResponse[]> {
+  return withMockFallback(
+    () => request<TicketResponse[]>(API.tickets.byReservation(reservationId)),
+    () => mockTickets,
+    'API error fetching reservation tickets, using mock data',
+  )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './Analytics.css'
 import {
   getEvents,
@@ -7,32 +7,9 @@ import {
   getOverviewKpis,
   getSalesPace,
   type EventComparisonRow,
-  type EventComparisonResponse,
-  type EventSalesTimelineResponse,
-  type EventSummaryResponse,
-  type OverviewKpiResponse,
-  type SalesPaceResponse,
 } from '../services/analyticsApi'
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(value))
-}
-
-function formatEGP(value: number): string {
-  return `${formatNumber(value)} EGP`
-}
-
-function shortDateLabel(iso: string): string {
-  const m = Number(iso.slice(5, 7))
-  const d = Number(iso.slice(8, 10))
-  return `${MONTHS[m - 1]} ${d}`
-}
-
-function truncate(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max)}…` : text
-}
+import { formatEGP, formatNumber, fillPct, shortDateLabel, truncate } from '../../../shared/format'
+import { useFetch } from '../../../shared/hooks/useFetch'
 
 interface BarDatum {
   value: number
@@ -59,42 +36,20 @@ function Bars({ data, colorClass = 'bar-yellow', highlightLast = false }: { data
   )
 }
 
-function fillPct(sold: number, capacity: number): number {
-  if (!capacity) return 0
-  return Math.min((sold / capacity) * 100, 100)
-}
-
 function AnalyticsDrillDown({ event, onBack }: { event: EventComparisonRow; onBack: () => void }) {
-  const [summary, setSummary] = useState<EventSummaryResponse | null>(null)
-  const [timeline, setTimeline] = useState<EventSalesTimelineResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      setLoading(true)
-      setError('')
-      try {
-        const [s, t] = await Promise.all([
-          getEventSummary(event.eventId),
-          getEventSalesTimeline(event.eventId, 'day'),
-        ])
-        if (!cancelled) {
-          setSummary(s)
-          setTimeline(t)
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load event analytics')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [event.eventId])
+  const { data, loading, error } = useFetch(
+    async () => {
+      const [s, t] = await Promise.all([
+        getEventSummary(event.eventId),
+        getEventSalesTimeline(event.eventId, 'day'),
+      ])
+      return { summary: s, timeline: t }
+    },
+    (err) => (err instanceof Error ? err.message : 'Failed to load event analytics'),
+    [event.eventId],
+  )
+  const summary = data?.summary ?? null
+  const timeline = data?.timeline ?? null
 
   return (
     <div className="drilldown">
@@ -140,41 +95,21 @@ function AnalyticsDrillDown({ event, onBack }: { event: EventComparisonRow; onBa
 }
 
 export default function Analytics() {
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [kpis, setKpis] = useState<OverviewKpiResponse | null>(null)
-  const [salesPace, setSalesPace] = useState<SalesPaceResponse | null>(null)
-  const [eventsData, setEventsData] = useState<EventComparisonResponse | null>(null)
   const [selected, setSelected] = useState<EventComparisonRow | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      setLoading(true)
-      setError('')
-      try {
-        const [k, p, e] = await Promise.all([
-          getOverviewKpis(),
-          getSalesPace(),
-          getEvents('totalRevenue,desc', 0, 20),
-        ])
-        if (!cancelled) {
-          setKpis(k)
-          setSalesPace(p)
-          setEventsData(e)
-        }
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load analytics')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [refreshKey])
+  const { data, loading, error, refresh } = useFetch(
+    async () => {
+      const [k, p, e] = await Promise.all([
+        getOverviewKpis(),
+        getSalesPace(),
+        getEvents('totalRevenue,desc', 0, 20),
+      ])
+      return { k, p, e }
+    },
+    (err) => (err instanceof Error ? err.message : 'Failed to load analytics'),
+  )
+  const kpis = data?.k ?? null
+  const salesPace = data?.p ?? null
+  const eventsData = data?.e ?? null
 
   const revenue = kpis?.revenue
   const ticketsSold = kpis?.ticketsSold
@@ -210,7 +145,7 @@ export default function Analytics() {
       {error && (
         <div className="analytics-error">
           <p>{error}</p>
-          <button className="btn btn-ghost" onClick={() => setRefreshKey((k) => k + 1)}>Retry</button>
+          <button className="btn btn-ghost" onClick={() => refresh()}>Retry</button>
         </div>
       )}
 

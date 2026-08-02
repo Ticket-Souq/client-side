@@ -1,63 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { EventApi } from "../../events/services/eventApi";
-import { formatPrice } from "../../events/utils/eventFormatters";
+import { formatDateTime, formatPrice } from "../../../shared/format";
 import { releaseLocks } from "../../events/services/lockApi";
 import { getMyReservations, type ReservationResponse } from "../../booking/services/reservationApi";
 import { Modal } from "../../../shared/components";
 import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
 import styles from "../styles/tickets.module.css";
+import { StatusBadge, type StatusBadgeOption } from "../../../shared/components/display/StatusBadge/StatusBadge";
 
-type StatusKey = "PENDING" | "COMPLETED" | "CANCELLED" | "FAILED";
-
-const STATUS_LABELS: Record<StatusKey, string> = {
-  PENDING: "Pending Payment",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-  FAILED: "Failed",
+const RESERVATION_STATUS_OPTIONS: Record<string, StatusBadgeOption> = {
+  PENDING: { label: "Pending Payment", variant: "orange" },
+  COMPLETED: { label: "Completed", variant: "green" },
+  CANCELLED: { label: "Cancelled", variant: "soft" },
+  FAILED: { label: "Failed", variant: "red" },
 };
-
-const STATUS_COLORS: Record<StatusKey, { text: string; bg: string; border: string }> = {
-  PENDING: { text: "#b45309", bg: "#fffbeb", border: "#fde68a" },
-  COMPLETED: { text: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
-  CANCELLED: { text: "#6b7280", bg: "#f9fafb", border: "#e5e7eb" },
-  FAILED: { text: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
-};
-
-function StatusBadge({ status }: { status: StatusKey }) {
-  const colors = STATUS_COLORS[status] ?? STATUS_COLORS.CANCELLED;
-  return (
-    <span
-      style={{
-        fontSize: 12,
-        fontWeight: 600,
-        padding: "4px 12px",
-        borderRadius: 999,
-        whiteSpace: "nowrap",
-        display: "inline-flex",
-        alignItems: "center",
-        background: colors.bg,
-        color: colors.text,
-        border: `1px solid ${colors.border}`,
-      }}
-    >
-      {status === "PENDING" && <span className={styles.dot} />}
-      {STATUS_LABELS[status] ?? status}
-    </span>
-  );
-}
-
-function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const month = months[d.getMonth()];
-  const day = d.getDate();
-  const year = d.getFullYear();
-  const hours = String(d.getHours()).padStart(2, "0");
-  const minutes = String(d.getMinutes()).padStart(2, "0");
-  return `${month} ${day}, ${year} \u00B7 ${hours}:${minutes}`;
-}
 
 export default function MyReservations() {
   const navigate = useNavigate();
@@ -203,7 +160,7 @@ export default function MyReservations() {
                 {eventTitles[active.eventId] ?? "Event"}
                 {activeReservation && (
                   <span style={{ marginLeft: 12, verticalAlign: "middle" }}>
-                    <StatusBadge status={activeReservation.status} />
+                    <StatusBadge status={activeReservation.status} options={RESERVATION_STATUS_OPTIONS} />
                   </span>
                 )}
               </h2>
@@ -240,12 +197,12 @@ export default function MyReservations() {
                 <div className={styles.resInfo}>
                   <h2 className={styles.resEvent}>{eventTitles[r.eventId] ?? "Event"}</h2>
                   <div className={styles.resMeta}>
-                    <span>Reserved {formatDate(r.createdAt)}</span>
-                    {r.completedAt && <span>Completed {formatDate(r.completedAt)}</span>}
+                    <span>Reserved {r.createdAt ? formatDateTime(r.createdAt) : ""}</span>
+                    {r.completedAt && <span>Completed {formatDateTime(r.completedAt)}</span>}
                   </div>
                 </div>
                 <div className={styles.resSummary}>
-                  <StatusBadge status={r.status} />
+                  <StatusBadge status={r.status} options={RESERVATION_STATUS_OPTIONS} />
                 </div>
               </div>
             </div>

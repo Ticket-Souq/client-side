@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import { NotificationService } from '../services/notificationService'
 import type { Notification } from '../types/notification.types'
+import { useFetch } from '../../../shared/hooks/useFetch'
 
 interface UseNotificationsResult {
   notifications: Notification[]
@@ -9,30 +10,16 @@ interface UseNotificationsResult {
   error: string | null
   markRead: (id: string) => void
   markAllRead: () => void
-  refresh: () => void
+  refresh: () => Promise<void>
 }
 
 export function useNotifications(): UseNotificationsResult {
+  const { data, loading, error, refresh } = useFetch(NotificationService.list, 'Failed to load notifications')
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchNotifications = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await NotificationService.list()
-      setNotifications(data)
-    } catch {
-      setError('Failed to load notifications')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
 
   useEffect(() => {
-    fetchNotifications()
-  }, [fetchNotifications])
+    if (data) setNotifications(data)
+  }, [data])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -48,5 +35,5 @@ export function useNotifications(): UseNotificationsResult {
     NotificationService.markAllRead()
   }, [])
 
-  return { notifications, unreadCount, loading, error, markRead, markAllRead, refresh: fetchNotifications }
+  return { notifications, unreadCount, loading, error, markRead, markAllRead, refresh }
 }

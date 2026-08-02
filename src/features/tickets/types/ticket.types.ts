@@ -48,20 +48,3 @@ export function deriveGroupDisplayStatus(tickets: TicketResponse[]): DisplayStat
   if (statuses.every(s => s === 'expired')) return 'expired'
   return 'confirmed'
 }
-
-export function formatDate(iso: string): string {
-  const d = new Date(iso)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const month = months[d.getMonth()]
-  const day = d.getDate()
-  const year = d.getFullYear()
-  const hours = d.getHours()
-  const minutes = String(d.getMinutes()).padStart(2, '0')
-  const ampm = hours >= 12 ? 'PM' : 'AM'
-  const h12 = hours % 12 || 12
-  return `${month} ${day}, ${year} · ${h12}:${minutes} ${ampm}`
-}
-
-export function formatPrice(price: number): string {
-  return `EGP ${price.toFixed(2)}`
-}

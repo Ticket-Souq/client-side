@@ -1,36 +1,20 @@
-import { useState, useEffect, useCallback } from 'react'
 import { EventApi } from '../services/eventApi'
 import type { EventFullResponse } from '../types/event.types'
+import { useFetch } from '../../../shared/hooks/useFetch'
 
 interface UseEventResult {
   event: EventFullResponse | null
   loading: boolean
   error: string | null
-  refetch: () => void
+  refetch: () => Promise<void>
 }
 
 export function useEvent(id: string | null): UseEventResult {
-  const [event, setEvent] = useState<EventFullResponse | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { data, loading, error, refresh } = useFetch<EventFullResponse | null>(
+    async () => (id ? EventApi.getById(id) : null),
+    'Event not found',
+    [id],
+  )
 
-  const fetchEvent = useCallback(async () => {
-    if (!id) return
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await EventApi.getById(id)
-      setEvent(result)
-    } catch {
-      setError('Event not found')
-    } finally {
-      setLoading(false)
-    }
-  }, [id])
-
-  useEffect(() => {
-    fetchEvent()
-  }, [fetchEvent])
-
-  return { event, loading, error, refetch: fetchEvent }
+  return { event: data, loading, error, refetch: refresh }
 }

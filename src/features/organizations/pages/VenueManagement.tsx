@@ -1,42 +1,26 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createPortal } from 'react-dom'
 import { listVenues, createVenue, deleteVenue } from '../../venues/api/venueApi'
 import type { Venue, VenueType } from '../../venues/components/types'
+import { useFetch } from '../../../shared/hooks/useFetch'
+import { useConfirm } from '../../../shared/hooks/useConfirm'
+import { toast } from '../../../shared/components/display/Toast/Toast'
+import { PageHeader } from '../../../shared/components/layout/PageHeader/PageHeader'
+import { StatChips } from '../../../shared/components/display/StatChips/StatChips'
+import { LoadingState, EmptyState } from '../../../shared/components/display/StateViews/StateViews'
 import './TeamManagement.css'
 
 export default function VenueManagement() {
   const navigate = useNavigate()
-  const [venues, setVenues] = useState<Venue[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data, loading, refresh } = useFetch<Venue[]>(async () => (await listVenues(0, 100)).content, '')
+  const venues = data ?? []
   const [modalOpen, setModalOpen] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [toast, setToast] = useState('')
+  const { confirm, dialog } = useConfirm()
 
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [type, setType] = useState<VenueType>('SEAT_BASED')
-
-  const showToast = (msg: string) => {
-    setToast(msg)
-    setTimeout(() => setToast(''), 4000)
-  }
-
-  const fetchVenues = useCallback(async () => {
-    try {
-      setLoading(true)
-      const res = await listVenues(0, 100)
-      setVenues(res.content)
-    } catch {
-      setVenues([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchVenues()
-  }, [fetchVenues])
 
   const handleCreate = async () => {
     if (!name.trim() || creating) return
@@ -47,23 +31,23 @@ export default function VenueManagement() {
       setName('')
       setAddress('')
       setType('SEAT_BASED')
-      showToast('Venue created successfully')
-      await fetchVenues()
+      toast('Venue created successfully', 'success')
+      await refresh()
     } catch (e) {
-      showToast('Failed to create venue: ' + (e as Error).message)
+      toast('Failed to create venue: ' + (e as Error).message, 'error')
     } finally {
       setCreating(false)
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this venue? This cannot be undone.')) return
+    if (!(await confirm('Delete this venue? This cannot be undone.', { confirmLabel: 'Delete', danger: true }))) return
     try {
       await deleteVenue(id)
-      showToast('Venue deleted')
-      await fetchVenues()
+      toast('Venue deleted', 'success')
+      await refresh()
     } catch (e) {
-      showToast('Failed to delete venue: ' + (e as Error).message)
+      toast('Failed to delete venue: ' + (e as Error).message, 'error')
     }
   }
 
@@ -79,23 +63,28 @@ export default function VenueManagement() {
 
   return (
     <main className="wrap members-page">
-      <div className="members-head">
-        <h1 className="section-title" style={{ margin: 0 }}>Venues</h1>
-        <button className="btn btn-primary btn-sm" onClick={() => setModalOpen(true)}>Add Venue</button>
-      </div>
+      <PageHeader
+        title="Venues"
+        className="members-head"
+        actions={
+          <button className="btn btn-primary btn-sm" onClick={() => setModalOpen(true)}>Add Venue</button>
+        }
+      />
 
-      <div className="stat-chips">
-        <div className="stat-chip"><span className="stat-chip-num">{stats.total}</span> Total</div>
-        <div className="stat-chip"><span className="stat-chip-num">{stats.seatBased}</span> Seat Based</div>
-        <div className="stat-chip"><span className="stat-chip-num">{stats.zoneBased}</span> Zone Based</div>
-      </div>
+      <StatChips
+        items={[
+          { label: 'Total', value: stats.total },
+          { label: 'Seat Based', value: stats.seatBased },
+          { label: 'Zone Based', value: stats.zoneBased },
+        ]}
+      />
 
       <div className="card-white" style={{ padding: 0 }}>
         <div className="table-wrap">
           {loading ? (
-            <p style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>Loading venues...</p>
+            <LoadingState message="Loading venues..." />
           ) : venues.length === 0 ? (
-            <p style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>No venues yet. Click "Add Venue" to create one.</p>
+            <EmptyState message='No venues yet. Click "Add Venue" to create one.' />
           ) : (
             <table className="table">
               <thead>
@@ -193,24 +182,7 @@ export default function VenueManagement() {
         </div>
       )}
 
-      {toast && createPortal(
-        <div style={{
-          position: 'fixed',
-          bottom: 32,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'var(--ink)',
-          color: 'var(--white)',
-          padding: '14px 28px',
-          borderRadius: 999,
-          fontSize: 14,
-          fontWeight: 600,
-          fontFamily: "'Inter', sans-serif",
-          zIndex: 9999,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-        }}>{toast}</div>,
-        document.body,
-      )}
+      {dialog}
     </main>
   )
 }

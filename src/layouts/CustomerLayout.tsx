@@ -3,6 +3,7 @@ import { Outlet, Navigate } from 'react-router-dom'
 import { UserProfileProvider } from '../shared/hooks/useUserProfile'
 import { LayoutShell } from '../shared/components/layout/LayoutShell'
 import { hasUserRole } from '../shared/auth'
+import { LoadingState } from '../shared/components/display/StateViews/StateViews'
 
 export default function CustomerLayout() {
   if (hasUserRole('ORG_CONSUMER')) {
@@ -15,7 +16,7 @@ export default function CustomerLayout() {
   return (
     <UserProfileProvider>
       <LayoutShell>
-        <Suspense fallback={<div className="text-center py-5" style={{ color: '#726f63' }}>Loading…</div>}>
+        <Suspense fallback={<LoadingState />}>
           <Outlet />
         </Suspense>
       </LayoutShell>

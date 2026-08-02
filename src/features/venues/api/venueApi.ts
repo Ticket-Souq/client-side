@@ -1,125 +1,41 @@
-import { authFetch } from "../../../shared/auth";
-import { API } from "../../../shared/api";
-import type {
-  Venue,
-  CreateVenueRequest,
-  VenueTemplate,
-  PaginatedResponse,
-} from "../components/types";
+import { request } from '../../../shared/http'
+import { API } from '../../../shared/api'
+import type { Venue, CreateVenueRequest, VenueTemplate, PaginatedResponse } from '../components/types'
 
-const BASE = API.venues.list;
+const BASE = API.venues.list
 
-/* ---------- Venue CRUD ---------- */
-
-export async function createVenue(data: CreateVenueRequest): Promise<Venue> {
-  const res = await authFetch(API.venues.create, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`POST venues ${res.status}: ${text}`);
-  }
-  return res.json();
+export function createVenue(data: CreateVenueRequest): Promise<Venue> {
+  return request<Venue>(API.venues.create, { method: 'POST', body: data })
 }
 
-export async function getVenueById(id: string): Promise<Venue> {
-  const res = await authFetch(API.venues.byId(id));
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GET venue ${res.status}: ${text}`);
-  }
-  return res.json();
+export function getVenueById(id: string): Promise<Venue> {
+  return request<Venue>(API.venues.byId(id))
 }
 
-export async function listVenues(
-  page: number,
-  size: number,
-): Promise<PaginatedResponse<Venue>> {
-  const params = new URLSearchParams({
-    page: String(page),
-    size: String(size),
-  });
-  const res = await authFetch(`${BASE}?${params}`);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GET venues ${res.status}: ${text}`);
-  }
-  return res.json();
-}
-export async function deleteVenue(id: string): Promise<void> {
-  const res = await authFetch(API.venues.delete(id), { method: "DELETE" });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`DELETE venue ${res.status}: ${text}`);
-  }
+export function listVenues(page: number, size: number): Promise<PaginatedResponse<Venue>> {
+  return request<PaginatedResponse<Venue>>(BASE, { query: { page, size } })
 }
 
-/* ---------- Venue Template CRUD ---------- */
-
-export async function listVenueTemplates(
-  venueId: string,
-): Promise<VenueTemplate[]> {
-  const url = API.venues.templates(venueId);
-  const res = await authFetch(url);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GET templates ${res.status}: ${text}`);
-  }
-  return res.json();
+export function deleteVenue(id: string): Promise<void> {
+  return request<void>(API.venues.delete(id), { method: 'DELETE' })
 }
 
-export async function createVenueTemplate(
-  venueId: string,
-  layout: string,
-): Promise<VenueTemplate> {
-  const url = API.venues.templates(venueId);
-  const res = await authFetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ layout }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`POST template ${res.status}: ${text}`);
-  }
-  return res.json();
+export function listVenueTemplates(venueId: string): Promise<VenueTemplate[]> {
+  return request<VenueTemplate[]>(API.venues.templates(venueId))
 }
 
-export async function getVenueTemplate(
-  venueId: string,
-  templateId: string,
-): Promise<VenueTemplate> {
-  const url = API.venues.templateById(venueId, templateId);
-  const res = await authFetch(url);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GET template ${res.status}: ${text}`);
-  }
-  return res.json();
+export function createVenueTemplate(venueId: string, layout: string): Promise<VenueTemplate> {
+  return request<VenueTemplate>(API.venues.templates(venueId), { method: 'POST', body: { layout } })
 }
 
-export async function deleteVenueTemplate(
-  venueId: string,
-  templateId: string,
-): Promise<void> {
-  const url = API.venues.templateById(venueId, templateId);
-  const res = await authFetch(url, { method: "DELETE" });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`DELETE template ${res.status}: ${text}`);
-  }
+export function getVenueTemplate(venueId: string, templateId: string): Promise<VenueTemplate> {
+  return request<VenueTemplate>(API.venues.templateById(venueId, templateId))
 }
 
-export async function getTemplateById(
-  templateId: string,
-): Promise<VenueTemplate> {
-  const url = API.venues.templateById("venues",templateId);
-  const res = await authFetch(url);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GET template by id ${res.status}: ${text}`);
-  }
-  return res.json();
+export function deleteVenueTemplate(venueId: string, templateId: string): Promise<void> {
+  return request<void>(API.venues.templateById(venueId, templateId), { method: 'DELETE' })
+}
+
+export function getTemplateById(templateId: string): Promise<VenueTemplate> {
+  return request<VenueTemplate>(API.venues.templateById('venues', templateId))
 }

@@ -1,7 +1,5 @@
 import { API } from '../../../shared/api';
-import { fetchWithTimeout } from '../../../shared/fetchWithTimeout';
-import { authFetch } from '../../../shared/auth';
-import { parseError } from '../../../shared/apiError';
+import { request } from '../../../shared/http';
 import type {
   AuthResponse,
   RegisterData,
@@ -9,84 +7,44 @@ import type {
   ChangePasswordData,
 } from '../types/auth.types';
 
-async function ensureOk(res: Response): Promise<never> {
-  if (!res.ok) throw await parseError(res);
-}
-
 export const AuthService = {
-  async login(email: string, password: string): Promise<AuthResponse> {
-    const res = await fetchWithTimeout(API.auth.login, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    await ensureOk(res);
-    return res.json();
+  login(email: string, password: string): Promise<AuthResponse> {
+    return request<AuthResponse>(API.auth.login, { method: 'POST', auth: false, body: { email, password } });
   },
 
-  async register(data: RegisterData): Promise<void> {
-    const res = await fetchWithTimeout(API.auth.register, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    await ensureOk(res);
+  register(data: RegisterData): Promise<void> {
+    return request<void>(API.auth.register, { method: 'POST', auth: false, body: data });
   },
 
-  async logout(): Promise<void> {
-    const res = await authFetch(API.auth.logout, { method: 'POST' });
-    await ensureOk(res);
+  logout(): Promise<void> {
+    return request<void>(API.auth.logout, { method: 'POST' });
   },
 
-  async logoutAll(): Promise<void> {
-    const res = await authFetch(API.auth.logoutAll, { method: 'POST' });
-    await ensureOk(res);
+  logoutAll(): Promise<void> {
+    return request<void>(API.auth.logoutAll, { method: 'POST' });
   },
 
-  async sendForgotPasswordCode(email: string): Promise<void> {
-    const res = await fetchWithTimeout(
-      `${API.auth.forgotPassword}?email=${encodeURIComponent(email)}`,
-      { method: 'GET' }
-    );
-    await ensureOk(res);
+  sendForgotPasswordCode(email: string): Promise<void> {
+    return request<void>(`${API.auth.forgotPassword}?email=${encodeURIComponent(email)}`, { auth: false });
   },
 
-  async resetPassword(data: ResetPasswordData): Promise<void> {
-    const res = await fetchWithTimeout(API.auth.forgotPassword, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    await ensureOk(res);
+  resetPassword(data: ResetPasswordData): Promise<void> {
+    return request<void>(API.auth.forgotPassword, { method: 'POST', auth: false, body: data });
   },
 
-  async sendVerifyCode(email: string): Promise<void> {
-    const res = await fetchWithTimeout(
-      `${API.auth.verifyEmail}?email=${encodeURIComponent(email)}`,
-      { method: 'GET' }
-    );
-    await ensureOk(res);
+  sendVerifyCode(email: string): Promise<void> {
+    return request<void>(`${API.auth.verifyEmail}?email=${encodeURIComponent(email)}`, { auth: false });
   },
 
-  async verifyEmail(otp: string): Promise<void> {
-    const res = await fetchWithTimeout(API.auth.verifyEmail, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ otp }),
-    });
-    await ensureOk(res);
+  verifyEmail(otp: string): Promise<void> {
+    return request<void>(API.auth.verifyEmail, { method: 'POST', auth: false, body: { otp } });
   },
 
-  async changePassword(data: ChangePasswordData): Promise<void> {
-    const res = await authFetch(API.auth.changePassword, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-    await ensureOk(res);
+  changePassword(data: ChangePasswordData): Promise<void> {
+    return request<void>(API.auth.changePassword, { method: 'PUT', body: data });
   },
 
-  async deactivateAccount(): Promise<void> {
-    const res = await authFetch(API.auth.deactivate, { method: 'DELETE' });
-    await ensureOk(res);
+  deactivateAccount(): Promise<void> {
+    return request<void>(API.auth.deactivate, { method: 'DELETE' });
   },
 };

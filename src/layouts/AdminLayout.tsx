@@ -2,12 +2,13 @@ import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 import { UserProfileProvider } from '../shared/hooks/useUserProfile'
 import { LayoutShell } from '../shared/components/layout/LayoutShell'
+import { LoadingState } from '../shared/components/display/StateViews/StateViews'
 
 export default function AdminLayout() {
   return (
     <UserProfileProvider>
       <LayoutShell>
-        <Suspense fallback={<div className="text-center py-5" style={{ color: '#726f63' }}>Loading…</div>}>
+        <Suspense fallback={<LoadingState />}>
           <Outlet />
         </Suspense>
       </LayoutShell>
