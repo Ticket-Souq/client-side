@@ -3,7 +3,6 @@ import { API } from "../../../shared/api";
 import type {
   Venue,
   CreateVenueRequest,
-  UpdateVenueRequest,
   VenueTemplate,
   PaginatedResponse,
 } from "../components/types";
@@ -49,23 +48,6 @@ export async function listVenues(
   }
   return res.json();
 }
-
-export async function updateVenue(
-  id: string,
-  data: UpdateVenueRequest,
-): Promise<Venue> {
-  const res = await authFetch(API.venues.update(id), {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`PUT venue ${res.status}: ${text}`);
-  }
-  return res.json();
-}
-
 export async function deleteVenue(id: string): Promise<void> {
   const res = await authFetch(API.venues.delete(id), { method: "DELETE" });
   if (!res.ok) {

@@ -13,15 +13,3 @@ export function validate(value: string, rules: FieldRule): string | null {
   if (rules.pattern && !rules.pattern.test(value)) return rules.patternMessage ?? "Invalid format";
   return null;
 }
-
-export const errorStyle: React.CSSProperties = {
-  border: "1px solid #DC2626",
-  boxShadow: "0 0 0 3px rgba(220, 38, 38, 0.15)",
-};
-
-export const normalStyle: React.CSSProperties = {
-  fontSize: "14px",
-  borderRadius: "8px",
-  border: "1px solid var(--color-border)",
-  padding: "10px 12px",
-};

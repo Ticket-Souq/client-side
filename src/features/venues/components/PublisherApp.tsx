@@ -7,7 +7,6 @@ import { ToastContainer, toast } from "../../../shared/components/display/Toast/
 import {
   getVenueById,
   listVenues,
-  deleteVenue,
   listVenueTemplates,
   getVenueTemplate,
   createVenueTemplate,
@@ -157,22 +156,6 @@ function PublisherInner({
     }
   }, [map, fetchTemplates, editingId, venueMeta, templates]);
 
-  const handleUnpublish = useCallback(
-    async (id: string) => {
-      try {
-        await deleteVenue(id);
-        if (editingId === id) {
-          setEditingId(null);
-          setTemplates([]);
-        }
-        await fetchVenues();
-      } catch (e) {
-        toast("Failed to unpublish: " + (e as Error).message);
-      }
-    },
-    [fetchVenues, editingId],
-  );
-
   return (
     <div className="venue-app flex-grow-1 w-100 d-flex flex-column bg-venue-950 text-venue-100">
       <SeatMapCreator
@@ -184,28 +167,6 @@ function PublisherInner({
         onLoadTemplate={handleLoadTemplate}
         onDeleteTemplate={handleDeleteTemplate}
       />
-    </div>
-  );
-}
-
-export function LockedShell({
-  title,
-  message,
-}: {
-  title: string;
-  message: string;
-}) {
-  return (
-    <div className="venue-app flex-grow-1 w-100 d-flex align-items-center justify-content-center bg-venue-950 text-venue-100">
-      <div className="max-w-sm text-center px-6">
-        <div className="text-xs uppercase tracking-widest text-venue-500 mb-2">
-          {title}
-        </div>
-        <p className="text-sm text-venue-300">{message}</p>
-        <p className="text-xs text-venue-500 mt-4">
-          Wire your own auth guard and pass the user into this component.
-        </p>
-      </div>
     </div>
   );
 }

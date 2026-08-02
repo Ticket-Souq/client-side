@@ -24,26 +24,6 @@ function AuthFooter() {
           <img src="/Logo.png" alt="" style={{ height: 28, width: 'auto' }} />
           <span className="auth-logo-text">{BRAND_NAME.toUpperCase()}</span>
         </Link>
-        <div className="auth-foot-cols">
-          <div className="auth-foot-col">
-            <h4>Discover</h4>
-            <Link to="/customer/events">Events</Link>
-            <a href="#">Outlets</a>
-            <a href="#">Categories</a>
-          </div>
-          <div className="auth-foot-col">
-            <h4>Support</h4>
-            <a href="#">Contact us</a>
-            <a href="#">Refunds</a>
-            <a href="#">FAQ</a>
-          </div>
-          <div className="auth-foot-col">
-            <h4>Company</h4>
-            <a href="#">About</a>
-            <a href="#">Careers</a>
-            <a href="#">Terms &amp; privacy</a>
-          </div>
-        </div>
       </div>
       <div className="auth-foot-bottom">
         <span>&copy; 2026 {BRAND_NAME}</span>

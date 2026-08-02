@@ -27,11 +27,6 @@ function formatMonth(dateStr: string) {
   const d = new Date(dateStr)
   return d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
 }
-
-function formatDay(dateStr: string) {
-  return new Date(dateStr).getDate().toString().padStart(2, '0')
-}
-
 function imgSrc(url: string | null | undefined) {
   return url ? `${API.base}${url}` : ''
 }

@@ -1,6 +1,6 @@
 import { API } from "./api";
 import { fetchWithTimeout } from "./fetchWithTimeout";
-import { getRoles, hasRole, isTokenExpired, isExpiringSoon, parseJwt } from "./jwt";
+import { getRoles, hasRole, isTokenExpired, isExpiringSoon } from "./jwt";
 import { showLoading, hideLoading } from "./loading";
 
 const ACCESS_COOKIE = "sq_access";
@@ -68,13 +68,6 @@ export function hasUserRole(role: string): boolean {
   if (!token) return false;
   return hasRole(token, role);
 }
-
-export function getUserEmail(): string | undefined {
-  const token = getAccessToken();
-  if (!token) return undefined;
-  return parseJwt(token)?.email;
-}
-
 // ── Refresh logic ─────────────────────────────────────────────────────────────
 
 let refreshPromise: Promise<{ access: string; refresh: string }> | null = null;

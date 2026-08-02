@@ -38,10 +38,6 @@ export default function CustomerEventDetail() {
       ? `${API.base}${event.PosterUrl}`
       : null
 
-  const priceFrom = event.sections?.length > 0
-    ? Math.min(...event.sections.map((s) => Number(s.price ?? 0)).filter((p) => p > 0))
-    : 0
-
   return (
     <main className="wrap detail-page">
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>

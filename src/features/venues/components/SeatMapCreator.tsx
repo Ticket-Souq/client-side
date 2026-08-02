@@ -6,7 +6,6 @@ import {
   ZoomOut,
   ZoomIn,
   PanelLeft,
-  ArrowUpDown,
   ArrowRight,
   X,
   MoreHorizontal,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react";
 import "./seat-map.css";
 import { useVenue } from "../context/VenueContext";
-import type { Category, Cell, Row, SeatMap, VenueTemplate, VerticalAisle } from "./types";
+import type { Cell, Row, SeatMap, VenueTemplate, VerticalAisle } from "./types";
 import { ContextMenu, type MenuItem } from "./ContextMenu";
 
 function useKeys() {
@@ -165,7 +164,6 @@ export function SeatMapCreator({
 
 function TopBar({
   onPublish,
-  venuesOpen,
   onToggleVenues,
 }: {
   onPublish?: () => void;

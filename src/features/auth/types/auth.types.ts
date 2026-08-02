@@ -9,12 +9,6 @@ export interface RegisterData {
   password: string;
   OrganizationName?: string;
 }
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
-
 export interface ResetPasswordData {
   otp: string;
   newPassword: string;

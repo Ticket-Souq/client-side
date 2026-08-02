@@ -4,7 +4,6 @@ import LoadingOverlay from '../../../shared/LoadingOverlay';
 import { toast } from '../../../shared/components/display/Toast/Toast';
 import AuthCard from '../components/AuthCard';
 import AuthCardHeader from '../components/AuthCardHeader';
-import AuthTextField from '../components/AuthTextField';
 import AuthPasswordField from '../components/AuthPasswordField';
 import AuthSubmitButton from '../components/AuthSubmitButton';
 import CodeInput from '../components/CodeInput';

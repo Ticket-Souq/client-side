@@ -1,7 +1,0 @@
-.card {
-  background: #ffffff;
-  border: 1px solid #eae7dc;
-  border-radius: 14px;
-  padding: 28px;
-}
-.card + .card { margin-top: 20px; }

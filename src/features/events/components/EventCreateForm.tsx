@@ -129,7 +129,7 @@ interface Props {
   loading?: boolean
 }
 
-export function EventCreateForm({ onSubmit, onCancel, loading }: Props) {
+export function EventCreateForm({ onSubmit, loading }: Props) {
   const [form, setForm] = useState<EventFormState>({
     name: '',
     description: '',
