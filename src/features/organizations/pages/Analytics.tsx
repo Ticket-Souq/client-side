@@ -16,22 +16,103 @@ interface BarDatum {
   label: string
 }
 
-function Bars({ data, colorClass = 'bar-yellow', highlightLast = false }: { data: BarDatum[]; colorClass?: string; highlightLast?: boolean }) {
+const CHART_COLORS = ['#FFC629', '#FF6B6B', '#4ECDC4', '#6C5CE7', '#FF9F1C', '#2EC4B6', '#E76F51', '#A78BFA']
+
+function fillRateColor(pct: number): string {
+  if (pct < 40) return '#FF6B6B'
+  if (pct < 75) return '#FFC629'
+  return '#34D399'
+}
+
+function Bars({ data }: { data: BarDatum[] }) {
   if (data.length === 0) return <div className="analytics-empty">No data available</div>
   const max = Math.max(...data.map((d) => d.value), 1)
   const labelStep = Math.max(1, Math.ceil(data.length / 10))
+  const ticks = Array.from({ length: 5 }, (_, i) => (i / 4) * max)
   return (
     <div className="chart-area">
+      <div className="chart-axes">
+        {ticks.map((t) => (
+          <div key={t} className="axis-line" style={{ bottom: `${(t / max) * 100}%` }}>
+            <span className="axis-label">{formatAxisValue(t)}</span>
+          </div>
+        ))}
+      </div>
       {data.map((d, i) => (
         <div
           key={i}
-          className={`bar ${i === data.length - 1 && highlightLast ? 'bar-deep' : colorClass}`}
-          style={{ height: `${Math.max((d.value / max) * 100, 2)}%` }}
+          className="bar"
+          style={{
+            height: `${Math.max((d.value / max) * 100, 2)}%`,
+            backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
+          }}
           title={`${d.label}: ${formatNumber(d.value)}`}
         >
           {i % labelStep === 0 && <span className="bar-label">{d.label}</span>}
         </div>
       ))}
+    </div>
+  )
+}
+
+function formatAxisValue(v: number): string {
+  return v >= 1000 ? `${(v / 1000).toFixed(1).replace(/\.0$/, '')}k` : `${Math.round(v)}`
+}
+
+const PIE_COLORS = ['#FFC629', '#FF6B6B', '#4ECDC4', '#6C5CE7', '#9AA3AB']
+
+function arcPath(cx: number, cy: number, r: number, startDeg: number, endDeg: number): string {
+  const polar = (deg: number) => {
+    const rad = ((deg - 90) * Math.PI) / 180
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }
+  }
+  const start = polar(endDeg)
+  const end = polar(startDeg)
+  const largeArc = endDeg - startDeg > 180 ? 1 : 0
+  return `M ${start.x.toFixed(3)} ${start.y.toFixed(3)} A ${r} ${r} 0 ${largeArc} 0 ${end.x.toFixed(3)} ${end.y.toFixed(3)}`
+}
+
+function PieChart({ data }: { data: { label: string; value: number }[] }) {
+  if (data.length === 0 || data.every((d) => d.value <= 0)) {
+    return <div className="analytics-empty">No sales data yet</div>
+  }
+  const total = data.reduce((s, d) => s + d.value, 0)
+  const CX = 110
+  const CY = 110
+  const R = 78
+  const STROKE = 30
+  let acc = 0
+  return (
+    <div className="pie-wrap">
+      <div className="donut-box">
+        <svg width={220} height={220} viewBox="0 0 220 220" className="donut-svg">
+          {data.map((d, i) => {
+            const start = (acc / total) * 360
+            acc += d.value
+            const end = (acc / total) * 360
+            const isFull = d.value / total >= 0.999
+            return isFull ? (
+              <circle key={i} cx={CX} cy={CY} r={R} fill="none" stroke={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={STROKE} />
+            ) : (
+              <path key={i} d={arcPath(CX, CY, R, start, end)} fill="none" stroke={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={STROKE} />
+            )
+          })}
+        </svg>
+        <div className="donut-center">
+          <p className="donut-center-value">{formatNumber(total)}</p>
+          <p className="donut-center-label">sold</p>
+        </div>
+      </div>
+      <div className="pie-legend">
+        {data.map((d, i) => (
+          <div className="pie-legend-item" key={i}>
+            <span className="pie-dot" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+            <span className="pie-legend-label">{d.label}</span>
+            <span className="pie-legend-value">{formatNumber(d.value)}</span>
+            <span className="pie-legend-pct">{formatNumber((d.value / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -71,13 +152,19 @@ function AnalyticsDrillDown({ event, onBack }: { event: EventComparisonRow; onBa
               <p className="drilldown-kpi-label">Tickets sold</p>
               <p className="drilldown-kpi-value">{formatNumber(summary.kpis.sold.value)} <span className="drilldown-kpi-sub">/ {formatNumber(summary.capacity)}</span></p>
             </div>
-            <div className="drilldown-kpi">
-              <p className="drilldown-kpi-label">Fill rate</p>
-              <p className="drilldown-kpi-value">{formatNumber(fillPct(summary.kpis.sold.value, summary.capacity))}%</p>
-            </div>
-            <div className="drilldown-kpi">
-              <p className="drilldown-kpi-label">Check-in rate</p>
-              <p className="drilldown-kpi-value">{summary.kpis.checkInRate.valuePct != null ? `${formatNumber(summary.kpis.checkInRate.valuePct)}%` : '—'}</p>
+          </div>
+
+          <div className="chart-card">
+            <h3 className="chart-title">Fill Rate</h3>
+            <div className="hbar hbar-lg">
+              <p className="hbar-label">
+                <span>Tickets sold</span>
+                <span>{formatNumber(summary.kpis.sold.value)} / {formatNumber(summary.capacity)}</span>
+              </p>
+              <div className="hbar-track hbar-track--lg">
+                <div className="hbar-fill" style={{ width: `${fillPct(summary.kpis.sold.value, summary.capacity)}%` }}></div>
+                <span className="hbar-pct">{formatNumber(fillPct(summary.kpis.sold.value, summary.capacity))}%</span>
+              </div>
             </div>
           </div>
 
@@ -112,8 +199,6 @@ export default function Analytics() {
   const eventsData = data?.e ?? null
 
   const revenue = kpis?.revenue
-  const ticketsSold = kpis?.ticketsSold
-  const avgTicketPrice = kpis?.avgTicketPrice
 
   const revenueBars: BarDatum[] = (eventsData?.events ?? []).slice(0, 8).map((ev) => ({
     value: ev.revenue,
@@ -125,6 +210,15 @@ export default function Analytics() {
     label: shortDateLabel(p.date),
   }))
 
+  const pieData = (() => {
+    const events = eventsData?.events ?? []
+    const sorted = [...events].sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0))
+    const items = sorted.slice(0, 4).map((ev) => ({ label: truncate(ev.name, 14), value: ev.sold ?? 0 }))
+    const restCount = sorted.slice(4).reduce((s, ev) => s + (ev.sold ?? 0), 0)
+    if (restCount > 0) items.push({ label: 'Other', value: restCount })
+    return items
+  })()
+
   return (
     <main className="wrap">
       <section style={{ padding: '40px 0 0' }}>
@@ -134,9 +228,6 @@ export default function Analytics() {
             <p className="stat-number" style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 64, color: 'var(--yellow)', lineHeight: 0.9, margin: '10px 0 0' }}>
               {revenue ? formatEGP(revenue.value) : '—'}
             </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button className="btn btn-primary">Export report</button>
           </div>
         </div>
       </section>
@@ -162,46 +253,40 @@ export default function Analytics() {
 
           <div className="chart-card">
             <h3 className="chart-title">Ticket Sales</h3>
-            <Bars data={ticketBars} highlightLast />
+            <Bars data={ticketBars} />
           </div>
 
-          <div className="chart-card">
+          <div className="chart-card chart-card--wide">
             <h3 className="chart-title">Event Performance</h3>
             {(eventsData?.events ?? []).length === 0 ? (
               <div className="analytics-empty">No events data yet</div>
             ) : (
-              (eventsData?.events ?? []).slice(0, 8).map((ev, i) => (
-                <div key={ev.eventId ?? i} className="hbar event-row" onClick={() => setSelected(ev)} title="View event analytics">
-                  <p className="hbar-label">
-                    <span>{truncate(ev.name, 22)}</span>
-                    <span>{formatNumber(fillPct(ev.sold, ev.capacity))}%</span>
-                  </p>
-                  <div className="hbar-track">
-                    <div className="hbar-fill" style={{ width: `${fillPct(ev.sold, ev.capacity)}%`, background: 'var(--yellow)' }}></div>
-                  </div>
-                </div>
-              ))
+              <div className="event-list">
+                {(eventsData?.events ?? []).slice(0, 8).map((ev, i) => {
+                  const pct = fillPct(ev.sold, ev.capacity)
+                  return (
+                    <div key={ev.eventId ?? i} className="hbar event-row" onClick={() => setSelected(ev)} title="View event analytics">
+                      <p className="hbar-label">
+                        <span>{truncate(ev.name, 22)}</span>
+                      </p>
+                      <div className="hbar-track">
+                        <div className="hbar-fill" style={{ width: `${pct}%`, backgroundColor: fillRateColor(pct) }}></div>
+                        <span className="hbar-pct">{formatNumber(pct)}%</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             )}
           </div>
 
-          <div className="chart-card">
-            <h3 className="chart-title">Key Metrics</h3>
-            <div className="stat-list">
-              <div className="stat-item"><span>Tickets sold</span><span>{ticketsSold ? formatNumber(ticketsSold.value) : '—'}</span></div>
-              <hr className="stat-divider" />
-              <div className="stat-item"><span>Total capacity</span><span>{ticketsSold ? formatNumber(ticketsSold.capacity) : '—'}</span></div>
-              <hr className="stat-divider" />
-              <div className="stat-item"><span>Avg ticket price</span><span>{avgTicketPrice ? formatEGP(avgTicketPrice.value) : '—'}</span></div>
-              <hr className="stat-divider" />
-              <div className="stat-item"><span>Check-in rate</span><span>{kpis?.checkInRate.valuePct != null ? `${formatNumber(kpis.checkInRate.valuePct)}%` : '—'}</span></div>
-              <hr className="stat-divider" />
-              <div className="stat-item"><span>No-show rate</span><span>{kpis?.checkInRate.noShowPct != null ? `${formatNumber(kpis.checkInRate.noShowPct)}%` : '—'}</span></div>
-              <hr className="stat-divider" />
-              <div className="stat-item"><span>Events tracked</span><span>{eventsData ? formatNumber(eventsData.events.length) : '—'}</span></div>
-            </div>
+          <div className="chart-card chart-card--wide">
+            <h3 className="chart-title">Top Selling Events</h3>
+            <PieChart data={pieData} />
           </div>
         </div>
       )}
+
 
       {!loading && !error && !selected && (eventsData?.events.length ?? 0) === 0 && (
         <p className="analytics-empty">No analytics data yet. Create events and sell tickets to see insights here.</p>

@@ -56,7 +56,7 @@ const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
     { label: 'Events', href: '/org/events' },
     { label: 'Venues', href: '/org/venues' },
     { label: 'Team', href: '/org/team' },
-    { label: 'Analytics', href: '/org/analytics' },
+    { label: 'Statistics', href: '/org/analytics' },
   ],
   ORG_AGENT: [
     { label: 'Events', href: '/org/events' },

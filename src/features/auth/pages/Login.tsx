@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { setTokens } from '../../../shared/auth';
 import LoadingOverlay from '../../../shared/LoadingOverlay';
 import { toast } from '../../../shared/components/display/Toast/Toast';
@@ -14,6 +14,7 @@ import { AuthService } from '../services/auth.service';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { values, errors, handleChange, handleBlur, handleSubmit, loading, error, setError } =
     useAuthForm({
@@ -33,7 +34,8 @@ export default function Login() {
           throw err;
         }
         setTokens(data.access, data.refresh);
-        navigate('/');
+        const from = (location.state as { from?: string } | null)?.from;
+        navigate(from && from !== '/auth/login' ? from : '/');
       },
     });
 

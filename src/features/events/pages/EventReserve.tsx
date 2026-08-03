@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useEvent } from '../hooks/useEvent'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
 import { SeatMapPreview } from '../../../shared/components/seatmap/SeatMapPreview'
@@ -12,6 +12,7 @@ import { toast } from '../../../shared/components/display/Toast/Toast'
 import { loadReservation, saveReservation, clearReservation } from '../../../shared/booking/reservationStorage'
 import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
+import { isAuthenticated } from '../../../shared/auth'
 
 const MAX_TICKETS = 10;
 
@@ -27,6 +28,7 @@ interface SelectedTicket {
 export default function EventReserve() {
   const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { event, loading, error } = useEvent(eventId ?? null)
   const [templateMap, setTemplateMap] = useState<SeatMap | null>(null)
   const [quantities, setQuantities] = useState<Record<string, number>>({})
@@ -175,6 +177,10 @@ export default function EventReserve() {
 
   const proceedToCheckout = async () => {
     if (!canProceed || locking || !event) return
+    if (!isAuthenticated()) {
+      navigate('/auth/login', { state: { from: location.pathname } })
+      return
+    }
     if (totalTickets > MAX_TICKETS) {
       toast(`A maximum of ${MAX_TICKETS} tickets per reservation`, 'error')
       return

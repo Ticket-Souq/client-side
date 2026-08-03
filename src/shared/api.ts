@@ -61,6 +61,7 @@ export const API = {
     organizerByEvent: (eventId: string) => `${BASE_URL}/api/v1/ticket/organizer/${eventId}`,
     reserveOrganizer: `${BASE_URL}/api/v1/ticket/reserve/organizer`,
     updateStatus: (id: string) => `${BASE_URL}/api/v1/ticket/${id}/status`,
+    consume: (id: string) => `${BASE_URL}/api/v1/ticket/${id}/consume`,
   },
   locks: {
     acquireSeats: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/seats`,

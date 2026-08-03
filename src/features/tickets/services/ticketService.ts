@@ -13,3 +13,14 @@ export async function getTicketById(id: string): Promise<TicketResponse | null> 
 export async function getTicketsByReservation(reservationId: string): Promise<TicketResponse[]> {
   return request<TicketResponse[]>(API.tickets.byReservation(reservationId))
 }
+
+export async function consumeTicket(id: string): Promise<TicketResponse> {
+  return request<TicketResponse>(API.tickets.consume(id), { method: 'POST' })
+}
+
+export async function cancelTicket(id: string): Promise<TicketResponse> {
+  return request<TicketResponse>(API.tickets.updateStatus(id), {
+    method: 'PATCH',
+    body: { reservationStatus: 'CANCELLED' },
+  })
+}
