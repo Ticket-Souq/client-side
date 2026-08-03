@@ -12,8 +12,8 @@
   border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
-  background: var(--border, #eae7dc);
-  color: var(--ink, #15150f);
+  background: var(--border);
+  color: var(--ink);
 }
 
 .num {
@@ -22,8 +22,8 @@
 }
 
 .pending {
-  background: var(--yellow-pale, #fff6d9);
-  color: var(--yellow-deep, #e0a600);
+  background: var(--yellow-pale);
+  color: var(--yellow-deep);
 }
 
 .flagged {

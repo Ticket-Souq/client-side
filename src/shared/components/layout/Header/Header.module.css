@@ -2,9 +2,9 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(255,255,255,0.92);
+  background: color-mix(in srgb, var(--white) 92%, transparent);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid #eae7dc;
+  border-bottom: 1px solid var(--border);
 }
 .nav {
   display: flex;
@@ -23,13 +23,13 @@
   font-size: 30px;
   letter-spacing: 0.03em;
   text-decoration: none;
-  color: #15150f;
+  color: var(--ink);
 }
 .dot {
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: #ffc629;
+  background: var(--yellow);
   display: inline-block;
 }
 .links {
@@ -39,14 +39,14 @@
   font-weight: 500;
 }
 .links a {
-  color: #3c3b34;
+  color: var(--ink-soft);
   position: relative;
   padding: 6px 0;
   text-decoration: none;
 }
-.links a:hover { color: #15150f; }
+.links a:hover { color: var(--ink); }
 .active {
-  color: #15150f !important;
+  color: var(--ink) !important;
 }
 .active::after {
   content: '';
@@ -55,7 +55,7 @@
   right: 0;
   bottom: -2px;
   height: 3px;
-  background: #ffc629;
+  background: var(--yellow);
 }
 .searchWrap {
   position: relative;
@@ -65,51 +65,51 @@
 .searchIcon {
   position: absolute;
   left: 12px;
-  color: #726f63;
+  color: var(--text-secondary);
   pointer-events: none;
 }
 .searchInput {
   height: 36px;
-  border: 1px solid #eae7dc;
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0 14px 0 36px;
   font-size: 14px;
   font-family: 'Inter', sans-serif;
-  color: #15150f;
-  background: #fff;
+  color: var(--ink);
+  background: var(--white);
   width: 520px;
   outline: none;
   transition: border-color 0.15s;
 }
-.searchInput:focus { border-color: #ffc629; }
-.searchInput::placeholder { color: #726f63; }
+.searchInput:focus { border-color: var(--yellow); }
+.searchInput::placeholder { color: var(--text-secondary); }
 .myTickets {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3c3b34;
+  color: var(--ink-soft);
   text-decoration: none;
   padding: 4px;
   margin-right: 8px;
 }
-.myTickets:hover { color: #15150f; }
+.myTickets:hover { color: var(--ink); }
 
 .reservationsLink {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3c3b34;
+  color: var(--ink-soft);
   text-decoration: none;
   padding: 4px;
 }
-.reservationsLink:hover { color: #15150f; }
+.reservationsLink:hover { color: var(--ink); }
 .activeReservation {
-  color: var(--yellow, #ffc629);
+  color: var(--yellow);
   animation: reservationZoom 1s ease-in-out infinite;
 }
-.activeReservation:hover { color: var(--yellow, #ffc629); }
+.activeReservation:hover { color: var(--yellow); }
 @keyframes reservationZoom {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.25); }
@@ -123,8 +123,8 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: #fff;
-  border: 1px solid #eae7dc;
+  background: var(--white);
+  border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   overflow: hidden;
@@ -136,30 +136,30 @@
   gap: 14px;
   padding: 14px 16px;
   cursor: pointer;
-  border-bottom: 1px solid #eae7dc;
+  border-bottom: 1px solid var(--border);
   transition: background 0.15s;
 }
 .searchItem:last-child { border-bottom: none; }
-.searchItem:hover { background: #f5f4ef; }
+.searchItem:hover { background: var(--surface-hover); }
 .searchThumb {
   width: 56px;
   height: 56px;
   border-radius: 10px;
   object-fit: cover;
   flex-shrink: 0;
-  background: #efece1;
+  background: var(--surface-muted);
 }
 .searchLoading {
   padding: 24px 16px;
   text-align: center;
   font-size: 13px;
-  color: #726f63;
+  color: var(--text-secondary);
 }
 .searchEmpty {
   padding: 24px 16px;
   text-align: center;
   font-size: 13px;
-  color: #726f63;
+  color: var(--text-secondary);
 }
 .searchInfo {
   display: flex;
@@ -170,14 +170,14 @@
 .searchTitle {
   font-size: 14px;
   font-weight: 600;
-  color: #15150f;
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .searchMeta {
   font-size: 12px;
-  color: #726f63;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -195,14 +195,14 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #3c3b34;
+  color: var(--ink-soft);
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
 }
-.bellBtn:hover { color: #15150f; }
+.bellBtn:hover { color: var(--ink); }
 
 /* Dropdowns shared */
 .dropdown,
@@ -210,9 +210,9 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: #fff;
-  border: 1px solid var(--border, #eae7dc);
-  border-radius: var(--radius, 14px);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   overflow: hidden;
   z-index: 100;
@@ -225,12 +225,12 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 18px 12px;
-  border-bottom: 1px solid var(--border, #eae7dc);
+  border-bottom: 1px solid var(--border);
 }
 .dropdownTitle {
   font-size: 16px;
   font-weight: 700;
-  color: var(--ink, #15150f);
+  color: var(--ink);
 }
 .dropdownList { max-height: 400px; overflow-y: auto; }
 .dropdownItem {
@@ -238,7 +238,7 @@
   gap: 12px;
   padding: 14px 18px;
   align-items: flex-start;
-  border-bottom: 1px solid var(--border, #eae7dc);
+  border-bottom: 1px solid var(--border);
 }
 .dropdownItem:last-child { border-bottom: none; }
 .dropdownContent {
@@ -251,12 +251,12 @@
 .dropdownItemTitle {
   font-size: 14px;
   font-weight: 600;
-  color: var(--ink, #15150f);
+  color: var(--ink);
   margin: 0;
 }
 .dropdownItemPreview {
   font-size: 13px;
-  color: var(--text-secondary, #726f63);
+  color: var(--text-secondary);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -265,12 +265,12 @@
 .dropdownItemTime {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
-  color: var(--text-secondary, #726f63);
+  color: var(--text-secondary);
 }
 .dropdownEmpty {
   text-align: center;
   padding: 32px 16px;
-  color: var(--text-secondary, #726f63);
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -290,7 +290,7 @@
   align-items: center;
   gap: 12px;
   padding: 18px;
-  border-bottom: 1px solid var(--border, #eae7dc);
+  border-bottom: 1px solid var(--border);
 }
 .profileDropdownInfo {
   display: flex;
@@ -300,11 +300,11 @@
 .profileDropdownName {
   font-size: 14px;
   font-weight: 600;
-  color: var(--ink, #15150f);
+  color: var(--ink);
 }
 .profileDropdownEmail {
   font-size: 12px;
-  color: var(--text-secondary, #726f63);
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -323,8 +323,8 @@
   letter-spacing: 0.3px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--color-accent, #ffc629);
-  color: var(--color-text, #15150f);
+  background: var(--color-accent);
+  color: var(--ink-black);
 }
 .profileDropdownActions {
   display: flex;
@@ -337,7 +337,7 @@
   gap: 10px;
   padding: 10px 18px;
   font-size: 14px;
-  color: var(--ink, #15150f);
+  color: var(--ink);
   background: none;
   border: none;
   cursor: pointer;
@@ -345,9 +345,9 @@
   width: 100%;
   text-align: left;
 }
-.profileDropdownItem:hover { background: #f5f5f5; }
-.profileDropdownDanger { color: #dc2626; }
-.profileDropdownDanger:hover { background: #fef2f2; }
+.profileDropdownItem:hover { background: var(--surface-hover); }
+.profileDropdownDanger { color: var(--danger); }
+.profileDropdownDanger:hover { background: var(--danger-soft); }
 
 @media (max-width: 860px) {
   .links { display: none; }

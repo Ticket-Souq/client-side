@@ -100,10 +100,10 @@ export default function Landing() {
                         ) : null}
                         {!event.bannerUrl && (
                           <>
-                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(rgba(255,198,41,0.5), transparent)' }} />
-                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(rgba(255,198,41,0.5), transparent)', left: '22%' }} />
-                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(rgba(255,198,41,0.5), transparent)', left: '58%' }} />
-                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(rgba(255,198,41,0.5), transparent)', left: '81%' }} />
+                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(color-mix(in srgb, var(--yellow) 50%, transparent), transparent)' }} />
+                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(color-mix(in srgb, var(--yellow) 50%, transparent), transparent)', left: '22%' }} />
+                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(color-mix(in srgb, var(--yellow) 50%, transparent), transparent)', left: '58%' }} />
+                            <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(color-mix(in srgb, var(--yellow) 50%, transparent), transparent)', left: '81%' }} />
                           </>
                         )}
                         <div className={styles.ticketMainContent}>
@@ -138,7 +138,7 @@ export default function Landing() {
             <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
               {heroEvents.map((_, i) => (
                 <button key={i} onClick={() => setHeroSlide(i)}
-                  style={{ width: 10, height: 10, borderRadius: '50%', border: 'none', background: i === heroSlide ? '#ffc629' : '#eae7dc', cursor: 'pointer', padding: 0, transition: 'background 0.25s, transform 0.25s', transform: i === heroSlide ? 'scale(1.4)' : 'scale(1)' }}
+                  style={{ width: 10, height: 10, borderRadius: '50%', border: 'none', background: i === heroSlide ? 'var(--yellow)' : 'var(--border)', cursor: 'pointer', padding: 0, transition: 'background 0.25s, transform 0.25s', transform: i === heroSlide ? 'scale(1.4)' : 'scale(1)' }}
                   aria-label={`Go to slide ${i + 1}`} />
               ))}
             </div>

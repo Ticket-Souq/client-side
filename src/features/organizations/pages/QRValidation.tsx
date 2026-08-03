@@ -181,7 +181,7 @@ export default function QRValidation() {
         <div className="scanner-wrap">
           <p className="scanner-label">Scan Ticket</p>
           <div className={`scanner-viewport ${scanning ? 'scanning' : ''}`}>
-            <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--ink)' }} />
+            <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--ink-black)' }} />
             <div className="scanner-overlay">
               <div className="scanner-frame">
                 <div className="scanner-corner tl"></div>
@@ -194,7 +194,7 @@ export default function QRValidation() {
             {scanning && <div className="scanner-status">Scanning…</div>}
             {!scanning && (
               <div className="no-camera" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="no-camera-icon" style={{ width: 64, height: 64, borderRadius: '50%', background: '#f0efe8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>&#128247;</div>
+                <div className="no-camera-icon" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>&#128247;</div>
                 <p className="no-camera-text">{cameraError ?? 'Camera not available. Use manual entry below.'}</p>
               </div>
             )}

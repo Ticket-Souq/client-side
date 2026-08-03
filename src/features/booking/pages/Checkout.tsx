@@ -32,15 +32,15 @@ function TimerBanner({ timeLeft }: { timeLeft: number }) {
       style={{
         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
         padding: "10px 16px", marginBottom: 24, borderRadius: 8,
-        background: timeLeft <= 120 ? "#fef2f2" : timeLeft <= 300 ? "#fffbeb" : "#f0fdf4",
-        border: `1px solid ${timeLeft <= 120 ? "#fecaca" : timeLeft <= 300 ? "#fde68a" : "#bbf7d0"}`,
+        background: timeLeft <= 120 ? "var(--danger-soft)" : timeLeft <= 300 ? "var(--warning-soft)" : "var(--success-soft)",
+        border: `1px solid ${timeLeft <= 120 ? "var(--danger-border)" : timeLeft <= 300 ? "var(--warning-bright)" : "var(--success-bright)"}`,
       }}
     >
-      <span style={{ fontSize: 13, color: "#726f63" }}>Reservation lock</span>
+      <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>Reservation lock</span>
       <span
         style={{
           fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums", letterSpacing: 1,
-          color: timeLeft <= 120 ? "#dc2626" : timeLeft <= 300 ? "#d97706" : "#059669",
+          color: timeLeft <= 120 ? "var(--danger)" : timeLeft <= 300 ? "var(--warning)" : "var(--success)",
         }}
       >
         {formatTimer(timeLeft)}
@@ -129,7 +129,7 @@ export default function Checkout() {
     return (
       <div className="container py-5 text-center">
         <h2>No reservation data found</h2>
-        <p style={{ color: "#726f63", fontSize: 14 }}>Please select your tickets again.</p>
+        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Please select your tickets again.</p>
         <button className="btn btn-accent mt-3" onClick={() => navigate("/")}>
           Browse Events
         </button>
@@ -142,9 +142,9 @@ export default function Checkout() {
       <TimerBanner timeLeft={timeLeft} />
 
       {expired ? (
-        <div style={{ textAlign: "center", padding: 40, background: "#fef2f2", borderRadius: 12, border: "1px solid #fecaca" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#dc2626", margin: "0 0 8px" }}>Session expired</h2>
-          <p style={{ fontSize: 14, color: "#726f63", margin: "0 0 16px" }}>Your reservation time has expired. Please go back and try again.</p>
+        <div style={{ textAlign: "center", padding: 40, background: "var(--danger-soft)", borderRadius: 12, border: "1px solid var(--danger-border)" }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--danger)", margin: "0 0 8px" }}>Session expired</h2>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: "0 0 16px" }}>Your reservation time has expired. Please go back and try again.</p>
           <button className="btn btn-primary" style={{ border: "none", cursor: "pointer" }} onClick={() => navigate(`/events/${eventId}`)}>
             Back to event
           </button>
@@ -198,7 +198,7 @@ export default function Checkout() {
                 <h5 className="fw-bold mb-3" style={{ fontFamily: "var(--font-display)" }}>
                   Payment
                 </h5>
-                <p style={{ fontSize: 13, color: "#726f63", margin: "0 0 16px" }}>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 16px" }}>
                   Confirm your reservation to complete payment. Your tickets will be issued once payment succeeds.
                 </p>
                 {error && (

@@ -240,9 +240,9 @@ export default function EventReserve() {
   if (hasActiveReservation) {
     return (
       <main className="wrap zone-page" style={{ paddingTop: 40 }}>
-        <div style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto', padding: 40, background: '#fffbeb', borderRadius: 12, border: '1px solid #fde68a' }}>
+        <div style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto', padding: 40, background: 'var(--warning-soft)', borderRadius: 12, border: '1px solid var(--warning-bright)' }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Active reservation found</h2>
-          <p style={{ fontSize: 14, color: '#726f63', marginBottom: 20 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20 }}>
             You already have an active reservation. Please complete your payment or cancel it before making a new selection.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
@@ -284,7 +284,7 @@ export default function EventReserve() {
         <p className="section-sub" style={{ margin: '4px 0 0' }}>
           {event.title} &middot; {formatEventDate(event.startDate, event.finishDate)} &middot; {event.location || 'TBD'}
         </p>
-        <p style={{ margin: '8px 0 0', fontSize: 12, color: '#9ca3af' }}>
+        <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)' }}>
           {isZone
             ? 'You can select tickets from only one zone · up to '
             : 'Up to '}
@@ -297,7 +297,7 @@ export default function EventReserve() {
         <div>
           {isZone ? (
             sections.length === 0 ? (
-              <div className="card-white" style={{ padding: 32, textAlign: 'center', color: '#726f63', fontSize: 14 }}>
+              <div className="card-white" style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
                 No sections available
               </div>
             ) : (
@@ -310,7 +310,7 @@ export default function EventReserve() {
                     <div key={section.id} className="card-white" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', opacity: otherDisabled ? 0.45 : 1 }}>
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 600 }}>{section.name}</div>
-                        <div style={{ fontSize: 12, color: '#726f63', marginTop: 2 }}>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
                           {Number(section.price ?? 0) > 0 ? formatPrice(Number(section.price)) : 'Free'}
                           {' · '}{max} available
                         </div>
@@ -321,9 +321,9 @@ export default function EventReserve() {
                           disabled={qty === 0}
                           style={{
                             width: 32, height: 32, borderRadius: 8, border: '1px solid var(--color-border)',
-                            background: qty === 0 ? '#f5f5f0' : '#fff', cursor: qty === 0 ? 'not-allowed' : 'pointer',
+                            background: qty === 0 ? 'var(--surface-hover)' : 'var(--white)', cursor: qty === 0 ? 'not-allowed' : 'pointer',
                             fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: qty === 0 ? '#d1d5db' : '#1f1f1f', fontFamily: 'inherit',
+                            color: qty === 0 ? 'var(--text-secondary)' : 'var(--ink)', fontFamily: 'inherit',
                           }}
                         >–</button>
                         <span style={{ fontSize: 18, fontWeight: 700, minWidth: 28, textAlign: 'center' }}>{qty}</span>
@@ -333,9 +333,9 @@ export default function EventReserve() {
                           title={otherDisabled ? 'Only one zone can be selected' : qty >= MAX_TICKETS ? `Maximum of ${MAX_TICKETS} tickets per reservation` : undefined}
                           style={{
                             width: 32, height: 32, borderRadius: 8, border: '1px solid var(--color-border)',
-                            background: qty >= max || otherDisabled || qty >= MAX_TICKETS ? '#f5f5f0' : '#fff', cursor: qty >= max || otherDisabled || qty >= MAX_TICKETS ? 'not-allowed' : 'pointer',
+                            background: qty >= max || otherDisabled || qty >= MAX_TICKETS ? 'var(--surface-hover)' : 'var(--white)', cursor: qty >= max || otherDisabled || qty >= MAX_TICKETS ? 'not-allowed' : 'pointer',
                             fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: qty >= max || otherDisabled || qty >= MAX_TICKETS ? '#d1d5db' : '#1f1f1f', fontFamily: 'inherit',
+                            color: qty >= max || otherDisabled || qty >= MAX_TICKETS ? 'var(--text-secondary)' : 'var(--ink)', fontFamily: 'inherit',
                           }}
                         >+</button>
                       </div>
@@ -347,14 +347,14 @@ export default function EventReserve() {
           ) : templateMap ? (
             <>
               {selectedSeats.length >= MAX_TICKETS && (
-                <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: '#fffbeb', border: '1px solid #fde68a', fontSize: 12, color: '#92400e' }}>
+                <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--warning-soft)', border: '1px solid var(--warning-bright)', fontSize: 12, color: 'var(--warning)' }}>
                   Maximum of {MAX_TICKETS} seats reached. Deselect a seat to pick another.
                 </div>
               )}
               <SeatMapPreview map={templateMap} reservations={reservations} onSeatSelect={handleSeatSelect} selectedCellIds={selectedCellIds} cellSize={28} cellGap={4} />
             </>
           ) : (
-            <div style={{ padding: 40, textAlign: 'center', color: '#726f63', fontSize: 14 }}>
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
               Loading seat map...
             </div>
           )}
@@ -378,11 +378,11 @@ export default function EventReserve() {
                         {ticket.label} — {allGuests ? `Guest ${i + 1}` : i === 0 ? 'For you' : `Guest ${i}`}
                       </span>
                       {ticket.price > 0 && (
-                        <span style={{ fontSize: 13, color: '#726f63' }}>{formatPrice(ticket.price)}</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{formatPrice(ticket.price)}</span>
                       )}
                     </div>
                     {ticket.sectionName && (
-                      <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{ticket.sectionName}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2 }}>{ticket.sectionName}</div>
                     )}
                     {(allGuests || i > 0) && (
                       <input
@@ -418,7 +418,7 @@ export default function EventReserve() {
               </button>
             </div>
           ) : (
-            <div className="card-white" style={{ padding: 20, color: '#726f63', textAlign: 'center', fontSize: 14 }}>
+            <div className="card-white" style={{ padding: 20, color: 'var(--text-secondary)', textAlign: 'center', fontSize: 14 }}>
               {isZone ? 'Select tickets above' : 'Click on a seat to select it'}
             </div>
           )}

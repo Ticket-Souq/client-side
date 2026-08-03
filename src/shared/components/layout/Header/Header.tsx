@@ -16,6 +16,7 @@ import type { EventCardResponse } from '../../../../features/events/types/event.
 import styles from './Header.module.css'
 import notifStyles from '../../../../features/notifications/notifications.module.css'
 import { TicketIcon } from './TicketIcon'
+import { ThemeToggle } from '../../display/ThemeToggle/ThemeToggle'
 
 function getInitials(name?: string, email?: string): string {
   if (name) {
@@ -233,6 +234,7 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
         </div>
         )}
         <div className={styles.actions}>
+          <ThemeToggle />
           {authed && primaryRole === 'CUSTOMER' && (
             <>
                 <Link
@@ -379,7 +381,7 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
             <button
               onClick={() => navigate('/auth/login')}
               className="btn btn-primary btn-sm fw-semibold px-3 border-0"
-              style={{ fontSize: '13px', background: '#ffc629', color: '#15150f', borderRadius: '999px', height: '36px', cursor: 'pointer' }}
+              style={{ fontSize: '13px', background: 'var(--yellow)', color: 'var(--ink-black)', borderRadius: '999px', height: '36px', cursor: 'pointer' }}
             >
               Sign In
             </button>

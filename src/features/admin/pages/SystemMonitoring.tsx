@@ -83,7 +83,7 @@ export default function SystemMonitoring() {
             <button
               type="button"
               onClick={() => window.open(grafanaUrl, '_blank')}
-              style={{ height: 36, padding: '0 14px', borderRadius: 8, border: '1px solid var(--border, #eae7dc)', background: 'var(--white, #fff)', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+              style={{ height: 36, padding: '0 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--white)', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
             >
               Open Grafana ↗
             </button>
@@ -91,7 +91,7 @@ export default function SystemMonitoring() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid var(--border, #eae7dc)' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -104,8 +104,8 @@ export default function SystemMonitoring() {
               border: 'none',
               background: 'none',
               cursor: 'pointer',
-              color: activeTab === tab.id ? 'var(--ink, #15150f)' : 'var(--text-secondary, #726f63)',
-              borderBottom: activeTab === tab.id ? '2px solid var(--yellow, #ffc629)' : '2px solid transparent',
+              color: activeTab === tab.id ? 'var(--ink)' : 'var(--text-secondary)',
+              borderBottom: activeTab === tab.id ? '2px solid var(--yellow)' : '2px solid transparent',
               marginBottom: '-1px',
               transition: 'color 150ms ease',
             }}
@@ -140,7 +140,7 @@ export default function SystemMonitoring() {
               <button
                 type="button"
                 onClick={() => window.open(`${grafanaUrl}${selected.url}?orgId=1`, '_blank')}
-                style={{ height: 40, padding: '0 14px', borderRadius: 8, border: '1px solid var(--border, #eae7dc)', background: 'var(--white, #fff)', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                style={{ height: 40, padding: '0 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--white)', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 Open in Grafana ↗
               </button>
@@ -161,12 +161,12 @@ export default function SystemMonitoring() {
 
       {activeTab === 'logs' && (
         <div className="card-white" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border, #eae7dc)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>Application Logs (Loki)</span>
             <button
               type="button"
               onClick={() => window.open(`${grafanaUrl}/explore?orgId=1`, '_blank')}
-              style={{ fontSize: 12, color: 'var(--text-secondary, #726f63)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
               Open in Grafana ↗
             </button>
@@ -184,12 +184,12 @@ export default function SystemMonitoring() {
 
       {activeTab === 'traces' && (
         <div className="card-white" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border, #eae7dc)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>Distributed Traces (Tempo)</span>
             <button
               type="button"
               onClick={() => window.open(`${grafanaUrl}/explore?orgId=1`, '_blank')}
-              style={{ fontSize: 12, color: 'var(--text-secondary, #726f63)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
               Open in Grafana ↗
             </button>

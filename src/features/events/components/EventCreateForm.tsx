@@ -364,7 +364,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 value={form.name}
                 onChange={(e) => set('name', e.target.value)}
               />
-              {fieldErrors.name && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.name}</span>}
+              {fieldErrors.name && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:4 }}>{fieldErrors.name}</span>}
             </div>
             <div className="form-group">
               <label className="form-label">Description</label>
@@ -376,7 +376,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 value={form.description}
                 onChange={(e) => set('description', e.target.value)}
               />
-              {fieldErrors.description && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.description}</span>}
+              {fieldErrors.description && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:4 }}>{fieldErrors.description}</span>}
             </div>
             <div className="form-group" style={{ marginBottom: 0, position: 'relative' }} ref={catRef}>
               <label className="form-label">Category</label>
@@ -389,7 +389,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 onChange={(e) => { setCatInput(e.target.value); setCatOpen(true) }}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomCategory() } }}
               />
-              {fieldErrors.category && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.category}</span>}
+              {fieldErrors.category && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:4 }}>{fieldErrors.category}</span>}
               {catOpen && (
                 <div style={{
                   position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
@@ -404,10 +404,10 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                       style={{
                         padding: '10px 16px', cursor: 'pointer', fontSize: 14,
                         fontFamily: "'Inter', sans-serif", color: 'var(--ink)',
-                        background: form.category === c ? 'var(--yellow-pale, #fff6d9)' : 'transparent',
+                        background: form.category === c ? 'var(--yellow-pale)' : 'transparent',
                         transition: 'background 100ms ease',
                       }}
-                      onMouseEnter={(e) => { if (form.category !== c) e.currentTarget.style.background = '#f5f4ef' }}
+                       onMouseEnter={(e) => { if (form.category !== c) e.currentTarget.style.background = 'var(--surface-hover)' }}
                       onMouseLeave={(e) => { if (form.category !== c) e.currentTarget.style.background = 'transparent' }}
                     >
                       {CATEGORY_EMOJI[c] ?? '🏷️'} {c}
@@ -437,7 +437,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                     value={form.startDate}
                     onChange={(e) => set('startDate', e.target.value)}
                   />
-                  {fieldErrors.startDate && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.startDate}</span>}
+                  {fieldErrors.startDate && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:4 }}>{fieldErrors.startDate}</span>}
                 </div>
               <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
                 <label className="form-label">End date &amp; time</label>
@@ -447,7 +447,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                     value={form.endDate}
                     onChange={(e) => set('endDate', e.target.value)}
                   />
-                  {fieldErrors.endDate && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.endDate}</span>}
+                  {fieldErrors.endDate && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:4 }}>{fieldErrors.endDate}</span>}
                 </div>
             </div>
           </div>
@@ -468,7 +468,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'border-color 150ms ease, background 150ms ease',
-                background: '#fafaf7',
+                background: 'var(--surface-soft)',
                 width: 220,
                 minHeight: 280,
                 display: 'flex',
@@ -500,7 +500,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 </>
               )}
             </div>
-            {fieldErrors.poster && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:6, textAlign:'center' }}>{fieldErrors.poster}</span>}
+            {fieldErrors.poster && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:6, textAlign:'center' }}>{fieldErrors.poster}</span>}
           </div>
           <div style={{ flexShrink: 0, width: 220 }}>
             <label className="form-label">Banner image</label>
@@ -519,7 +519,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'border-color 150ms ease, background 150ms ease',
-                background: '#fafaf7',
+                background: 'var(--surface-soft)',
                 width: 220,
                 minHeight: 280,
                 display: 'flex',
@@ -575,7 +575,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
               </option>
             ))}
           </select>
-          {fieldErrors.venueId && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.venueId}</span>}
+          {fieldErrors.venueId && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:4 }}>{fieldErrors.venueId}</span>}
         </div>
 
         {/* Seat-based: template + seat map + category pricing */}
@@ -601,7 +601,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                   )
                 })}
               </select>
-              {fieldErrors.templateId && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.templateId}</span>}
+              {fieldErrors.templateId && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:4 }}>{fieldErrors.templateId}</span>}
             </div>
 
             {/* Seat map preview */}
@@ -612,7 +612,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 ) : seatMap ? (
                   <SeatMapPreview map={seatMap} reservations={reservations} onReserve={(r) => setReservations((prev) => [...prev, r])} onUnreserve={(cellId) => setReservations((prev) => prev.filter((r) => r.cellId !== cellId))} />
                 ) : (
-                  <p style={{ fontSize: 13, color: '#e53e3e' }}>Failed to load seat map</p>
+                  <p style={{ fontSize: 13, color: 'var(--danger)' }}>Failed to load seat map</p>
                 )}
               </div>
                 )}
@@ -623,11 +623,11 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 <label className="form-label">Reserved seats ({reservations.length})</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
                   {reservations.map((r) => (
-                    <div key={r.cellId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 6, background: '#ecfdf5', border: '1px solid #a7f3d0', fontSize: 13 }}>
+                    <div key={r.cellId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 6, background: 'var(--success-soft)', border: '1px solid var(--success-bright)', fontSize: 13 }}>
                       <span>
                         <strong>{r.rowLabel}{r.seatNumber}</strong> &mdash; {r.holderName}
                       </span>
-                      <button type="button" onClick={() => setReservations((prev) => prev.filter((x) => x.cellId !== r.cellId))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 14, fontWeight: 700 }}>&times;</button>
+                      <button type="button" onClick={() => setReservations((prev) => prev.filter((x) => x.cellId !== r.cellId))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 14, fontWeight: 700 }}>&times;</button>
                     </div>
                   ))}
                 </div>
@@ -675,7 +675,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                     ))}
                   </div>
                 </div>
-                {fieldErrors.categoryPrices && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:4 }}>{fieldErrors.categoryPrices}</span>}
+                {fieldErrors.categoryPrices && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:4 }}>{fieldErrors.categoryPrices}</span>}
               </>
             )}
 
@@ -717,7 +717,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
             >
               + Add Zone
             </button>
-            {fieldErrors.zoneSections && <span style={{ display:'block', color:'#dc2626', fontSize:12, marginTop:8 }}>{fieldErrors.zoneSections}</span>}
+            {fieldErrors.zoneSections && <span style={{ display:'block', color:'var(--danger)', fontSize:12, marginTop:8 }}>{fieldErrors.zoneSections}</span>}
           </div>
         )}
       </div>

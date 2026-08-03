@@ -144,8 +144,8 @@ export default function Logs() {
                       fontWeight: 600,
                       fontFamily: "'IBM Plex Mono', monospace",
                       letterSpacing: '0.04em',
-                      background: 'var(--yellow-pale, #fff6d9)',
-                      color: 'var(--yellow-deep, #e0a600)',
+                      background: 'var(--yellow-pale)',
+                      color: 'var(--yellow-deep)',
                     }}>
                       {log.action}
                     </span>

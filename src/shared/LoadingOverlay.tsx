@@ -6,7 +6,7 @@ export default function LoadingOverlay({ message }: { message?: string }) {
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(255, 255, 255, 0.92)",
+        backgroundColor: "color-mix(in srgb, var(--white) 92%, transparent)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

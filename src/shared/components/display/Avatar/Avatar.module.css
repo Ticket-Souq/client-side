@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  background: #15150f;
-  color: #ffffff;
+  background: var(--ink-black);
+  color: var(--on-dark);
   font-family: 'Inter', sans-serif;
 }
 .sm { width: 36px; height: 36px; font-size: 13px; }

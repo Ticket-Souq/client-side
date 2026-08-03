@@ -118,7 +118,7 @@ export default function VenueManagement() {
                         )}
                         <button
                           className="btn btn-ghost btn-sm"
-                          style={{ height: 34, padding: '0 14px', fontSize: 13, color: 'var(--red, #c62828)' }}
+                          style={{ height: 34, padding: '0 14px', fontSize: 13, color: 'var(--red)' }}
                           onClick={() => handleDelete(v.id)}
                         >
                           Delete

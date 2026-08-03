@@ -14,16 +14,16 @@
   animation: toast-in 200ms ease-out;
 }
 .success {
-  background: #16a34a;
-  color: #fff;
+  background: var(--success-bright);
+  color: var(--on-dark);
 }
 .error {
-  background: #dc2626;
-  color: #fff;
+  background: var(--danger);
+  color: var(--on-dark);
 }
 .info {
-  background: #15150f;
-  color: #fff;
+  background: var(--ink-black);
+  color: var(--on-dark);
 }
 
 @keyframes toast-in {

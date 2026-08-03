@@ -419,12 +419,12 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
 
   const bg =
     status === "blocked"
-      ? "#374151"
+      ? "var(--venue-seat-blocked)"
       : status === "reserved"
-        ? "#6b7280"
+        ? "var(--venue-seat-reserved)"
         : status === "sold"
-          ? "#111827"
-          : cat?.color ?? "#334155";
+          ? "var(--venue-seat-sold)"
+          : cat?.color ?? "var(--venue-seat-default)";
 
   const border = selected
     ? "0 0 0 2.5px #ffffff, 0 0 8px 2px rgba(255,255,255,0.35)"

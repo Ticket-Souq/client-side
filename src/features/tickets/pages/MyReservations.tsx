@@ -142,10 +142,10 @@ export default function MyReservations() {
             padding: "12px 16px",
             marginBottom: 24,
             borderRadius: 8,
-            background: "#f0fdf4",
-            border: "1px solid #bbf7d0",
+            background: "var(--success-soft)",
+            border: "1px solid var(--success-bright)",
             fontSize: 14,
-            color: "#059669",
+            color: "var(--success)",
           }}
         >
           Reservation cancelled. Your ticket locks have been released.
@@ -234,7 +234,7 @@ export default function MyReservations() {
           </>
         }
       >
-        <p style={{ fontSize: 14, color: "#726f63", margin: 0 }}>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>
           Cancel this reservation and release your ticket locks?
         </p>
       </Modal>

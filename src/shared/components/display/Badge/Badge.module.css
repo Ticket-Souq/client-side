@@ -12,9 +12,9 @@
   height: 28px;
   white-space: nowrap;
 }
-.yellow { background: #ffc629; color: #15150f; }
-.ink { background: #15150f; color: #ffffff; }
-.soft { background: #f0efe8; color: #726f63; }
+.yellow { background: var(--yellow); color: var(--ink-black); }
+.ink { background: var(--ink-black); color: var(--on-dark); }
+.soft { background: var(--surface-muted); color: var(--text-secondary); }
 .green { background: #e8f5e9; color: #2e7d32; }
 .red { background: #ffebee; color: #c62828; }
 .orange { background: #fff3e0; color: #e65100; }

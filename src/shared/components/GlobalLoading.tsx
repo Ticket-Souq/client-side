@@ -16,7 +16,7 @@ export default function GlobalLoading() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'rgba(255,255,255,0.35)',
+      background: 'color-mix(in srgb, var(--white) 35%, transparent)',
       backdropFilter: 'blur(2px)',
       cursor: 'wait',
     }}>

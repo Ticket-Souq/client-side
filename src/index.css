@@ -2,19 +2,6 @@
 @import './shared/theme.css';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
 
-/* ticketsmarche design tokens */
-:root {
-  --white: #ffffff;
-  --ink: #15150f;
-  --ink-soft: #3c3b34;
-  --text-secondary: #726f63;
-  --border: #eae7dc;
-  --yellow: #ffc629;
-  --yellow-deep: #e0a600;
-  --yellow-pale: #fff6d9;
-  --radius: 14px;
-}
-
 html {
   scroll-behavior: smooth;
 }
@@ -68,16 +55,16 @@ h1, h2, h3, h4, h5, h6 {
 .btn-accent {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
-  color: var(--color-text) !important;
+  color: var(--ink-black) !important;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 .btn-accent:hover {
-  background-color: #c88d0c;
-  border-color: #c88d0c;
-  color: var(--color-text) !important;
+  background-color: var(--accent-btn-hover);
+  border-color: var(--accent-btn-hover);
+  color: var(--ink-black) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(226, 163, 15, 0.35);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 35%, transparent);
 }
 
 .btn-accent:active {
@@ -93,7 +80,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn-outline-accent:hover {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
-  color: var(--color-text) !important;
+  color: var(--ink-black) !important;
 }
 
 /* ───── Cards ───── */
@@ -124,7 +111,7 @@ h1, h2, h3, h4, h5, h6 {
 .nav-bar-shadow {
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.04),
-    0 4px 20px -4px rgba(226, 163, 15, 0.12);
+    0 4px 20px -4px color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .navbar-brand {

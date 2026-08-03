@@ -55,7 +55,7 @@ export default function TicketCardItem({ ticket }: Props) {
     try {
       const dataUrl = await toPng(node, {
         pixelRatio: 2,
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--white)',
         cacheBust: true,
       })
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })

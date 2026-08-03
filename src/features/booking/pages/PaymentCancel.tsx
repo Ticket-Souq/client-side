@@ -12,7 +12,7 @@ export default function PaymentCancel() {
 
   return (
     <div className="container py-5 text-center" style={{ maxWidth: "500px" }}>
-      <XCircle size={64} style={{ color: "#dc3545" }} className="mb-3" />
+      <XCircle size={64} style={{ color: "var(--danger)" }} className="mb-3" />
       <h2
         className="fw-bold mb-2"
         style={{ fontFamily: "var(--font-display)" }}

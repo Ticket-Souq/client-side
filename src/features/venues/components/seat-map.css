@@ -1,38 +1,8 @@
-/* ───── Venue design tokens (light theme, matches theme.css) ───── */
+/* ───── Venue design tokens are defined in theme.css (:root + dark block).
+   These declarations only apply the font + base text color. ───── */
 .venue-app {
-  --venue-bg: #F7F7F7;
-  --venue-surface: #FFFFFF;
-  --venue-surface-raised: #F0F0F0;
-  --venue-border: #E8E8E8;
-  --venue-border-subtle: #F0F0F0;
-  --venue-text: #1F1F1F;
-  --venue-text-secondary: #6F6F6F;
-  --venue-text-muted: #9A9A9A;
-
-  /* primary: indigo — actions, toggles, focus rings */
-  --venue-primary: #6366f1;
-  --venue-primary-hover: #4f46e5;
-  --venue-primary-dim: rgba(99, 102, 241, 0.08);
-
-  /* accent: warm gold — selection, highlights (matches --color-accent from theme.css) */
-  --venue-accent: #e2a30f;
-  --venue-accent-dim: rgba(226, 163, 15, 0.08);
-
-  /* positive: emerald — available, success */
-  --venue-positive: #059669;
-  --venue-positive-dim: rgba(5, 150, 105, 0.08);
-
-  /* danger: red — delete, blocked */
-  --venue-danger: #dc2626;
-  --venue-danger-dim: rgba(220, 38, 38, 0.06);
-
-  /* neutral seat colors */
-  --venue-reserved: #9CA3AF;
-  --venue-blocked: #D1D5DB;
-  --venue-sold: #374151;
-
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: var(--venue-text);
+  color: var(--venue-text, #1f1f1f);
 }
 
 /* ───── Background colors ───── */
@@ -40,8 +10,8 @@
 .venue-app .bg-venue-900 { background-color: var(--venue-surface); }
 .venue-app .bg-venue-800 { background-color: var(--venue-surface-raised); }
 .venue-app .bg-venue-700 { background-color: var(--venue-border); }
-.venue-app .bg-venue-900\/80 { background-color: rgba(255, 255, 255, 0.8); }
-.venue-app .bg-venue-900\/95 { background-color: rgba(255, 255, 255, 0.95); }
+.venue-app .bg-venue-900\/80 { background-color: var(--venue-glass-80); }
+.venue-app .bg-venue-900\/95 { background-color: var(--venue-glass-95); }
 .venue-app .bg-primary { background-color: var(--venue-primary); }
 .venue-app .bg-primary-hover { background-color: var(--venue-primary-hover); }
 .venue-app .bg-transparent { background-color: transparent; }
@@ -56,7 +26,7 @@
 
 /* ───── Text colors ───── */
 .venue-app .text-venue-100 { color: var(--venue-text); }
-.venue-app .text-venue-200 { color: #3F3F46; }
+.venue-app .text-venue-200 { color: var(--venue-text-200, #3F3F46); }
 .venue-app .text-venue-300 { color: var(--venue-text-secondary); }
 .venue-app .text-venue-400 { color: var(--venue-text-muted); }
 .venue-app .text-venue-500 { color: #B0B0B0; }
@@ -66,15 +36,15 @@
 .venue-app .text-primary { color: var(--venue-primary); }
 .venue-app .text-primary-light { color: var(--venue-primary-hover); }
 .venue-app .text-accent { color: var(--venue-accent); }
-.venue-app .text-accent-light { color: #C88D0C; }
+.venue-app .text-accent-light { color: var(--venue-accent-light); }
 .venue-app .text-positive { color: var(--venue-positive); }
-.venue-app .text-positive-light { color: #047857; }
+.venue-app .text-positive-light { color: var(--venue-positive-light); }
 .venue-app .text-danger { color: var(--venue-danger); }
 .venue-app .text-sky { color: #0284c7; }
 
 /* hover text variants */
 .venue-app .hover\:text-danger:hover { color: var(--venue-danger); }
-.venue-app .hover\:text-venue-200:hover { color: #3F3F46; }
+.venue-app .hover\:text-venue-200:hover { color: var(--venue-text-200, #3F3F46); }
 
 /* ───── Border ───── */
 .venue-app .border { border-width: 1px; border-style: solid; border-color: currentColor; }

@@ -5,5 +5,5 @@
 }
 
 .error {
-  color: #c62828;
+  color: var(--danger-deep);
 }

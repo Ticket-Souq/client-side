@@ -42,7 +42,7 @@ export default function CustomerEventDetail() {
     <main className="wrap detail-page">
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
         {bannerSrc && (
-          <div style={{ width: '100%', height: 420, overflow: 'hidden', background: '#15150f', borderRadius: 20, marginTop: 24 }}>
+          <div style={{ width: '100%', height: 420, overflow: 'hidden', background: 'var(--ink-black)', borderRadius: 20, marginTop: 24 }}>
             <img
               src={bannerSrc}
               alt={event.title}
@@ -101,10 +101,10 @@ export default function CustomerEventDetail() {
                   <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 8px' }}>Sections & Pricing</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {[...event.sections].sort((a, b) => Number(a.price ?? 0) - Number(b.price ?? 0)).map((s) => (
-                      <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#fafaf7', borderRadius: 8 }}>
+                      <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--surface-soft)', borderRadius: 8 }}>
                         <div>
                           <div style={{ fontWeight: 600, fontSize: 13 }}>{s.name}</div>
-                          <div style={{ fontSize: 11, color: '#726f63' }}>{s.remainingCapacity ?? s.capacity} / {s.capacity} available</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{s.remainingCapacity ?? s.capacity} / {s.capacity} available</div>
                         </div>
                         <div style={{ fontWeight: 700, fontSize: 14 }}>{Number(s.price) > 0 ? `${formatPrice(Number(s.price))}` : 'Free'}</div>
                       </div>

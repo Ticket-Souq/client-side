@@ -1,6 +1,7 @@
 import React from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import type { QRCodeProps } from '../../types'
+import { theme } from '../../../theme'
 import styles from './QRCode.module.css'
 
 const DEFAULT_LOGO = '/Logo.png'
@@ -17,8 +18,8 @@ export const QRCode: React.FC<QRCodeProps> = ({ value, size = 250, logo = DEFAUL
         size={size}
         level="H"
         marginSize = {4}
-        fgColor="#15150f"
-        bgColor="#ffffff"
+        fgColor={theme.text}
+        bgColor={theme.surface}
         title={value}
       />
       {logo && (

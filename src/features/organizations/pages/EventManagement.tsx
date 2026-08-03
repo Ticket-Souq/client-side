@@ -573,7 +573,7 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
         <div className="modal-overlay" onClick={() => setReserveVenuePendingCell(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700 }}>Reserve seat</h3>
-            <p style={{ margin: '0 0 14px', fontSize: 13, color: '#6b7280' }}>
+            <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-secondary)' }}>
               Seat <strong>{reserveVenuePendingCell.rowLabel}{reserveVenuePendingCell.seatNumber}</strong> &mdash; enter holder name
             </p>
             <input
@@ -583,7 +583,7 @@ function EventExpandedDetails({ event, cardView, onRefresh }: { event: EventFull
               value={reserveVenueName}
               onChange={(e) => setReserveVenueName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') confirmVenueReserve() }}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, boxSizing: 'border-box', marginBottom: 14 }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, boxSizing: 'border-box', marginBottom: 14 }}
             />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button className="btn btn-ghost btn-sm" onClick={() => setReserveVenuePendingCell(null)}>Cancel</button>
@@ -638,7 +638,7 @@ function EventCard({ event, isExpanded, onToggle, onRefresh }: {
             src={API.base + (isExpanded && event.bannerUrl ? event.bannerUrl : event.PosterUrl)}
             alt={event.title}
             onClick={onToggle}
-            style={{ width: '100%', maxHeight: isExpanded ? 480 : 280, objectFit: 'contain', display: 'block', background: '#f5f5f0', cursor: 'pointer' }}
+            style={{ width: '100%', maxHeight: isExpanded ? 480 : 280, objectFit: 'contain', display: 'block', background: 'var(--surface-hover)', cursor: 'pointer' }}
           />
         ) : (
           <div onClick={onToggle} style={{ width: '100%', aspectRatio: '2/3', background: 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 14, maxHeight: 280, cursor: 'pointer' }}>

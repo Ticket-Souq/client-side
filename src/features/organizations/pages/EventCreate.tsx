@@ -21,7 +21,7 @@ export default function EventCreate() {
       </div>
 
       {error && (
-        <div style={{ padding: '12px 16px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, marginBottom: 20, fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#991b1b' }}>
+        <div style={{ padding: '12px 16px', background: 'var(--danger-soft)', border: '1px solid var(--danger-border)', borderRadius: 14, marginBottom: 20, fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--danger)' }}>
           {error}
         </div>
       )}
