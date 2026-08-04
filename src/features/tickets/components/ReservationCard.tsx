@@ -1,7 +1,6 @@
 import { memo } from 'react'
 import { Button } from '../../../shared/components'
-import TicketStatusBadge from './TicketStatusBadge'
-import { deriveGroupDisplayStatus, type DisplayStatus, type TicketGroup } from '../types/ticket.types'
+import { type TicketGroup } from '../types/ticket.types'
 import { formatDateTime, formatPrice } from '../../../shared/format'
 import styles from '../styles/tickets.module.css'
 
@@ -13,7 +12,7 @@ interface Props {
 function ReservationCard({ group, onViewTickets }: Props) {
   const ticketCount = group.tickets.length
   const totalPrice = group.tickets.reduce((sum, t) => sum + t.price, 0)
-  const status: DisplayStatus = deriveGroupDisplayStatus(group.tickets)
+
 
   return (
     <div className={styles.resCard}>
@@ -26,7 +25,6 @@ function ReservationCard({ group, onViewTickets }: Props) {
           <div className={styles.resSummary}>
             <span className={styles.resSeats}>{ticketCount} {ticketCount === 1 ? 'ticket' : 'tickets'}</span>
             <span className={styles.resTotal}>{formatPrice(totalPrice)}</span>
-            <TicketStatusBadge status={status} />
           </div>
         </div>
         <div className={styles.resAction}>

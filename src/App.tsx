@@ -40,6 +40,9 @@ import SystemMonitoring from './features/admin/pages/SystemMonitoring'
 
 import { ErrorPage } from './shared/components/display/ErrorPage/ErrorPage'
 
+import AboutUs from './features/site/pages/AboutUs'
+import ContactUs from './features/site/pages/ContactUs'
+
 function App() {
     return (
         <>
@@ -90,6 +93,10 @@ function App() {
                 <Route path=":eventId" element={<CustomerEventDetail/>}/>
                 <Route path=":eventId/reserve" element={<EventReserve/>}/>
             </Route>
+
+            {/* Public site pages */}
+            <Route path="about" element={<AboutUs/>}/>
+            <Route path="contact" element={<ContactUs/>}/>
 
             {/* Organization */}
             <Route path="org" element={<OrganizerLayout/>}>
