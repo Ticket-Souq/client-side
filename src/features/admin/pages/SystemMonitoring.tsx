@@ -7,7 +7,6 @@ const TABS = [
   { id: 'metrics', label: 'Metrics' },
   { id: 'logs', label: 'Logs' },
   { id: 'traces', label: 'Traces' },
-  { id: 'profiling', label: 'Profiling' },
 ] as const
 
 type TabId = typeof TABS[number]['id']
@@ -22,39 +21,58 @@ interface GrafanaDashboard {
   url: string
 }
 
+// Provisioned dashboards, used as a fallback when the Grafana API can't be
+// reached from the browser (cross-origin requests are blocked).
+const FALLBACK_DASHBOARDS: GrafanaDashboard[] = [
+  { uid: 'continuous-profiling', title: 'Continuous Profiling', url: '/d/continuous-profiling/continuous-profiling' },
+  { uid: 'prometheus-spring-boot', title: 'Prometheus Spring Boot', url: '/d/prometheus-spring-boot/prometheus-spring-boot' },
+  { uid: 'loki-logs', title: 'Loki Logs', url: '/d/loki-logs/loki-logs' },
+  { uid: 'network-containers', title: 'Network & Containers', url: '/d/network-containers/network-containers' },
+  { uid: 'postgresql-databases', title: 'PostgreSQL Databases', url: '/d/postgresql-databases/postgresql-databases' },
+  { uid: 'kafka-overview', title: 'Kafka Overview', url: '/d/kafka-overview/kafka-overview' },
+  { uid: 'redis-overview', title: 'Redis Overview', url: '/d/redis-overview/redis-overview' },
+]
+
 export default function SystemMonitoring() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboards')
   const [grafanaUrl, setGrafanaUrl] = useState(GRAFANA_URL)
   const [urlInput, setUrlInput] = useState(GRAFANA_URL)
   const [dashboards, setDashboards] = useState<GrafanaDashboard[]>([])
   const [selectedDash, setSelectedDash] = useState<string | null>(null)
-  const [loadingDashboards, setLoadingDashboards] = useState(false)
-
-  const fetchDashboards = async (base: string) => {
-    setLoadingDashboards(true)
-    try {
-      const res = await fetch(`${base}/api/search?type=dash-db`)
-      if (res.ok) {
-        const data: GrafanaDashboard[] = await res.json()
-        setDashboards(data)
-        if (data.length > 0 && !selectedDash) {
-          setSelectedDash(data[0].uid)
-        }
-      }
-    } catch {
-      setDashboards([])
-    } finally {
-      setLoadingDashboards(false)
-    }
-  }
+  const [loadingDashboards, setLoadingDashboards] = useState(true)
 
   useEffect(() => {
-    fetchDashboards(grafanaUrl)
+    let cancelled = false
+    const loadDashboards = async () => {
+      let list: GrafanaDashboard[] = FALLBACK_DASHBOARDS
+      try {
+        const res = await fetch(`${grafanaUrl}/api/search?type=dash-db`)
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data) && data.length > 0) {
+            list = data
+          }
+        }
+      } catch {
+        list = FALLBACK_DASHBOARDS
+      }
+      if (cancelled) return
+      setDashboards(list)
+      if (list.length > 0) {
+        setSelectedDash((prev) => (prev && list.some((d) => d.uid === prev) ? prev : list[0].uid))
+      }
+      setLoadingDashboards(false)
+    }
+    loadDashboards()
+    return () => {
+      cancelled = true
+    }
   }, [grafanaUrl])
 
   const handleUrlSave = () => {
     const trimmed = urlInput.trim().replace(/\/+$/, '')
     if (trimmed) {
+      setLoadingDashboards(true)
       setGrafanaUrl(trimmed)
       setSelectedDash(null)
     }
@@ -64,8 +82,6 @@ export default function SystemMonitoring() {
   const dashboardUrl = selected
     ? `${grafanaUrl}${selected.url}?orgId=1&from=now-1h&to=now&kiosk`
     : `${grafanaUrl}?orgId=1&from=now-1h&to=now&kiosk`
-
-  const profilingUrl = `${grafanaUrl}/d/continuous-profiling/continuous-profiling?orgId=1&from=now-1h&to=now&kiosk`
 
   return (
     <div className="wrap oversight-page">
@@ -232,38 +248,6 @@ export default function SystemMonitoring() {
             frameBorder="0"
             style={{ display: 'block' }}
             title="Grafana Traces"
-          />
-        </div>
-      )}
-
-      {activeTab === 'profiling' && (
-        <div className="card-white" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Continuous Profiling (Pyroscope)</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button
-                type="button"
-                onClick={() => window.open(exploreUrl(grafanaUrl, 'Pyroscope'), '_blank')}
-                style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                Explore profiles ↗
-              </button>
-              <button
-                type="button"
-                onClick={() => window.open(profilingUrl.replace('&kiosk', ''), '_blank')}
-                style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                Open in Grafana ↗
-              </button>
-            </div>
-          </div>
-          <iframe
-            src={profilingUrl}
-            width="100%"
-            height={2000}
-            frameBorder="0"
-            style={{ display: 'block' }}
-            title="Grafana Pyroscope"
           />
         </div>
       )}
