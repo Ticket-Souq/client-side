@@ -292,7 +292,7 @@ export default function EventReserve() {
         </p>
       </section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 32, alignItems: 'start' }}>
+      <div className="events-zone-grid">
         {/* Left: seat map or zone sections */}
         <div>
           {isZone ? (
@@ -361,7 +361,7 @@ export default function EventReserve() {
         </div>
 
         {/* Right: selection panel */}
-        <div style={{ position: 'sticky', top: 100 }}>
+        <div className="events-side-stack">
           {totalTickets > 0 ? (
             <div className="card-white" style={{ padding: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

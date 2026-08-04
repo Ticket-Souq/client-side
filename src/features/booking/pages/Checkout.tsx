@@ -150,7 +150,7 @@ export default function Checkout() {
           </button>
         </div>
       ) : (
-        <div className="container">
+        <div className="container-fluid px-0">
           <div className="row justify-content-center g-4">
             <div className="col-lg-5">
               <div

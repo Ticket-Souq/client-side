@@ -353,8 +353,8 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
       {/* Section 1: Basic Information */}
       <div className="form-section">
         <h2 className="form-section-title">Basic Information</h2>
-        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div className="form-group">
               <label className="form-label">Event name</label>
               <input
@@ -428,7 +428,7 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
                 </div>
               )}
             </div>
-            <div style={{ display: 'flex', gap: 20 }}>
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
               <div className="form-group" style={{ flex: 1 }}>
                 <label className="form-label">Start date &amp; time</label>
                   <input
@@ -688,8 +688,8 @@ export function EventCreateForm({ onSubmit, loading }: Props) {
             <label className="form-label">Zones</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
               {zoneSections.map((z, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px 40px', gap: 10, alignItems: 'end' }}>
-                  <div>
+                <div key={i} className="zone-builder-row">
+                  <div className="zone-builder-name">
                     {i === 0 && <label className="form-label" style={{ fontSize: 12 }}>Zone Name</label>}
                     <input type="text" className="form-input" placeholder="e.g. VIP" value={z.name} onChange={(e) => setZoneSections((prev) => prev.map((s, j) => j === i ? { ...s, name: e.target.value } : s))} style={{ height: 42 }} />
                   </div>

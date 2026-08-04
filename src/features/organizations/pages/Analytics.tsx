@@ -225,7 +225,7 @@ export default function Analytics() {
         <div className="summary-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <p className="hero-rev-label">Total revenue</p>
-            <p className="stat-number" style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 64, color: 'var(--yellow)', lineHeight: 0.9, margin: '10px 0 0' }}>
+            <p className="stat-number" style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(40px, 12vw, 64px)', color: 'var(--yellow)', lineHeight: 0.9, margin: '10px 0 0' }}>
               {revenue ? formatEGP(revenue.value) : '—'}
             </p>
           </div>

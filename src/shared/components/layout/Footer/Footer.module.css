@@ -66,3 +66,9 @@
   .cols { gap: 36px; flex-wrap: wrap; }
   .grid, .bottom { padding: 0 24px; }
 }
+@media (max-width: 480px) {
+  .footer { padding: 40px 0; }
+  .cols { flex-direction: column; gap: 24px; }
+  .grid, .bottom { padding: 0 16px; }
+  .bottom { flex-direction: column; gap: 6px; }
+}

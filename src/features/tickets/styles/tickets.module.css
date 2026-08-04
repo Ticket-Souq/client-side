@@ -335,6 +335,7 @@
 
   .resAction {
     align-self: stretch;
+    flex-direction: column;
   }
 
   .resAction button,

@@ -22,7 +22,7 @@ export default function PaymentCancel() {
       <p className="text-secondary-custom mb-4">
         Your payment was not processed. No charges have been made.
       </p>
-      <div className="d-flex gap-3 justify-content-center">
+      <div className="d-flex gap-3 justify-content-center flex-wrap">
         <button
           className="btn btn-accent px-4"
           onClick={() => navigate("/customer/booking/checkout", { state })}

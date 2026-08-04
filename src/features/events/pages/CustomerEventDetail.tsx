@@ -40,9 +40,9 @@ export default function CustomerEventDetail() {
 
   return (
     <main className="wrap detail-page">
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         {bannerSrc && (
-          <div style={{ width: '100%', height: 420, overflow: 'hidden', background: 'var(--ink-black)', borderRadius: 20, marginTop: 24 }}>
+          <div style={{ width: '100%', height: 'clamp(220px, 42vw, 420px)', overflow: 'hidden', background: 'var(--ink-black)', borderRadius: 20, marginTop: 24 }}>
             <img
               src={bannerSrc}
               alt={event.title}
@@ -51,7 +51,7 @@ export default function CustomerEventDetail() {
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 32, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 32, marginBottom: 24, flexWrap: 'wrap' }}>
           <button
             onClick={() => navigate('/')}
             className="btn btn-ghost btn-sm"
@@ -59,10 +59,10 @@ export default function CustomerEventDetail() {
           >
             &larr; Back
           </button>
-          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>{event.title}</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, minWidth: 0, flex: 1, overflowWrap: 'anywhere' }}>{event.title}</h1>
         </div>
 
-        <div className="detail-grid" style={{ gridTemplateColumns: '1fr 320px' }}>
+        <div className="detail-grid">
           <div className="detail-content">
             {event.description && (
               <section className="card-white">
@@ -95,7 +95,7 @@ export default function CustomerEventDetail() {
           </div>
 
           <div className="detail-sidebar">
-            <section className="card-white" style={{ position: 'sticky', top: 100 }}>
+            <section className="card-white">
               {event.sections && event.sections.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 8px' }}>Sections & Pricing</h3>

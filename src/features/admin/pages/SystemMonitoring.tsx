@@ -4,11 +4,17 @@ const GRAFANA_URL = import.meta.env.VITE_GRAFANA_URL || 'http://localhost:3000'
 
 const TABS = [
   { id: 'dashboards', label: 'Dashboards' },
+  { id: 'metrics', label: 'Metrics' },
   { id: 'logs', label: 'Logs' },
   { id: 'traces', label: 'Traces' },
+  { id: 'profiling', label: 'Profiling' },
 ] as const
 
 type TabId = typeof TABS[number]['id']
+
+function exploreUrl(base: string, datasource: string): string {
+  return `${base}/explore?orgId=1&left=${encodeURIComponent(JSON.stringify({ datasource }))}`
+}
 
 interface GrafanaDashboard {
   uid: string
@@ -59,8 +65,10 @@ export default function SystemMonitoring() {
     ? `${grafanaUrl}${selected.url}?orgId=1&from=now-1h&to=now&kiosk`
     : `${grafanaUrl}?orgId=1&from=now-1h&to=now&kiosk`
 
+  const profilingUrl = `${grafanaUrl}/d/continuous-profiling/continuous-profiling?orgId=1&from=now-1h&to=now&kiosk`
+
   return (
-    <div className="wrap oversight-page" style={{ padding: '36px 0' }}>
+    <div className="wrap oversight-page">
       <div className="page-head">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
           <div>
@@ -91,7 +99,7 @@ export default function SystemMonitoring() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -128,7 +136,7 @@ export default function SystemMonitoring() {
                 className="form-select"
                 value={selectedDash || ''}
                 onChange={(e) => setSelectedDash(e.target.value || null)}
-                style={{ height: 40, fontSize: 14, minWidth: 300 }}
+                style={{ height: 40, fontSize: 14, flex: '1 1 240px', minWidth: 0, maxWidth: 480 }}
               >
                 {dashboards.length === 0 && <option value="">No dashboards found</option>}
                 {dashboards.map(d => (
@@ -159,20 +167,43 @@ export default function SystemMonitoring() {
         </div>
       )}
 
-      {activeTab === 'logs' && (
+      {activeTab === 'metrics' && (
         <div className="card-white" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Application Logs (Loki)</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Metrics (Prometheus)</span>
             <button
               type="button"
-              onClick={() => window.open(`${grafanaUrl}/explore?orgId=1`, '_blank')}
+              onClick={() => window.open(exploreUrl(grafanaUrl, 'Prometheus'), '_blank')}
               style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
               Open in Grafana ↗
             </button>
           </div>
           <iframe
-            src={`${grafanaUrl}/explore?orgId=1`}
+            src={exploreUrl(grafanaUrl, 'Prometheus')}
+            width="100%"
+            height={2000}
+            frameBorder="0"
+            style={{ display: 'block' }}
+            title="Grafana Metrics"
+          />
+        </div>
+      )}
+
+      {activeTab === 'logs' && (
+        <div className="card-white" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Application Logs (Loki)</span>
+            <button
+              type="button"
+              onClick={() => window.open(exploreUrl(grafanaUrl, 'Loki'), '_blank')}
+              style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              Open in Grafana ↗
+            </button>
+          </div>
+          <iframe
+            src={exploreUrl(grafanaUrl, 'Loki')}
             width="100%"
             height={2000}
             frameBorder="0"
@@ -188,19 +219,51 @@ export default function SystemMonitoring() {
             <span style={{ fontSize: 14, fontWeight: 600 }}>Distributed Traces (Tempo)</span>
             <button
               type="button"
-              onClick={() => window.open(`${grafanaUrl}/explore?orgId=1`, '_blank')}
+              onClick={() => window.open(exploreUrl(grafanaUrl, 'Tempo'), '_blank')}
               style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
               Open in Grafana ↗
             </button>
           </div>
           <iframe
-            src={`${grafanaUrl}/explore?orgId=1`}
+            src={exploreUrl(grafanaUrl, 'Tempo')}
             width="100%"
             height={2000}
             frameBorder="0"
             style={{ display: 'block' }}
             title="Grafana Traces"
+          />
+        </div>
+      )}
+
+      {activeTab === 'profiling' && (
+        <div className="card-white" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Continuous Profiling (Pyroscope)</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => window.open(exploreUrl(grafanaUrl, 'Pyroscope'), '_blank')}
+                style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                Explore profiles ↗
+              </button>
+              <button
+                type="button"
+                onClick={() => window.open(profilingUrl.replace('&kiosk', ''), '_blank')}
+                style={{ fontSize: 12, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                Open in Grafana ↗
+              </button>
+            </div>
+          </div>
+          <iframe
+            src={profilingUrl}
+            width="100%"
+            height={2000}
+            frameBorder="0"
+            style={{ display: 'block' }}
+            title="Grafana Pyroscope"
           />
         </div>
       )}

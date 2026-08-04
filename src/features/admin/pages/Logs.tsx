@@ -51,7 +51,7 @@ export default function Logs() {
   const hasFilters = actionFilter || madeByFilter || (fromDate && toDate)
 
   return (
-    <div className="wrap oversight-page" style={{ padding: '36px 0' }}>
+    <div className="wrap oversight-page">
       <PageHeader
         title="Audit Logs"
         subtitle="Track all admin and system actions across the platform."
@@ -77,7 +77,7 @@ export default function Logs() {
             placeholder="Search by email…"
             value={madeByFilter}
             onChange={(e) => setMadeByFilter(e.target.value)}
-            style={{ height: 40, fontSize: 14, minWidth: 260 }}
+            style={{ height: 40, fontSize: 14 }}
           />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

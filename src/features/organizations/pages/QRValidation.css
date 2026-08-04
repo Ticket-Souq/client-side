@@ -1,4 +1,4 @@
-.page-title-row{display:flex;align-items:center;justify-content:space-between;padding:41px 0 5px;}
+.page-title-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:41px 0 5px;}
 .page-title-row .section-title{margin:0;}
 .section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 

@@ -74,3 +74,11 @@
   .event-list{grid-template-columns:1fr;}
   .pie-wrap{justify-content:center;}
 }
+
+@media (max-width:640px){
+  .chart-grid{grid-template-columns:1fr;}
+  .drilldown-kpis{grid-template-columns:1fr;}
+  .drilldown-header{flex-wrap:wrap;gap:12px;}
+  .chart-card{padding:20px;}
+  .chart-area{height:240px;}
+}

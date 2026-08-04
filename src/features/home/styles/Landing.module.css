@@ -182,6 +182,7 @@
   line-height: 0.95;
   margin: 0 0 14px;
   max-width: 560px;
+  overflow-wrap: break-word;
 }
 
 .ticketMeta {
@@ -580,18 +581,46 @@
 @media (max-width: 860px) {
   .ticketCard {
     grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .ticketArt {
+    min-height: 300px;
   }
 
   .ticketStub {
     border-top: 2px dashed rgba(255, 255, 255, 0.22);
+    padding: 24px 22px;
   }
 
   .ticketStub::before {
     display: none;
   }
 
+  .stubNotchBottom {
+    top: -14px;
+    bottom: auto;
+    left: auto;
+    right: -14px;
+  }
+
+  .ticketMainContent {
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+  }
+
   .ticketTitle {
     font-size: 44px;
+  }
+
+  .ticketMeta {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .heroSection {
+    padding: 40px 0 56px;
   }
 
   .navLinks {
@@ -602,6 +631,10 @@
     padding: 0 20px;
   }
 
+  .rowTitle {
+    font-size: 20px;
+  }
+
   .footCols {
     gap: 36px;
     flex-wrap: wrap;
@@ -610,6 +643,77 @@
   .footBottom {
     padding-left: 20px;
     padding-right: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSection {
+    padding: 28px 0 40px;
+  }
+
+  .heroEyebrow {
+    font-size: 11px;
+    margin-bottom: 16px;
+  }
+
+  .ticketArt {
+    min-height: 240px;
+  }
+
+  .ticketMainContent {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+  }
+
+  .ticketTag {
+    font-size: 10px;
+    padding: 4px 10px;
+    margin-bottom: 12px;
+  }
+
+  .ticketTitle {
+    font-size: clamp(26px, 9vw, 34px);
+    margin-bottom: 10px;
+  }
+
+  .ticketMeta {
+    font-size: 12px;
+    gap: 12px;
+  }
+
+  .ticketStub {
+    padding: 20px 18px;
+  }
+
+  .stubValue {
+    font-size: 14px;
+  }
+
+  .stubPrice {
+    font-size: 32px;
+  }
+
+  .wrap {
+    padding: 0 16px;
+  }
+
+  .rowSection {
+    padding: 28px 0;
+  }
+
+  .rowTitle {
+    font-size: 18px;
+  }
+
+  .ecard {
+    flex: 0 0 180px;
+    height: 300px;
+  }
+
+  .corner {
+    width: 30px;
+    height: 30px;
   }
 }
 

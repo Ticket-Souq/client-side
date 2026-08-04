@@ -1339,6 +1339,14 @@
 .search-bar .btn { flex-shrink: 0; }
 
 /* ───── Form Sections (create-event) ───── */
+.zone-builder-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px 40px;
+  gap: 10px;
+  align-items: end;
+}
+.zone-builder-name { min-width: 0; }
+
 .form-section {
   background: var(--white);
   border: 1px solid var(--border);
@@ -2100,3 +2108,38 @@
 .mgmt-card-close:hover{background:rgba(0,0,0,0.12);}
 @media(max-width:960px){.mgmt-card-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:600px){.mgmt-card-grid{grid-template-columns:1fr;}}
+
+/* Admin oversight pages — vertical padding only, keeps .wrap horizontal inset */
+.oversight-page {
+  padding-top: 36px;
+  padding-bottom: 36px;
+}
+
+/* ═══════════════════════════════════════════════════
+   Responsive pass — phone tier (shared across pages)
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px; }
+
+  .page-head,
+  .page-title-row,
+  .events-page-title-row,
+  .detail-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .page-head-actions { width: 100%; }
+
+  .form-section { padding: 20px; }
+
+  .event-row-card .detail-grid { grid-template-columns: 1fr; }
+  .action-row { flex-wrap: wrap; }
+
+  .zone-builder-row {
+    grid-template-columns: 1fr 1fr 40px;
+  }
+  .zone-builder-name { grid-column: 1 / -1; }
+
+  .filter-bar .form-input,
+  .filter-bar .form-select { width: 100%; min-width: 0; }
+}

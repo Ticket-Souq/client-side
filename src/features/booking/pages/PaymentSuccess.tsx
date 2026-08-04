@@ -46,7 +46,7 @@ export default function PaymentSuccess() {
       >
         {formatPrice(total)}
       </p>
-      <div className="d-flex gap-3 justify-content-center">
+      <div className="d-flex gap-3 justify-content-center flex-wrap">
         <button
           className="btn btn-accent px-4"
           onClick={() => navigate("/customer/tickets")}

@@ -7,9 +7,11 @@
   border-bottom: 1px solid var(--border);
 }
 .nav {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   height: 84px;
   max-width: 1320px;
   margin: 0 auto;
@@ -77,7 +79,7 @@
   font-family: 'Inter', sans-serif;
   color: var(--ink);
   background: var(--white);
-  width: 520px;
+  width: min(520px, 30vw);
   outline: none;
   transition: border-color 0.15s;
 }
@@ -189,6 +191,60 @@
   gap: 20px;
 }
 
+/* Hamburger */
+.menuBtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink);
+  padding: 4px;
+  border-radius: 8px;
+  margin-left: auto;
+}
+.menuBtn:hover { color: var(--text-secondary); }
+
+/* Mobile nav panel */
+.mobileMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 16px 32px -12px rgba(0, 0, 0, 0.18);
+  padding: 8px 24px 16px;
+  display: flex;
+  flex-direction: column;
+  z-index: 90;
+}
+.mobileMenu a {
+  display: block;
+  padding: 14px 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+.mobileMenu a:last-child { border-bottom: none; }
+.mobileMenu a:hover { color: var(--ink); }
+.mobileMenu a.active { color: var(--ink); font-weight: 600; }
+.mobileMenu a.active::after { display: none; }
+
+/* Account icons row inside the mobile menu */
+.menuAccount {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 4px 14px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
 /* Bell */
 .bellWrapper { position: relative; }
 .bellBtn {
@@ -219,7 +275,7 @@
 }
 
 /* Notifications dropdown */
-.dropdown { width: 380px; max-height: 480px; }
+.dropdown { width: min(380px, calc(100vw - 24px)); max-height: 480px; }
 .dropdownHeader {
   display: flex;
   align-items: center;
@@ -349,7 +405,35 @@
 .profileDropdownDanger { color: var(--danger); }
 .profileDropdownDanger:hover { background: var(--danger-soft); }
 
+@media (max-width: 1100px) {
+  .searchInput { width: min(420px, 34vw); }
+  .actions { gap: 14px; }
+}
+
 @media (max-width: 860px) {
   .links { display: none; }
+  .menuBtn { display: inline-flex; }
   .nav { padding: 0 24px; }
+  .searchWrap { flex: 1; min-width: 0; }
+  .searchInput { width: 100%; }
+
+  .mobileMenu .dropdown { max-height: min(60vh, 480px); }
+  .mobileMenu .profileDropdown { max-height: min(60vh, 480px); overflow-y: auto; }
+}
+
+@media (max-width: 640px) {
+  .nav { height: 64px; padding: 0 16px; gap: 12px; }
+  .logo { flex-shrink: 0; }
+  .searchWrap { flex: 1; min-width: 0; }
+  .actions { gap: 8px; }
+  .myTickets { margin-right: 0; }
+  .myTickets svg, .reservationsLink svg { width: 30px; height: auto; }
+  .bellBtn svg { width: 26px; height: 26px; }
+  .mobileMenu { padding-left: 16px; padding-right: 16px; }
+}
+
+@media (max-width: 480px) {
+  .brandName { display: none; }
+  .mobileMenu a { padding: 12px 4px; font-size: 14px; }
+  .menuAccount { gap: 8px; padding: 10px 4px 12px; }
 }

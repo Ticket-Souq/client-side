@@ -106,7 +106,7 @@ export default function OrganizationsManagement() {
   }
 
   return (
-    <div className="wrap oversight-page" style={{ padding: '36px 0' }}>
+    <div className="wrap oversight-page">
       <PageHeader
         title="Organization Management"
         subtitle="Review, approve, and manage all event organizer accounts."
@@ -129,7 +129,6 @@ export default function OrganizationsManagement() {
           placeholder="Search organizations…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ minWidth: 260 }}
         />
         <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option>All statuses</option>

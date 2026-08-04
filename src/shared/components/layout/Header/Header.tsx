@@ -82,6 +82,8 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [isMobileNav, setIsMobileNav] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 860px)').matches)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<EventCardResponse[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
@@ -91,6 +93,8 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const notifRef = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const menuBtnRef = useRef<HTMLButtonElement>(null)
   const [deactivateLoading, setDeactivateLoading] = useState(false)
   const { confirm, dialog } = useConfirm()
   const { notifications, loading, markRead, markAllRead } = useNotifications()
@@ -121,15 +125,28 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
   }, [searchQuery])
 
   useEffect(() => {
-    if (!notifOpen && !profileOpen && !searchOpen) return
+    if (location.pathname) setMenuOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 860px)')
+    const onChange = () => setIsMobileNav(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  useEffect(() => {
+    if (!notifOpen && !profileOpen && !searchOpen && !menuOpen) return
     const handleClickOutside = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false)
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false)
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false)
+      const isMenuBtnClick = menuBtnRef.current && menuBtnRef.current.contains(e.target as Node)
+      if (!isMenuBtnClick && menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [notifOpen, profileOpen, searchOpen])
+  }, [notifOpen, profileOpen, searchOpen, menuOpen])
 
   const handleMarkRead = useCallback((id: string) => {
     markRead(id)
@@ -158,12 +175,134 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
     setDeactivateLoading(false)
   }, [navigate, confirm])
 
+  const mobileMenuMode = isMobileNav
+  const menuLinks = navLinks.length > 0
+    ? navLinks
+    : authed && primaryRole === 'CUSTOMER'
+      ? [
+          { label: 'My Tickets', href: '/customer/tickets' },
+          { label: 'My Reservations', href: '/customer/reservations' },
+        ]
+      : []
+
+  const renderAccountIcons = (inMenu: boolean) => (
+    <>
+      {/* Notifications bell */}
+      <div className={styles.bellWrapper} ref={notifRef}>
+        <button
+          className={styles.bellBtn}
+          onClick={() => { setNotifOpen((o) => !o); setProfileOpen(false); if (!inMenu) setMenuOpen(false) }}
+          aria-label="Notifications"
+        >
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          {unreadCount > 0 && <span className={notifStyles.badge}>{unreadCount}</span>}
+        </button>
+        {notifOpen && (
+          <div className={styles.dropdown}>
+            <div className={styles.dropdownHeader}>
+              <span className={styles.dropdownTitle}>Notifications</span>
+              {unreadCount > 0 && (
+                <button className="btn btn-ghost btn-sm" onClick={handleMarkAllRead}>
+                  Mark all read
+                </button>
+              )}
+            </div>
+            <div className={styles.dropdownList}>
+              {loading && <div className={styles.dropdownEmpty}>Loading...</div>}
+              {!loading && notifications.length === 0 && (
+                <div className={styles.dropdownEmpty}>No notifications</div>
+              )}
+              {!loading && notifications.map((n) => (
+                <div key={n.id} className={styles.dropdownItem}>
+                  <span className={`${notifStyles.dot} ${n.read ? notifStyles.dotRead : notifStyles.dotUnread}`} />
+                  <div className={styles.dropdownContent}>
+                    <p className={styles.dropdownItemTitle}>{n.title}</p>
+                    <p className={styles.dropdownItemPreview}>{n.preview}</p>
+                    <span className={styles.dropdownItemTime}>{n.timeAgo}</span>
+                  </div>
+                  {!n.read && (
+                    <button className="btn btn-ghost btn-sm" onClick={() => handleMarkRead(n.id)}>
+                      Read
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Profile dropdown */}
+      <div className={styles.profileWrapper} ref={profileRef}>
+        <button
+          className={styles.profileBtn}
+          onClick={() => { setProfileOpen((o) => !o); setNotifOpen(false); if (!inMenu) setMenuOpen(false) }}
+          aria-label="Profile"
+        >
+          <Avatar initials={initials} size="sm" />
+        </button>
+        {profileOpen && (
+          <div className={styles.profileDropdown}>
+            <div className={styles.profileDropdownHeader}>
+              <Avatar initials={initials} size="md" />
+              <div className={styles.profileDropdownInfo}>
+                <span className={styles.profileDropdownName}>{name || email.split('@')[0]}</span>
+                <span className={styles.profileDropdownEmail}>{email}</span>
+                {roles.length > 0 && (
+                  <div className={styles.profileDropdownRoles}>
+                    {roles.map(r => (
+                      <span key={r} className={styles.profileDropdownRole}>{roleDisplay(r)}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className={styles.profileDropdownActions}>
+              <a href="/auth/change-password" className={styles.profileDropdownItem}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Change password
+              </a>
+              <button className={styles.profileDropdownItem} onClick={handleLogout}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+              </button>
+              {!hasUserRole('ORG_AGENT') && !hasUserRole('ORG_CONSUMER') && (
+                <button
+                  className={`${styles.profileDropdownItem} ${styles.profileDropdownDanger}`}
+                  onClick={handleDeactivate}
+                  disabled={deactivateLoading}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="6" y2="18" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                  {deactivateLoading ? 'Deactivating...' : 'Deactivate account'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  )
+
   return (
     <header className={styles.header}>
       <div className={styles.nav}>
         <Link to="/" className={styles.logo}>
           <img src="/Logo.png" alt="" style={{ height: 28, width: 'auto' }} />
-          {BRAND_NAME.toUpperCase()}
+          <span className={styles.brandName}>{BRAND_NAME.toUpperCase()}</span>
         </Link>
         <nav className={styles.links}>
           {navLinks.map((link) => (
@@ -233,8 +372,57 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
           )}
         </div>
         )}
+        {mobileMenuMode && (
+          <button
+            ref={menuBtnRef}
+            className={styles.menuBtn}
+            onClick={() => { setMenuOpen((o) => !o); setNotifOpen(false); setProfileOpen(false) }}
+            aria-label="Menu"
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
+          </button>
+        )}
+        {menuOpen && mobileMenuMode && (
+          <div className={styles.mobileMenu} ref={menuRef}>
+            <div className={styles.menuAccount}>
+              <ThemeToggle />
+              {authed ? renderAccountIcons(true) : (
+                <button
+                  onClick={() => navigate('/auth/login')}
+                  className="btn btn-primary btn-sm fw-semibold px-3 border-0"
+                  style={{ fontSize: '13px', background: 'var(--yellow)', color: 'var(--ink-black)', borderRadius: '999px', height: '36px', cursor: 'pointer' }}
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
+            {menuLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={location.pathname === link.href ? styles.active : ''}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        )}
         <div className={styles.actions}>
-          <ThemeToggle />
+          {!mobileMenuMode && (
+            <>
+              <ThemeToggle />
           {authed && primaryRole === 'CUSTOMER' && (
             <>
                 <Link
@@ -267,124 +455,16 @@ export const Header: React.FC<HeaderProps> = ({ links }) => {
               </Link>
             </>
           )}
-          {authed ? (
-            <>
-              {/* Notifications bell */}
-              <div className={styles.bellWrapper} ref={notifRef}>
+              {authed ? renderAccountIcons(false) : (
                 <button
-                  className={styles.bellBtn}
-                  onClick={() => { setNotifOpen((o) => !o); setProfileOpen(false) }}
-                  aria-label="Notifications"
+                  onClick={() => navigate('/auth/login')}
+                  className="btn btn-primary btn-sm fw-semibold px-3 border-0"
+                  style={{ fontSize: '13px', background: 'var(--yellow)', color: 'var(--ink-black)', borderRadius: '999px', height: '36px', cursor: 'pointer' }}
                 >
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
-                  {unreadCount > 0 && <span className={notifStyles.badge}>{unreadCount}</span>}
+                  Sign In
                 </button>
-                {notifOpen && (
-                  <div className={styles.dropdown}>
-                    <div className={styles.dropdownHeader}>
-                      <span className={styles.dropdownTitle}>Notifications</span>
-                      {unreadCount > 0 && (
-                        <button className="btn btn-ghost btn-sm" onClick={handleMarkAllRead}>
-                          Mark all read
-                        </button>
-                      )}
-                    </div>
-                    <div className={styles.dropdownList}>
-                      {loading && <div className={styles.dropdownEmpty}>Loading...</div>}
-                      {!loading && notifications.length === 0 && (
-                        <div className={styles.dropdownEmpty}>No notifications</div>
-                      )}
-                      {!loading && notifications.map((n) => (
-                        <div key={n.id} className={styles.dropdownItem}>
-                          <span className={`${notifStyles.dot} ${n.read ? notifStyles.dotRead : notifStyles.dotUnread}`} />
-                          <div className={styles.dropdownContent}>
-                            <p className={styles.dropdownItemTitle}>{n.title}</p>
-                            <p className={styles.dropdownItemPreview}>{n.preview}</p>
-                            <span className={styles.dropdownItemTime}>{n.timeAgo}</span>
-                          </div>
-                          {!n.read && (
-                            <button className="btn btn-ghost btn-sm" onClick={() => handleMarkRead(n.id)}>
-                              Read
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Profile dropdown */}
-              <div className={styles.profileWrapper} ref={profileRef}>
-                <button
-                  className={styles.profileBtn}
-                  onClick={() => { setProfileOpen((o) => !o); setNotifOpen(false) }}
-                  aria-label="Profile"
-                >
-                  <Avatar initials={initials} size="sm" />
-                </button>
-                {profileOpen && (
-                  <div className={styles.profileDropdown}>
-                    <div className={styles.profileDropdownHeader}>
-                      <Avatar initials={initials} size="md" />
-                      <div className={styles.profileDropdownInfo}>
-                        <span className={styles.profileDropdownName}>{name || email.split('@')[0]}</span>
-                        <span className={styles.profileDropdownEmail}>{email}</span>
-                        {roles.length > 0 && (
-                          <div className={styles.profileDropdownRoles}>
-                            {roles.map(r => (
-                              <span key={r} className={styles.profileDropdownRole}>{roleDisplay(r)}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className={styles.profileDropdownActions}>
-                      <a href="/auth/change-password" className={styles.profileDropdownItem}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                        Change password
-                      </a>
-                      <button className={styles.profileDropdownItem} onClick={handleLogout}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                          <polyline points="16 17 21 12 16 7" />
-                          <line x1="21" y1="12" x2="9" y2="12" />
-                        </svg>
-                        Logout
-                      </button>
-                      {!hasUserRole('ORG_AGENT') && !hasUserRole('ORG_CONSUMER') && (
-                        <button
-                          className={`${styles.profileDropdownItem} ${styles.profileDropdownDanger}`}
-                          onClick={handleDeactivate}
-                          disabled={deactivateLoading}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="15" y1="9" x2="9" y2="15" />
-                            <line x1="9" y1="9" x2="15" y2="15" />
-                          </svg>
-                          {deactivateLoading ? 'Deactivating...' : 'Deactivate account'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
             </>
-          ) : (
-            <button
-              onClick={() => navigate('/auth/login')}
-              className="btn btn-primary btn-sm fw-semibold px-3 border-0"
-              style={{ fontSize: '13px', background: 'var(--yellow)', color: 'var(--ink-black)', borderRadius: '999px', height: '36px', cursor: 'pointer' }}
-            >
-              Sign In
-            </button>
           )}
         </div>
       </div>
