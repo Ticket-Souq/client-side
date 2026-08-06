@@ -1,0 +1,47 @@
+.ribbon {
+  position: absolute;
+  z-index: 3;
+  top: 22px;
+  width: 160px;
+  padding: 5px 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  user-select: none;
+}
+
+.left {
+  left: -50px;
+  transform: rotate(-45deg);
+}
+
+.right {
+  right: -50px;
+  transform: rotate(45deg);
+}
+
+.green {
+  background: #16a34a;
+}
+
+.blue {
+  background: #3b82f6;
+}
+
+.red {
+  background: #dc2626;
+}
+
+.gray {
+  background: #6b7280;
+}
+
+.yellow {
+  background: #e0a600;
+}

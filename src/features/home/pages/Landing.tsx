@@ -8,6 +8,7 @@ import type { EventCardResponse } from '../../events/types/event.types'
 import { formatDate } from '../../../shared/format'
 import { useFetch } from '../../../shared/hooks/useFetch'
 import { EmptyState } from '../../../shared/components/display/StateViews/StateViews'
+import { EventStatusRibbon } from '../../../shared/components/display/EventStatusRibbon/EventStatusRibbon'
 import styles from '../styles/Landing.module.css'
 
 function getNext7DaysBounds() {
@@ -46,9 +47,10 @@ export default function Landing() {
 
   const { heroEvents, categoryMap } = useMemo(() => {
     const { start, end } = getNext7DaysBounds()
+    const published = events.filter((ev) => ev.status === 'PUBLISHED')
     const inWindow: EventCardResponse[] = []
     const rest: EventCardResponse[] = []
-    for (const ev of events) {
+    for (const ev of published) {
       if (isInRange(ev.startDate, start, end)) {
         inWindow.push(ev)
       } else {
@@ -90,6 +92,7 @@ export default function Landing() {
                 {heroEvents.map((event) => (
                   <div key={event.id} className={styles.tapeSlide}>
                     <div className={styles.ticketCard} style={{ cursor: 'pointer' }} onClick={() => navigate(`/events/${event.id}`)}>
+                      <EventStatusRibbon status={event.status} />
                       <div className={styles.ticketArt} style={event.bannerUrl ? { background: 'none' } : {}}>
                         {event.bannerUrl ? (
                           <img
@@ -160,6 +163,7 @@ export default function Landing() {
                   ) : (
                     <div className={`${styles.art} ${artClass(catEvents.indexOf(event))}`} />
                   )}
+                  <EventStatusRibbon status={event.status} />
                   <span className={styles.corner}>{formatMonth(event.startDate)}</span>
                   <div className={styles.overlay}>
                     <p className={styles.evTitle}>{event.title}</p>

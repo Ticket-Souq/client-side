@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { releaseLocks, beginReservation } from "../../events/services/lockApi";
 import { formatPrice } from "../../../shared/format";
 import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
+import { createPortal } from "react-dom";
 
 interface TicketState {
   key: string;
@@ -76,6 +77,8 @@ export default function Checkout() {
   const reservationId = state?.reservationId ?? reservation?.reservationId ?? null;
   const [timeLeft, setTimeLeft] = useState(reservation?.initialSec ?? 600);
   const [processing, setProcessing] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmKind, setConfirmKind] = useState<"pay" | "cancel" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const releasedRef = useRef(false);
   const completedRef = useRef(false);
@@ -100,8 +103,14 @@ export default function Checkout() {
     releaseOnce(reservationId);
   }, [reservationId, timeLeft, releaseOnce]);
 
-  const handlePay = async () => {
+  const handlePay = () => {
     if (processing || expired || !reservationId || completedRef.current) return;
+    setConfirmKind("pay");
+  };
+
+  const confirmPay = async () => {
+    if (processing || expired || !reservationId || completedRef.current) return;
+    setConfirmKind(null);
     setProcessing(true);
     setError(null);
 
@@ -123,6 +132,19 @@ export default function Checkout() {
     completedRef.current = true;
     clearReservation();
     navigate("/customer/reservations");
+  };
+
+  const handleCancelReservation = () => {
+    if (!reservationId || processing || cancelling || completedRef.current) return;
+    setConfirmKind("cancel");
+  };
+
+  const confirmCancelReservation = () => {
+    if (!reservationId) return;
+    setConfirmKind(null);
+    setCancelling(true);
+    releaseOnce(reservationId);
+    navigate(`/events/${eventId}`);
   };
 
   if (!tickets.length || !eventId || !bookingModel || !reservationId) {
@@ -215,10 +237,64 @@ export default function Checkout() {
                 >
                   {processing ? "Processing payment…" : `Pay ${formatPrice(total)}`}
                 </button>
+                <button
+                  type="button"
+                  className="btn btn-danger w-100 py-2 mt-2"
+                  disabled={processing || cancelling}
+                  onClick={handleCancelReservation}
+                  style={{ fontSize: "14px" }}
+                >
+                  {cancelling ? "Cancelling…" : "Cancel reservation"}
+                </button>
               </div>
             </div>
           </div>
         </div>
+      )}
+      {confirmKind && createPortal(
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+          onClick={() => setConfirmKind(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "var(--white)", borderRadius: 16, padding: 28, maxWidth: 460, width: "100%", boxSizing: "border-box", boxShadow: "0 12px 40px rgba(0,0,0,0.25)" }}
+          >
+            {confirmKind === "pay" ? (
+              <>
+                <h2 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 12px" }}>Confirm payment</h2>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: "var(--text-secondary)" }}>
+                  You are about to pay <strong>{formatPrice(total)}</strong> for {tickets.length} ticket{tickets.length > 1 ? "s" : ""}.{" "}
+                  <strong>You will not be able to refund these tickets</strong> once the payment is completed.
+                </p>
+                <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 24 }}>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmKind(null)}>
+                    Go back
+                  </button>
+                  <button type="button" className="btn btn-accent btn-sm" onClick={confirmPay}>
+                    Pay {formatPrice(total)}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 12px" }}>Cancel reservation</h2>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: "var(--text-secondary)" }}>
+                  Cancel this reservation? Your selected seats will be released so you can make a new selection.
+                </p>
+                <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 24 }}>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmKind(null)}>
+                    Keep reservation
+                  </button>
+                  <button type="button" className="btn btn-danger btn-sm" onClick={confirmCancelReservation}>
+                    Cancel reservation
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>,
+        document.body,
       )}
     </main>
   );

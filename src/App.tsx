@@ -37,6 +37,7 @@ import QRValidation from './features/organizations/pages/QRValidation'
 import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
+import AdminEventsManagement from './features/admin/pages/EventsManagement'
 
 import { ErrorPage } from './shared/components/display/ErrorPage/ErrorPage'
 
@@ -113,6 +114,7 @@ function App() {
             {/* Admin */}
             <Route path="admin" element={<AdminLayout/>}>
                 <Route index element={<Navigate to="organizations" replace/>}/>
+                <Route path="events" element={<AdminEventsManagement/>}/>
                 <Route path="monitoring" element={<SystemMonitoring/>}/>
                 <Route path="logs" element={<Logs/>}/>
                 <Route path="organizations" element={<OrganizationsManagement/>}/>
