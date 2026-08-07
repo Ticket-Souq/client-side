@@ -154,14 +154,6 @@
 .beam:nth-child(2) { left: 58%; }
 .beam:nth-child(3) { left: 81%; }
 
-.ticketMainContent {
-  position: absolute;
-  left: 40px;
-  right: 40px;
-  bottom: 36px;
-  color: var(--on-dark);
-}
-
 .ticketTag {
   display: inline-block;
   font-family: 'IBM Plex Mono', monospace;
@@ -178,16 +170,17 @@
 
 .ticketTitle {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 64px;
-  line-height: 0.95;
+  font-size: 34px;
+  line-height: 1.02;
   margin: 0 0 14px;
-  max-width: 560px;
+  max-width: 100%;
   overflow-wrap: break-word;
 }
 
 .ticketMeta {
   display: flex;
-  gap: 28px;
+  flex-direction: column;
+  gap: 8px;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.75);
@@ -236,35 +229,13 @@
   bottom: -14px;
 }
 
-.stubRow {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stubLabel {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.stubValue {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.stubPrice {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 40px;
-  color: var(--yellow);
-  margin: 0;
-}
-
 .stubCta {
   width: 100%;
   margin-top: 8px;
+}
+
+.stubContent {
+  min-width: 0;
 }
 
 .rowSection {
@@ -604,19 +575,12 @@
     right: -14px;
   }
 
-  .ticketMainContent {
-    left: 24px;
-    right: 24px;
-    bottom: 24px;
-  }
-
   .ticketTitle {
     font-size: 44px;
   }
 
   .ticketMeta {
-    flex-wrap: wrap;
-    gap: 16px;
+    gap: 8px;
   }
 
   .heroSection {
@@ -660,12 +624,6 @@
     min-height: 240px;
   }
 
-  .ticketMainContent {
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
-  }
-
   .ticketTag {
     font-size: 10px;
     padding: 4px 10px;
@@ -679,19 +637,11 @@
 
   .ticketMeta {
     font-size: 12px;
-    gap: 12px;
+    gap: 8px;
   }
 
   .ticketStub {
     padding: 20px 18px;
-  }
-
-  .stubValue {
-    font-size: 14px;
-  }
-
-  .stubPrice {
-    font-size: 32px;
   }
 
   .wrap {

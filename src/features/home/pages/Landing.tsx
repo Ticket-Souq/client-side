@@ -109,24 +109,16 @@ export default function Landing() {
                             <div className={styles.beam} style={{ position: 'absolute', width: 2, top: 0, bottom: 0, background: 'linear-gradient(color-mix(in srgb, var(--yellow) 50%, transparent), transparent)', left: '81%' }} />
                           </>
                         )}
-                        <div className={styles.ticketMainContent}>
+                      </div>
+                      <div className={styles.ticketStub}>
+                        <span className={`${styles.stubNotch} ${styles.stubNotchTop}`} />
+                        <div className={styles.stubContent}>
                           <span className={styles.ticketTag}>{event.categoryName || event.category || 'Event'}</span>
                           <h1 className={styles.ticketTitle}>{event.title}</h1>
                           <div className={styles.ticketMeta}>
                             <span>{formatDate(event.startDate)}</span>
                             <span>{event.location || event.venueName || 'TBD'}</span>
                           </div>
-                        </div>
-                      </div>
-                      <div className={styles.ticketStub}>
-                        <span className={`${styles.stubNotch} ${styles.stubNotchTop}`} />
-                        <div className={styles.stubRow}>
-                          <span className={styles.stubLabel}>Category</span>
-                          <span className={styles.stubValue}>{event.categoryName || event.category || 'General'}</span>
-                        </div>
-                        <div className={styles.stubRow}>
-                          <span className={styles.stubLabel}>Location</span>
-                          <span className={styles.stubValue}>{event.location || event.venueName || 'TBD'}</span>
                         </div>
                         <button className={`${styles.btn} ${styles.btnPrimary} ${styles.stubCta}`}>View Details</button>
                         <span className={`${styles.stubNotch} ${styles.stubNotchBottom}`} />

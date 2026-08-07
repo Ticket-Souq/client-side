@@ -15,6 +15,14 @@ function exploreUrl(base: string, datasource: string): string {
   return `${base}/explore?orgId=1&left=${encodeURIComponent(JSON.stringify({ datasource }))}`
 }
 
+function dashUrl(base: string, url: string): string {
+  const sub = new URL(base, window.location.origin).pathname.replace(/\/+$/, '')
+  if (sub && sub !== '/' && url.startsWith(sub)) {
+    return url
+  }
+  return `${base}${url}`
+}
+
 interface GrafanaDashboard {
   uid: string
   title: string
@@ -80,7 +88,7 @@ export default function SystemMonitoring() {
 
   const selected = dashboards.find(d => d.uid === selectedDash)
   const dashboardUrl = selected
-    ? `${grafanaUrl}${selected.url}?orgId=1&from=now-1h&to=now&kiosk`
+    ? `${dashUrl(grafanaUrl, selected.url)}?orgId=1&from=now-1h&to=now&kiosk`
     : `${grafanaUrl}?orgId=1&from=now-1h&to=now&kiosk`
 
   return (
@@ -163,7 +171,7 @@ export default function SystemMonitoring() {
             {selected && (
               <button
                 type="button"
-                onClick={() => window.open(`${grafanaUrl}${selected.url}?orgId=1`, '_blank')}
+                onClick={() => window.open(`${dashUrl(grafanaUrl, selected.url)}?orgId=1`, '_blank')}
                 style={{ height: 40, padding: '0 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--white)', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 Open in Grafana ↗
