@@ -1,15 +1,15 @@
 import { Mail, Phone, MapPin, Clock } from 'lucide-react'
 import { LayoutShell } from '../../../shared/components/layout/LayoutShell'
 import { Button } from '../../../shared/components'
-import { BRAND_NAME } from '../../../shared/constants'
+import { BRAND_NAME, SUPPORT_EMAIL } from '../../../shared/constants'
 import styles from '../styles/site.module.css'
 
 const CONTACTS = [
   {
     icon: <Mail size={20} />,
     title: 'Email',
-    value: 'support@ticketsouq.com',
-    href: 'mailto:support@ticketsouq.com',
+    value: SUPPORT_EMAIL,
+    href: `mailto:${SUPPORT_EMAIL}`,
   },
   {
     icon: <Phone size={20} />,
@@ -61,7 +61,7 @@ export default function ContactUs() {
         </section>
 
         <div className={styles.ctaRow}>
-          <Button variant="primary" href="mailto:support@ticketsouq.com">
+          <Button variant="primary" href={`mailto:${SUPPORT_EMAIL}`}>
             Email {BRAND_NAME} Support
           </Button>
         </div>

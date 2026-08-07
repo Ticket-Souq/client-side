@@ -11,10 +11,15 @@ RUN npm ci
 # Copy the rest of the source
 COPY . .
 
-# Allow overriding the API base URL at build time
-# (falls back to the value baked into .env.production)
+# Allow overriding build-time vars (fall back to the values in .env)
 ARG VITE_API_URL
+ARG VITE_GRAFANA_URL
+ARG VITE_BRAND_NAME
+ARG VITE_SUPPORT_EMAIL
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_GRAFANA_URL=$VITE_GRAFANA_URL
+ENV VITE_BRAND_NAME=$VITE_BRAND_NAME
+ENV VITE_SUPPORT_EMAIL=$VITE_SUPPORT_EMAIL
 
 RUN npm run build
 

@@ -1,4 +1,5 @@
 import { LayoutShell } from '../../../shared/components/layout/LayoutShell'
+import { BRAND_NAME } from '../../../shared/constants'
 import styles from '../styles/site.module.css'
 
 interface TeamMember {
@@ -58,7 +59,7 @@ export default function AboutUs() {
       <main className={`${styles.wrap} ${styles.page}`}>
         <section className={styles.head}>
           <p className={styles.eyebrow}>About us</p>
-          <h1 className={styles.title}>The people behind TicketSouq</h1>
+          <h1 className={styles.title}>The people behind {BRAND_NAME}</h1>
           <p className={styles.sub}>
             We are a team of six engineers building Egypt&apos;s event ticketing platform.
             Hover over a card to find each member on LinkedIn, GitHub, and Gmail.
