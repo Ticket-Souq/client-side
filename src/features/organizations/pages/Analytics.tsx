@@ -4,9 +4,12 @@ import {
   getEvents,
   getEventSalesTimeline,
   getEventSummary,
+  getEventCapacities,
+  getEventCapacity,
   getOverviewKpis,
   getSalesPace,
   type EventComparisonRow,
+  type EventCapacityMap,
 } from '../services/analyticsApi'
 import { formatEGP, formatNumber, fillPct, shortDateLabel, truncate } from '../../../shared/format'
 import { useFetch } from '../../../shared/hooks/useFetch'
@@ -120,17 +123,19 @@ function PieChart({ data }: { data: { label: string; value: number }[] }) {
 function AnalyticsDrillDown({ event, onBack }: { event: EventComparisonRow; onBack: () => void }) {
   const { data, loading, error } = useFetch(
     async () => {
-      const [s, t] = await Promise.all([
+      const [s, t, c] = await Promise.all([
         getEventSummary(event.eventId),
         getEventSalesTimeline(event.eventId, 'day'),
+        getEventCapacity(event.eventId),
       ])
-      return { summary: s, timeline: t }
+      return { summary: s, timeline: t, capacity: c }
     },
     (err) => (err instanceof Error ? err.message : 'Failed to load event analytics'),
     [event.eventId],
   )
   const summary = data?.summary ?? null
   const timeline = data?.timeline ?? null
+  const capacity = data?.capacity ?? summary?.capacity ?? 0
 
   return (
     <div className="drilldown">
@@ -150,7 +155,7 @@ function AnalyticsDrillDown({ event, onBack }: { event: EventComparisonRow; onBa
             </div>
             <div className="drilldown-kpi">
               <p className="drilldown-kpi-label">Tickets sold</p>
-              <p className="drilldown-kpi-value">{formatNumber(summary.kpis.sold.value)} <span className="drilldown-kpi-sub">/ {formatNumber(summary.capacity)}</span></p>
+              <p className="drilldown-kpi-value">{formatNumber(summary.kpis.sold.value)} <span className="drilldown-kpi-sub">/ {formatNumber(capacity)}</span></p>
             </div>
           </div>
 
@@ -159,11 +164,11 @@ function AnalyticsDrillDown({ event, onBack }: { event: EventComparisonRow; onBa
             <div className="hbar hbar-lg">
               <p className="hbar-label">
                 <span>Tickets sold</span>
-                <span>{formatNumber(summary.kpis.sold.value)} / {formatNumber(summary.capacity)}</span>
+                <span>{formatNumber(summary.kpis.sold.value)} / {formatNumber(capacity)}</span>
               </p>
               <div className="hbar-track hbar-track--lg">
-                <div className="hbar-fill" style={{ width: `${fillPct(summary.kpis.sold.value, summary.capacity)}%` }}></div>
-                <span className="hbar-pct">{formatNumber(fillPct(summary.kpis.sold.value, summary.capacity))}%</span>
+                <div className="hbar-fill" style={{ width: `${fillPct(summary.kpis.sold.value, capacity)}%` }}></div>
+                <span className="hbar-pct">{formatNumber(fillPct(summary.kpis.sold.value, capacity))}%</span>
               </div>
             </div>
           </div>
@@ -185,18 +190,23 @@ export default function Analytics() {
   const [selected, setSelected] = useState<EventComparisonRow | null>(null)
   const { data, loading, error, refresh } = useFetch(
     async () => {
-      const [k, p, e] = await Promise.all([
+      const [k, p, e, caps] = await Promise.all([
         getOverviewKpis(),
         getSalesPace(),
         getEvents('totalRevenue,desc', 0, 20),
+        getEventCapacities(),
       ])
-      return { k, p, e }
+      return { k, p, e, caps }
     },
     (err) => (err instanceof Error ? err.message : 'Failed to load analytics'),
   )
   const kpis = data?.k ?? null
   const salesPace = data?.p ?? null
   const eventsData = data?.e ?? null
+  const capacityMap: EventCapacityMap = data?.caps ?? {}
+
+  const capacityOf = (ev: EventComparisonRow): number =>
+    ev.capacity > 0 ? ev.capacity : (capacityMap[ev.eventId] ?? 0)
 
   const revenue = kpis?.revenue
 
@@ -263,7 +273,7 @@ export default function Analytics() {
             ) : (
               <div className="event-list">
                 {(eventsData?.events ?? []).slice(0, 8).map((ev, i) => {
-                  const pct = fillPct(ev.sold, ev.capacity)
+                  const pct = fillPct(ev.sold, capacityOf(ev))
                   return (
                     <div key={ev.eventId ?? i} className="hbar event-row" onClick={() => setSelected(ev)} title="View event analytics">
                       <p className="hbar-label">

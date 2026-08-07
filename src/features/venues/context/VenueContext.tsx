@@ -120,6 +120,7 @@ export type VenueAction =
   | { type: "MOVE_ROW"; from: number; to: number }
   | { type: "INSERT_SEAT"; rowId: string; atCellId: string; side: "left" | "right"; cellType: "seat" | "space" }
   | { type: "APPEND_SEAT"; rowId: string; cellType: "seat" | "space" }
+  | { type: "EMPTY_CELLS_SIDE"; rowId: string; atCellId: string; side: "left" | "right" }
   | { type: "REMOVE_CELL"; rowId: string; cellId: string }
   | { type: "DELETE_CELLS"; ids: string[] }
   | { type: "SET_SEAT_STATUS"; ids: string[]; status: SeatStatus }
@@ -290,6 +291,21 @@ export function venueReducer(state: VenueState, action: VenueAction): VenueState
         if (r.id !== action.rowId) return r;
         const cell = action.cellType === "seat" ? makeSeat(state.map.categories[0]?.id) : makeSpace();
         return { ...r, cells: [...r.cells, cell] };
+      });
+      return { ...state, map: renumber({ ...state.map, rows }), history: push(state) };
+    }
+
+    case "EMPTY_CELLS_SIDE": {
+      const rows = state.map.rows.map((r) => {
+        if (r.id !== action.rowId) return r;
+        const idx = r.cells.findIndex((c) => c.id === action.atCellId);
+        if (idx < 0) return r;
+        const start = action.side === "left" ? 0 : idx + 1;
+        const end = action.side === "left" ? idx : r.cells.length;
+        const cells = r.cells.map((c, i) =>
+          i >= start && i < end && c.type === "seat" ? { id: c.id, type: "space" as const } : c,
+        );
+        return { ...r, cells };
       });
       return { ...state, map: renumber({ ...state.map, rows }), history: push(state) };
     }

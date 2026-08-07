@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import type { SeatMap } from '../../../features/venues/components/types'
+import { useState, useMemo, Fragment } from 'react'
+import type { SeatMap, Row, VerticalAisle } from '../../../features/venues/components/types'
 
 export interface SeatReservation {
   cellId: string
@@ -10,6 +10,24 @@ export interface SeatReservation {
 
 const CELL_SIZE = 18
 const CELL_GAP = 3
+
+function verticalAislesForRow(
+  rowIndex: number,
+  rows: Row[],
+  verticalAisles: VerticalAisle[],
+): VerticalAisle[] {
+  return verticalAisles.filter((va) => {
+    if (va.startRowId) {
+      const si = rows.findIndex((r) => r.id === va.startRowId)
+      if (si === -1 || rowIndex < si) return false
+    }
+    if (va.endRowId) {
+      const ei = rows.findIndex((r) => r.id === va.endRowId)
+      if (ei === -1 || rowIndex > ei) return false
+    }
+    return true
+  })
+}
 
 export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve, onSeatSelect, selectedCellIds, cellSize = CELL_SIZE, cellGap = CELL_GAP }: {
   map: SeatMap
@@ -28,14 +46,18 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
 
   const maxRowWidth = useMemo(() => {
     let max = 0
-    for (const row of map.rows) {
+    for (let ri = 0; ri < map.rows.length; ri++) {
+      const row = map.rows[ri]
       if (row.aisle) continue
-      let w = 0
-      w += row.cells.length * (cellSize + cellGap)
+      const rowAisles = verticalAislesForRow(ri, map.rows, map.verticalAisles)
+      const itemCount = row.cells.length + rowAisles.length
+      const itemsWidth = row.cells.length * cellSize + rowAisles.length * (cellSize * (4 / 3))
+      const gapsWidth = Math.max(0, itemCount - 1) * cellGap
+      const w = itemsWidth + gapsWidth
       if (w > max) max = w
     }
     return max || 1
-  }, [map.rows, cellSize, cellGap])
+  }, [map.rows, map.verticalAisles, cellSize, cellGap])
 
   const handleSeatClick = (cellId: string, rowLabel: string, seatNumber: string) => {
     if (reservedMap.has(cellId)) {
@@ -60,66 +82,73 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
 
   return (
     <div style={{
-      background: 'var(--color-bg)', borderRadius: 8, padding: 16, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative',
+      background: 'var(--color-bg)', borderRadius: 8, padding: 16, overflow: 'auto', display: 'flex', justifyContent: 'center', position: 'relative',
     }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
       {map.stage.position === 'top' && (
         <div style={{
           background: '#7f1d1d', borderRadius: 4, padding: '6px 0',
           textAlign: 'center', fontWeight: 700, fontSize: 11, letterSpacing: 4,
-          color: '#fff', marginBottom: 12, marginLeft: 24, width: maxRowWidth,
+          color: '#fff', marginBottom: 12, marginLeft: 24 + cellGap, width: maxRowWidth,
         }}>
           {map.stage.label || 'STAGE'}
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {map.rows.map((row) => {
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {map.rows.map((row, ri) => {
           if (row.aisle) {
             return (
-              <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: cellGap, marginBottom: cellGap, minHeight: 8, width: maxRowWidth + 24 }}>
+              <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: cellGap, marginBottom: cellGap, minHeight: 8, width: maxRowWidth + 24 + cellGap }}>
                 <span style={{ width: 24, flexShrink: 0 }} />
                 <div style={{ flex: 1, borderTop: '1px dashed var(--border)' }} />
               </div>
             )
           }
+          const rowAisles = verticalAislesForRow(ri, map.rows, map.verticalAisles)
           return (
             <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: cellGap, marginBottom: cellGap }}>
               <span style={{ width: 24, fontSize: cellSize > 20 ? 12 : 10, color: 'var(--text-secondary)', textAlign: 'right', flexShrink: 0, paddingRight: 2 }}>
                 {row.label}
               </span>
-              <div style={{ display: 'flex', gap: cellGap, width: maxRowWidth }}>
-                {row.cells.map((cell, ci) => {
-                  if (cell.type !== 'seat') {
-                    return <div key={cell.id} style={{ width: cellSize, height: cellSize, flexShrink: 0 }} />
-                  }
-                  const cat = cell.categoryId ? catById.get(cell.categoryId) : undefined
-                  const res = reservedMap.get(cell.id)
-                  const isReserved = !!res
-                  const isSelected = selectedCellIds?.has(cell.id) ?? false
-                  const seatFont = cellSize > 20 ? 11 : 8
-                  return (
-                    <div
-                      key={cell.id}
-                      title={isReserved ? `${row.label}${cell.number ?? ''} — ${res.holderName}` : `${row.label}${cell.number ?? ''}${cat ? ' · ' + cat.name : ''}`}
-                      onClick={() => handleSeatClick(cell.id, row.label, cell.number ?? String(ci + 1))}
-                      style={{
-                        width: cellSize, height: cellSize, borderRadius: 3,
-                        backgroundColor: isReserved ? '#16a34a' : (cat?.color ?? '#3b82f6'),
-                        opacity: isReserved ? 1 : (isSelected ? 1 : 0.8),
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: seatFont, color: '#000', fontWeight: 600,
-                        border: isSelected ? '2px solid #fff' : '1px solid #000',
-                        outline: isSelected ? '2px solid #2563eb' : 'none',
-                        outlineOffset: isSelected ? 1 : 0,
-                        cursor: 'pointer', transition: 'transform 100ms ease',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.3)' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
-                    >
-                      {cell.number ?? ''}
-                    </div>
-                  )
-                })}
+              <div style={{ display: 'flex', gap: cellGap, width: 'max-content', maxWidth: '100%' }}>
+                {row.cells.map((cell, ci) => (
+                  <Fragment key={cell.id}>
+                    {cell.type !== 'seat' ? (
+                      <div style={{ width: cellSize, height: cellSize, flexShrink: 0 }} />
+                    ) : (() => {
+                      const cat = cell.categoryId ? catById.get(cell.categoryId) : undefined
+                      const res = reservedMap.get(cell.id)
+                      const isReserved = !!res
+                      const isSelected = selectedCellIds?.has(cell.id) ?? false
+                      const seatFont = cellSize > 20 ? 11 : 8
+                      return (
+                        <div
+                          title={isReserved ? `${row.label}${cell.number ?? ''} — ${res.holderName}` : `${row.label}${cell.number ?? ''}${cat ? ' · ' + cat.name : ''}`}
+                          onClick={() => handleSeatClick(cell.id, row.label, cell.number ?? String(ci + 1))}
+                          style={{
+                            width: cellSize, height: cellSize, borderRadius: 3, flexShrink: 0,
+                            backgroundColor: isReserved ? '#16a34a' : (cat?.color ?? '#3b82f6'),
+                            opacity: isReserved ? 1 : (isSelected ? 1 : 0.8),
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: seatFont, color: '#000', fontWeight: 600,
+                            border: isSelected ? '2px solid #fff' : '1px solid #000',
+                            outline: isSelected ? '2px solid #2563eb' : 'none',
+                            outlineOffset: isSelected ? 1 : 0,
+                            cursor: 'pointer', transition: 'transform 100ms ease',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.3)' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
+                        >
+                          {cell.number ?? ''}
+                        </div>
+                      )
+                    })()}
+                    {rowAisles.filter((va) => va.columnIndex === ci).map((va) => (
+                      <div key={va.id} style={{ width: cellSize * (4 / 3), height: cellSize, flexShrink: 0 }} />
+                    ))}
+                  </Fragment>
+                ))}
               </div>
             </div>
           )
@@ -130,13 +159,13 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
         <div style={{
           background: '#000', borderRadius: 4, padding: '6px 0',
           textAlign: 'center', fontWeight: 700, fontSize: 11, letterSpacing: 4,
-          color: '#fff', marginTop: 12, width: maxRowWidth,
+          color: '#fff', marginTop: 12, marginLeft: 24 + cellGap, width: maxRowWidth,
         }}>
           {map.stage.label || 'STAGE'}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, paddingTop: 8, borderTop: '1px solid var(--border)', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, paddingTop: 8, borderTop: '1px solid var(--border)', justifyContent: 'center', alignSelf: 'stretch' }}>
         {map.categories.map((c) => (
           <span key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--ink)' }}>
             <span style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: c.color , border: '1px solid #000' }} />
@@ -153,6 +182,7 @@ export function SeatMapPreview({ map, reservations = [], onReserve, onUnreserve,
             Selected
           </span>
         )}
+      </div>
       </div>
 
       {pendingCell && !onSeatSelect && (

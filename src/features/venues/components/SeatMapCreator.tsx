@@ -258,8 +258,19 @@ function RowView({ row, index }: { row: Row; index: number }) {
   const d = dispatch;
 
   if (row.aisle) {
+    const aisleMenu: MenuItem[] = [
+      { label: "Delete aisle", danger: true, onClick: () => d({ type: "REMOVE_ROW", rowId: row.id }) },
+    ];
+
     return (
-      <div className="group flex items-center gap-2 py-2">
+      <div
+        className="group flex items-center gap-2 py-2"
+        onContextMenu={(e) => {
+          if (mode !== "edit") return;
+          e.preventDefault();
+          setMenu({ x: e.clientX, y: e.clientY });
+        }}
+      >
         <div className="w-8 text-xs text-venue-500 text-center"><ArrowRight size={12} /></div>
         <div className="flex-1 border-t border-dashed border-venue-700" />
         {mode === "edit" && (
@@ -270,6 +281,7 @@ function RowView({ row, index }: { row: Row; index: number }) {
             <X size={12} /> aisle
           </button>
         )}
+        {menu && <ContextMenu x={menu.x} y={menu.y} items={aisleMenu} onClose={() => setMenu(null)} onAction={() => d({ type: "CLEAR_SELECTION" })} />}
       </div>
     );
   }
@@ -397,18 +409,22 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
   const d = dispatch;
 
   if (cell.type === "space") {
+    const spaceMenu: MenuItem[] = [
+      { label: "Delete space", danger: true, onClick: () => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id }) },
+    ];
+
     return (
-      <div className="relative group">
+      <div
+        className="relative group"
+        onContextMenu={(e) => {
+          if (mode !== "edit") return;
+          e.preventDefault();
+          e.stopPropagation();
+          setMenu({ x: e.clientX, y: e.clientY });
+        }}
+      >
         <div className="w-6 h-7" />
-        {mode === "edit" && (
-          <button
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 text-venue-500 hover:text-danger flex items-center justify-center"
-            onClick={() => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id })}
-            title="Remove space"
-          >
-            <X size={10} />
-          </button>
-        )}
+        {menu && <ContextMenu x={menu.x} y={menu.y} items={spaceMenu} onClose={() => setMenu(null)} onAction={() => d({ type: "CLEAR_SELECTION" })} />}
       </div>
     );
   }
@@ -452,6 +468,9 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
         { label: "Insert seat right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "seat" }) },
         { label: "Insert space left", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "left", cellType: "space" }) },
         { label: "Insert space right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "space" }) },
+        { separator: true, label: "", onClick: () => {} },
+        { label: "Replace left side with space", onClick: () => d({ type: "EMPTY_CELLS_SIDE", rowId: row.id, atCellId: cell.id, side: "left" }) },
+        { label: "Replace right side with space", onClick: () => d({ type: "EMPTY_CELLS_SIDE", rowId: row.id, atCellId: cell.id, side: "right" }) },
         { separator: true, label: "", onClick: () => {} },
         { label: "Insert vertical aisle left", onClick: () => d({ type: "ADD_VERTICAL_AISLE", columnIndex: Math.max(0, cellIndex - 1) }) },
         { label: "Insert vertical aisle right", onClick: () => d({ type: "ADD_VERTICAL_AISLE", columnIndex: cellIndex }) },
@@ -517,22 +536,16 @@ function VerticalAisleGap({ aisle }: { aisle: VerticalAisle }) {
   ];
 
   return (
-    <div className="relative group">
+    <div
+      className="relative group"
+      onContextMenu={(e) => {
+        if (mode !== "edit") return;
+        e.preventDefault();
+        e.stopPropagation();
+        setMenu({ x: e.clientX, y: e.clientY });
+      }}
+    >
       <div className="w-8 h-7" />
-      {mode === "edit" && (
-          <button
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 text-venue-500 hover:text-danger flex items-center justify-center"
-            onClick={() => d({ type: "REMOVE_VERTICAL_AISLE", id: aisle.id })}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setMenu({ x: e.clientX, y: e.clientY });
-            }}
-            title="Remove vertical aisle"
-          >
-            <X size={10} />
-          </button>
-      )}
       {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} onAction={() => d({ type: "CLEAR_SELECTION" })} />}
     </div>
   );

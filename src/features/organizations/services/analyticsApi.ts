@@ -1,5 +1,6 @@
 import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
+import type { EventFullResponse, PaginatedResponse } from '../../events/types/event.types'
 
 export interface OverviewKpiResponse {
   revenue: { value: number; currency: string; deltaPct: number }
@@ -66,4 +67,33 @@ export function getEventSummary(eventId: string): Promise<EventSummaryResponse> 
 
 export function getEventSalesTimeline(eventId: string, granularity: string): Promise<EventSalesTimelineResponse> {
   return request<EventSalesTimelineResponse>(API.analytics.eventSalesTimeline(eventId, granularity))
+}
+
+export type EventCapacityMap = Record<string, number>
+
+function totalCapacity(event: EventFullResponse | undefined): number {
+  if (!event) return 0
+  return (event.sections ?? []).reduce((sum, sec) => sum + (sec?.capacity ?? 0), 0)
+}
+
+export async function getEventCapacities(page = 0, size = 100): Promise<EventCapacityMap> {
+  try {
+    const events = await request<PaginatedResponse<EventFullResponse>>(API.events.management, { query: { page, size } })
+    const map: EventCapacityMap = {}
+    for (const ev of events.content ?? []) {
+      map[ev.id] = totalCapacity(ev)
+    }
+    return map
+  } catch {
+    return {}
+  }
+}
+
+export async function getEventCapacity(eventId: string): Promise<number> {
+  try {
+    const event = await request<EventFullResponse>(API.events.byId(eventId), { auth: false })
+    return totalCapacity(event)
+  } catch {
+    return 0
+  }
 }
