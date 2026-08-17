@@ -6,7 +6,7 @@ import { releaseLocks, beginReservation } from "../../events/services/lockApi";
 import { formatPrice } from "../../../shared/format";
 import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
 import { getPaymentForReservation } from "../services/paymentApi";
-import { getStripe } from "../../../shared/stripe";
+import { getStripe, hasStripeKey } from "../../../shared/stripe";
 import { createPortal } from "react-dom";
 
 interface TicketState {
@@ -148,6 +148,11 @@ function StripeCheckoutForm({
 
   return (
     <>
+      {!stripe && (
+        <div className="alert alert-danger py-2" style={{ fontSize: "13px" }}>
+          Payment form failed to load. Please refresh and try again, or cancel this reservation.
+        </div>
+      )}
       <PaymentElement options={{ layout: "tabs" }} />
       <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
         You are paying for {ticketCount} ticket{ticketCount !== 1 ? "s" : ""} totalling{" "}
@@ -297,12 +302,17 @@ export default function Checkout() {
     }
 
     if (payment.paymentStatus === "PENDING" && payment.clientSecret) {
+      if (!hasStripeKey()) {
+        setError("Stripe payments are not configured. Please try again later or cancel this reservation.");
+        setProcessing(false);
+        return;
+      }
       setStripeClientSecret(payment.clientSecret);
       setProcessing(false);
       return;
     }
 
-    setError("Payment is pending but no payment method was created. Please try again.");
+    setError("Payment is still processing but no payment method was created yet. Please try again in a moment or cancel this reservation.");
     setProcessing(false);
   };
 
