@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import type { PaymentIntent } from "@stripe/stripe-js";
 import { releaseLocks, beginReservation } from "../../events/services/lockApi";
 import { formatPrice } from "../../../shared/format";
 import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
+import { getPaymentForReservation } from "../services/paymentApi";
+import { getStripe } from "../../../shared/stripe";
 import { createPortal } from "react-dom";
 
 interface TicketState {
@@ -27,6 +31,42 @@ function formatTimer(s: number) {
   return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function pollPayment(
+  reservationId: string,
+  timeoutMs = 20000,
+  intervalMs = 1500
+): Promise<Awaited<ReturnType<typeof getPaymentForReservation>> | null> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      return await getPaymentForReservation(reservationId);
+    } catch {
+      // payment row is created asynchronously by the saga; keep polling
+    }
+    await sleep(intervalMs);
+  }
+  return null;
+}
+
+async function waitForPaymentSuccess(reservationId: string, timeoutMs = 20000, intervalMs = 1500): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const payment = await getPaymentForReservation(reservationId);
+      if (payment.paymentStatus === "SUCCESS") return true;
+      if (payment.paymentStatus === "FAILED") return false;
+    } catch {
+      // ignore transient errors and keep polling
+    }
+    await sleep(intervalMs);
+  }
+  return false;
+}
+
 function TimerBanner({ timeLeft }: { timeLeft: number }) {
   return (
     <div
@@ -47,6 +87,96 @@ function TimerBanner({ timeLeft }: { timeLeft: number }) {
         {formatTimer(timeLeft)}
       </span>
     </div>
+  );
+}
+
+interface StripeCheckoutFormProps {
+  reservationId: string;
+  total: number;
+  ticketCount: number;
+  onPaid: () => void;
+  onFailed: (message: string) => void;
+  onCancel: () => void;
+}
+
+function StripeCheckoutForm({
+  reservationId,
+  total,
+  ticketCount,
+  onPaid,
+  onFailed,
+  onCancel,
+}: StripeCheckoutFormProps) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const completedRef = useRef(false);
+
+  const handlePay = async () => {
+    if (!stripe || !elements || submitting || completedRef.current) return;
+    setSubmitting(true);
+
+    const result = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: window.location.origin + "/customer/booking/success",
+      },
+      redirect: "if_required",
+    });
+
+    if (result.error) {
+      setSubmitting(false);
+      onFailed(result.error.message ?? "Payment failed. Please try again.");
+      return;
+    }
+
+    if ((result.paymentIntent as PaymentIntent | undefined)?.status === "succeeded") {
+      completedRef.current = true;
+      const confirmed = await waitForPaymentSuccess(reservationId);
+      if (!confirmed) {
+        setSubmitting(false);
+        onFailed("Payment was received but could not be confirmed. Please check your reservations shortly.");
+        return;
+      }
+      onPaid();
+      return;
+    }
+
+    setSubmitting(false);
+    onFailed("Payment is still processing. Please check your reservations shortly.");
+  };
+
+  return (
+    <>
+      <PaymentElement options={{ layout: "tabs" }} />
+      <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+        You are paying for {ticketCount} ticket{ticketCount !== 1 ? "s" : ""} totalling{" "}
+        <strong style={{ color: "var(--color-accent)" }}>{formatPrice(total)}</strong>.
+      </div>
+      {submitting && (
+        <div className="alert alert-info py-2 mt-3" style={{ fontSize: "13px" }}>
+          Processing your payment… please don&apos;t close this page.
+        </div>
+      )}
+      <button
+        type="button"
+        className="btn btn-accent w-100 py-2 fw-semibold"
+        disabled={!stripe || submitting}
+        onClick={handlePay}
+        style={{ fontSize: "15px", marginTop: 16 }}
+      >
+        {submitting ? "Processing payment…" : `Pay ${formatPrice(total)}`}
+      </button>
+      <button
+        type="button"
+        className="btn btn-danger w-100 py-2 mt-2"
+        disabled={submitting}
+        onClick={onCancel}
+        style={{ fontSize: "14px" }}
+      >
+        Cancel reservation
+      </button>
+    </>
   );
 }
 
@@ -80,6 +210,7 @@ export default function Checkout() {
   const [cancelling, setCancelling] = useState(false);
   const [confirmKind, setConfirmKind] = useState<"pay" | "cancel" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
   const releasedRef = useRef(false);
   const completedRef = useRef(false);
   const expired = timeLeft <= 0;
@@ -102,6 +233,23 @@ export default function Checkout() {
     if (!reservationId || timeLeft > 0) return;
     releaseOnce(reservationId);
   }, [reservationId, timeLeft, releaseOnce]);
+
+  const goToSuccess = () => {
+    completedRef.current = true;
+    clearReservation();
+    navigate("/customer/booking/success", {
+      state: {
+        reservationId,
+        tickets: tickets.map((t) => ({ label: t.label, sectionName: t.sectionName, price: t.price })),
+        total,
+        eventId,
+      },
+    });
+  };
+
+  const handlePaid = () => {
+    goToSuccess();
+  };
 
   const handlePay = () => {
     if (processing || expired || !reservationId || completedRef.current) return;
@@ -129,9 +277,33 @@ export default function Checkout() {
       return;
     }
 
-    completedRef.current = true;
-    clearReservation();
-    navigate("/customer/reservations");
+    const payment = await pollPayment(reservationId);
+    if (!payment) {
+      setError("Payment could not be initiated. Please try again or cancel this reservation.");
+      setProcessing(false);
+      return;
+    }
+
+    if (payment.paymentStatus === "SUCCESS") {
+      setProcessing(false);
+      goToSuccess();
+      return;
+    }
+
+    if (payment.paymentStatus === "FAILED") {
+      setError("Payment failed. Please try again or cancel this reservation.");
+      setProcessing(false);
+      return;
+    }
+
+    if (payment.paymentStatus === "PENDING" && payment.clientSecret) {
+      setStripeClientSecret(payment.clientSecret);
+      setProcessing(false);
+      return;
+    }
+
+    setError("Payment is pending but no payment method was created. Please try again.");
+    setProcessing(false);
   };
 
   const handleCancelReservation = () => {
@@ -220,38 +392,54 @@ export default function Checkout() {
                 <h5 className="fw-bold mb-3" style={{ fontFamily: "var(--font-display)" }}>
                   Payment
                 </h5>
-                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 16px" }}>
-                  Confirm your reservation to complete payment. Your tickets will be issued once payment succeeds.
-                </p>
                 {error && (
                   <div className="alert alert-danger py-2 mb-3" style={{ fontSize: "13px" }}>
                     {error}
                   </div>
                 )}
-                <button
-                  type="button"
-                  className="btn btn-accent w-100 py-2 fw-semibold"
-                  disabled={processing}
-                  onClick={handlePay}
-                  style={{ fontSize: "15px" }}
-                >
-                  {processing ? "Processing payment…" : `Pay ${formatPrice(total)}`}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger w-100 py-2 mt-2"
-                  disabled={processing || cancelling}
-                  onClick={handleCancelReservation}
-                  style={{ fontSize: "14px" }}
-                >
-                  {cancelling ? "Cancelling…" : "Cancel reservation"}
-                </button>
+
+                {stripeClientSecret ? (
+                  <Elements stripe={getStripe()} options={{ clientSecret: stripeClientSecret }}>
+                    <StripeCheckoutForm
+                      reservationId={reservationId}
+                      total={total}
+                      ticketCount={tickets.length}
+                      onPaid={handlePaid}
+                      onFailed={(msg) => setError(msg)}
+                      onCancel={confirmCancelReservation}
+                    />
+                  </Elements>
+                ) : (
+                  <>
+                    <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 16px" }}>
+                      Confirm your reservation to complete payment. Your tickets will be issued once payment succeeds.
+                    </p>
+                    <button
+                      type="button"
+                      className="btn btn-accent w-100 py-2 fw-semibold"
+                      disabled={processing}
+                      onClick={handlePay}
+                      style={{ fontSize: "15px" }}
+                    >
+                      {processing ? "Processing payment…" : `Pay ${formatPrice(total)}`}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger w-100 py-2 mt-2"
+                      disabled={processing || cancelling}
+                      onClick={handleCancelReservation}
+                      style={{ fontSize: "14px" }}
+                    >
+                      {cancelling ? "Cancelling…" : "Cancel reservation"}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
-      {confirmKind && createPortal(
+      {!stripeClientSecret && confirmKind && createPortal(
         <div
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={() => setConfirmKind(null)}
@@ -272,7 +460,7 @@ export default function Checkout() {
                     Go back
                   </button>
                   <button type="button" className="btn btn-accent btn-sm" onClick={confirmPay}>
-                    Pay {formatPrice(total)}
+                    {processing ? "Processing…" : `Pay ${formatPrice(total)}`}
                   </button>
                 </div>
               </>

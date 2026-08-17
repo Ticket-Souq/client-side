@@ -69,6 +69,10 @@ export const API = {
     release: `${BASE_URL}/api/v1/event/locks/release`,
     reserve: `${BASE_URL}/api/v1/event/locks/reserve`,
   },
+  payment: {
+    byReservation: (reservationId: string) => `${BASE_URL}/api/v1/payment/reservation/${reservationId}`,
+    byId: (paymentId: string) => `${BASE_URL}/api/v1/payment/${paymentId}`,
+  },
   venues: {
     list: `${BASE_URL}/api/v1/venue`,
     byId: (id: string) => `${BASE_URL}/api/v1/venue/${id}`,

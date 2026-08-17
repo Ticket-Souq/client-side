@@ -4,6 +4,7 @@ import { XCircle } from "lucide-react";
 interface CancelState {
   seats: unknown[];
   eventId: string;
+  reservationId?: string;
 }
 
 export default function PaymentCancel() {
