@@ -3,21 +3,20 @@ import {
   Undo2,
   Redo2,
   Pencil,
-  Play,
   ZoomOut,
   ZoomIn,
   PanelLeft,
-  PanelRight,
-  ArrowUpDown,
   ArrowRight,
   X,
   MoreHorizontal,
   Plus,
+  Check,
 } from "lucide-react";
 import "./seat-map.css";
 import { useVenue } from "../context/VenueContext";
-import type { Category, Cell, Row, SeatMap, VerticalAisle } from "./types";
+import type { Cell, Row, SeatMap, VenueTemplate, VerticalAisle } from "./types";
 import { ContextMenu, type MenuItem } from "./ContextMenu";
+import { useConfirm } from "../../../shared/hooks/useConfirm";
 
 function useKeys() {
   const { state, dispatch } = useVenue();
@@ -51,29 +50,65 @@ function useKeys() {
   }, [state, dispatch]);
 }
 
-export function SeatMapCreator() {
+export function SeatMapCreator({
+  onPublish,
+  venuesOpen,
+  onToggleVenues,
+  editingId,
+  templates,
+  onLoadTemplate,
+  onDeleteTemplate,
+}: {
+  onPublish?: () => void;
+  venuesOpen?: boolean;
+  onToggleVenues?: () => void;
+  editingId?: string | null;
+  templates?: VenueTemplate[];
+  onLoadTemplate?: (venueId: string, templateId: string) => void;
+  onDeleteTemplate?: (venueId: string, templateId: string) => void;
+}) {
   const { state } = useVenue();
   const { map, mode, zoom } = state;
   useKeys();
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+
+  const stageWidth = useMemo(() => {
+    const LABEL = 32;
+    const GAP_AFTER_LABEL = 8;
+    const EDIT_BTN_AREA = mode === "edit" ? 24 + 4 + 24 : 0;
+    const GAP_AFTER_EDIT = mode === "edit" ? 8 : 0;
+    const OFFSET = LABEL + GAP_AFTER_LABEL + EDIT_BTN_AREA + GAP_AFTER_EDIT;
+
+    let maxRowWidth = 0;
+    for (const row of map.rows) {
+      if (row.aisle) continue;
+      const ri = map.rows.indexOf(row);
+      const rowAisles = verticalAislesForRow(ri, map.rows, map.verticalAisles);
+      const cellCount = row.cells.length;
+      const aisleCount = rowAisles.length;
+      const totalItems = cellCount + aisleCount;
+      const itemsWidth = cellCount * 24 + aisleCount * 32;
+      const gapsWidth = Math.max(0, totalItems - 1) * 4;
+      const rowWidth = itemsWidth + gapsWidth;
+      if (rowWidth > maxRowWidth) maxRowWidth = rowWidth;
+    }
+    return { seatsWidth: maxRowWidth || 640, offsetLeft: OFFSET };
+  }, [map, mode]);
 
   return (
     <div className="venue-app h-100 w-100 flex flex-col bg-venue-950 text-venue-100 overflow-hidden">
       <TopBar
-        leftOpen={leftOpen}
-        rightOpen={rightOpen}
-        onToggleLeft={() => setLeftOpen((v) => !v)}
-        onToggleRight={() => setRightOpen((v) => !v)}
+        onPublish={onPublish}
+        venuesOpen={venuesOpen}
+        onToggleVenues={onToggleVenues}
       />
       <div className="flex-1 min-h-0 flex">
-        {leftOpen && <LeftPanel />}
+        <LeftPanel />
         <main className="flex-1 min-w-0 min-h-0 overflow-auto bg-venue-950">
           <div
             className="min-w-max px-8 py-6"
             style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}
           >
-            {map.stage.position === "top" && <StageBar />}
+            {map.stage.position === "top" && <StageBar width={stageWidth.seatsWidth} marginLeft={stageWidth.offsetLeft} />}
             <div className="mt-4 space-y-1.5">
               {map.rows.map((r, i) => (
                 <RowView key={r.id} row={r} index={i} />
@@ -82,15 +117,46 @@ export function SeatMapCreator() {
             </div>
             {map.stage.position === "bottom" && (
               <div className="mt-4">
-                <StageBar />
+                <StageBar width={stageWidth.seatsWidth} marginLeft={stageWidth.offsetLeft} />
               </div>
             )}
-            <StatsBar />
           </div>
         </main>
-        {rightOpen && <RightPanel />}
+        {venuesOpen && (
+          <aside className="w-56 shrink-0 border-l border-venue-800 bg-venue-900 p-3 overflow-auto flex flex-col gap-2">
+            <div className="text-[11px] uppercase tracking-widest text-venue-500 mb-1">
+              {editingId ? "Templates" : "Select a venue"}
+            </div>
+            {!editingId ? (
+              <p className="text-xs text-venue-400">Go to Venues and click "Manage Templates" to start editing.</p>
+            ) : !templates || templates.length === 0 ? (
+              <p className="text-xs text-venue-400">No templates yet. Click "Publish layout" to save.</p>
+            ) : (
+              <ul className="flex flex-col gap-1.5">
+                {templates.map((t, i) => (
+                  <li
+                    key={t.id}
+                    onClick={() => onLoadTemplate?.(editingId, t.id)}
+                    className="rounded border border-venue-700 bg-venue-800 hover:border-venue-500 px-2.5 py-1.5 text-xs text-venue-200 cursor-pointer flex items-center justify-between"
+                  >
+                    <span>{(() => { try { return (JSON.parse(t.layout) as SeatMap).name || `Template ${i + 1}`; } catch { return `Template ${i + 1}`; } })()}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteTemplate?.(editingId, t.id);
+                      }}
+                      className="text-venue-500 hover:text-red-400"
+                      title="Delete"
+                    >
+                      <X size={10} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </aside>
+        )}
       </div>
-      {mode === "preview" && <BookingSummary />}
     </div>
   );
 }
@@ -98,30 +164,19 @@ export function SeatMapCreator() {
 /* -------------------- Top bar -------------------- */
 
 function TopBar({
-  leftOpen,
-  rightOpen,
-  onToggleLeft,
-  onToggleRight,
+  onPublish,
+  onToggleVenues,
 }: {
-  leftOpen: boolean;
-  rightOpen: boolean;
-  onToggleLeft: () => void;
-  onToggleRight: () => void;
+  onPublish?: () => void;
+  venuesOpen?: boolean;
+  onToggleVenues?: () => void;
 }) {
   const { state, dispatch } = useVenue();
-  const { map, mode, zoom, history } = state;
+  const { map, zoom, history } = state;
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
+  const { confirm, dialog } = useConfirm();
 
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify(map, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${map.name.replace(/\s+/g, "_") || "seatmap"}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
   return (
     <header className="flex flex-wrap items-center gap-2 border-b border-venue-800 bg-venue-900 px-3 py-2">
       <input
@@ -140,75 +195,32 @@ function TopBar({
       <button className="venue-btn venue-btn-default" onClick={() => dispatch({ type: "SET_ZOOM", zoom: 1 })}>Reset zoom</button>
 
       <div className="flex-1" />
-      <button
-        className="venue-btn venue-btn-ghost"
-        onClick={onToggleLeft}
-        title={leftOpen ? "Hide categories" : "Show categories"}
-      >
-        <PanelLeft size={14} />
-      </button>
-      <button
-        className="venue-btn venue-btn-ghost"
-        onClick={onToggleRight}
-        title={rightOpen ? "Hide templates" : "Show templates"}
-      >
-        <PanelRight size={14} />
-      </button>
-      <button className="venue-btn venue-btn-primary" onClick={exportJson}>Export layout</button>
-      <button className="venue-btn venue-btn-danger" onClick={() => confirm("Reset to a fresh map?") && dispatch({ type: "RESET" })}>
+      <button className="venue-btn venue-btn-primary" onClick={onPublish}>Publish layout</button>
+      <button className="venue-btn venue-btn-danger" onClick={async () => { if (await confirm("Reset to a fresh map?")) dispatch({ type: "RESET" }); }}>
         Reset layout
       </button>
+      {onToggleVenues && (
+        <button
+          className="venue-btn venue-btn-default"
+          onClick={onToggleVenues}
+        >
+          <PanelLeft size={14} /> Templates
+        </button>
+      )}
+      {dialog}
     </header>
   );
 }
 
 /* -------------------- Stage -------------------- */
 
-function StageBar() {
-  const { state, dispatch } = useVenue();
-  const { stage } = state.map;
-  const mode = state.mode;
-  const [editing, setEditing] = useState(false);
+function StageBar({ width, marginLeft }: { width: number; marginLeft: number }) {
   return (
     <div
       className="venue-stage"
-      style={{ background: stage.color, minWidth: 640 }}
+      style={{ background: "#7f1d1d", width, marginLeft }}
     >
-      {editing ? (
-        <input
-          autoFocus
-          className="bg-black/30 rounded px-2 py-1 text-center tracking-[0.4em] font-bold"
-          value={stage.label}
-          onChange={(e) => dispatch({ type: "SET_STAGE", patch: { label: e.target.value.toUpperCase() } })}
-          onBlur={() => setEditing(false)}
-          onKeyDown={(e) => e.key === "Enter" && setEditing(false)}
-        />
-      ) : (
-        <div className="tracking-[0.4em] font-bold text-lg select-none">{stage.label}</div>
-      )}
-      {mode === "edit" && (
-        <>
-          <button
-            className="ml-4 text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded"
-            onClick={() => setEditing((v) => !v)}
-          >
-            Edit
-          </button>
-          <input
-            type="color"
-            value={stage.color}
-            onChange={(e) => dispatch({ type: "SET_STAGE", patch: { color: e.target.value } })}
-            className="w-6 h-6 rounded bg-transparent border-none cursor-pointer"
-            title="Stage color"
-          />
-          <button
-            className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded"
-            onClick={() => dispatch({ type: "SET_STAGE", patch: { position: stage.position === "top" ? "bottom" : "top" } })}
-          >
-            <ArrowUpDown size={12} /> Move
-          </button>
-        </>
-      )}
+      <div className="tracking-[0.4em] font-bold text-lg select-none">STAGE</div>
     </div>
   );
 }
@@ -246,8 +258,19 @@ function RowView({ row, index }: { row: Row; index: number }) {
   const d = dispatch;
 
   if (row.aisle) {
+    const aisleMenu: MenuItem[] = [
+      { label: "Delete aisle", danger: true, onClick: () => d({ type: "REMOVE_ROW", rowId: row.id }) },
+    ];
+
     return (
-      <div className="group flex items-center gap-2 py-2">
+      <div
+        className="group flex items-center gap-2 py-2"
+        onContextMenu={(e) => {
+          if (mode !== "edit") return;
+          e.preventDefault();
+          setMenu({ x: e.clientX, y: e.clientY });
+        }}
+      >
         <div className="w-8 text-xs text-venue-500 text-center"><ArrowRight size={12} /></div>
         <div className="flex-1 border-t border-dashed border-venue-700" />
         {mode === "edit" && (
@@ -258,6 +281,7 @@ function RowView({ row, index }: { row: Row; index: number }) {
             <X size={12} /> aisle
           </button>
         )}
+        {menu && <ContextMenu x={menu.x} y={menu.y} items={aisleMenu} onClose={() => setMenu(null)} onAction={() => d({ type: "CLEAR_SELECTION" })} />}
       </div>
     );
   }
@@ -369,7 +393,7 @@ function RowView({ row, index }: { row: Row; index: number }) {
         )}
       </div>
 
-      {menu && <ContextMenu x={menu.x} y={menu.y} items={rowMenu} onClose={() => setMenu(null)} />}
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={rowMenu} onClose={() => setMenu(null)} onAction={() => d({ type: "CLEAR_SELECTION" })} />}
     </div>
   );
 }
@@ -385,18 +409,22 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
   const d = dispatch;
 
   if (cell.type === "space") {
+    const spaceMenu: MenuItem[] = [
+      { label: "Delete space", danger: true, onClick: () => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id }) },
+    ];
+
     return (
-      <div className="relative group">
+      <div
+        className="relative group"
+        onContextMenu={(e) => {
+          if (mode !== "edit") return;
+          e.preventDefault();
+          e.stopPropagation();
+          setMenu({ x: e.clientX, y: e.clientY });
+        }}
+      >
         <div className="w-6 h-7" />
-        {mode === "edit" && (
-          <button
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 text-venue-500 hover:text-danger flex items-center justify-center"
-            onClick={() => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id })}
-            title="Remove space"
-          >
-            <X size={10} />
-          </button>
-        )}
+        {menu && <ContextMenu x={menu.x} y={menu.y} items={spaceMenu} onClose={() => setMenu(null)} onAction={() => d({ type: "CLEAR_SELECTION" })} />}
       </div>
     );
   }
@@ -407,46 +435,58 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
 
   const bg =
     status === "blocked"
-      ? "#374151"
+      ? "var(--venue-seat-blocked)"
       : status === "reserved"
-        ? "#6b7280"
+        ? "var(--venue-seat-reserved)"
         : status === "sold"
-          ? "#111827"
-          : cat?.color ?? "#334155";
+          ? "var(--venue-seat-sold)"
+          : cat?.color ?? "var(--venue-seat-default)";
 
   const border = selected
-    ? "0 0 0 2px #ffffff"
+    ? "0 0 0 2.5px #ffffff, 0 0 8px 2px rgba(255,255,255,0.35)"
     : status === "blocked"
       ? "inset 0 0 0 1px #4b5563"
       : "inset 0 0 0 1px rgba(0,0,0,0.35)";
 
   const clickable = mode === "preview" ? status === "available" : true;
 
-  const menuItems: MenuItem[] = [
-    { label: "Insert seat left", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "left", cellType: "seat" }) },
-    { label: "Insert seat right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "seat" }) },
-    { label: "Insert space left", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "left", cellType: "space" }) },
-    { label: "Insert space right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "space" }) },
-    { separator: true, label: "", onClick: () => {} },
-    { label: "Insert vertical aisle left", onClick: () => d({ type: "ADD_VERTICAL_AISLE", columnIndex: Math.max(0, cellIndex - 1) }) },
-    { label: "Insert vertical aisle right", onClick: () => d({ type: "ADD_VERTICAL_AISLE", columnIndex: cellIndex }) },
-    { separator: true, label: "", onClick: () => {} },
-    { label: "Set number…", onClick: () => {
-        const n = prompt("Seat number", cell.number ?? "");
-        if (n != null) d({ type: "RENUMBER_SEAT", rowId: row.id, cellId: cell.id, number: n });
-      } },
-    { separator: true, label: "", onClick: () => {} },
-    ...categories.map<MenuItem>((c) => ({
-      label: `Category → ${c.name}`,
-      onClick: () => d({ type: "ASSIGN_CATEGORY", ids: [cell.id], categoryId: c.id }),
-    })),
-    { separator: true, label: "", onClick: () => {} },
-    { label: "Mark available", onClick: () => d({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "available" }) },
-    { label: "Mark reserved", onClick: () => d({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "reserved" }) },
-    { label: "Mark blocked", onClick: () => d({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "blocked" }) },
-    { separator: true, label: "", onClick: () => {} },
-    { label: "Delete seat", danger: true, onClick: () => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id }) },
-  ];
+  const multiSelect = selection.size > 1;
+
+  const menuItems: MenuItem[] = multiSelect
+    ? [
+        { label: `${selection.size} seats selected`, onClick: () => {} },
+        { separator: true, label: "", onClick: () => {} },
+        ...categories.map<MenuItem>((c) => ({
+          label: `Category → ${c.name}`,
+          onClick: () => d({ type: "ASSIGN_CATEGORY", ids: Array.from(selection), categoryId: c.id }),
+        })),
+        { separator: true, label: "", onClick: () => {} },
+        { label: "Delete selected seats", danger: true, onClick: () => d({ type: "DELETE_CELLS", ids: Array.from(selection) }) },
+      ]
+    : [
+        { label: "Insert seat left", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "left", cellType: "seat" }) },
+        { label: "Insert seat right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "seat" }) },
+        { label: "Insert space left", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "left", cellType: "space" }) },
+        { label: "Insert space right", onClick: () => d({ type: "INSERT_SEAT", rowId: row.id, atCellId: cell.id, side: "right", cellType: "space" }) },
+        { separator: true, label: "", onClick: () => {} },
+        { label: "Replace left side with space", onClick: () => d({ type: "EMPTY_CELLS_SIDE", rowId: row.id, atCellId: cell.id, side: "left" }) },
+        { label: "Replace right side with space", onClick: () => d({ type: "EMPTY_CELLS_SIDE", rowId: row.id, atCellId: cell.id, side: "right" }) },
+        { separator: true, label: "", onClick: () => {} },
+        { label: "Insert vertical aisle left", onClick: () => d({ type: "ADD_VERTICAL_AISLE", columnIndex: Math.max(0, cellIndex - 1) }) },
+        { label: "Insert vertical aisle right", onClick: () => d({ type: "ADD_VERTICAL_AISLE", columnIndex: cellIndex }) },
+        { separator: true, label: "", onClick: () => {} },
+        { label: "Set number…", onClick: () => {
+            const n = prompt("Seat number", cell.number ?? "");
+            if (n != null) d({ type: "RENUMBER_SEAT", rowId: row.id, cellId: cell.id, number: n });
+          } },
+        { separator: true, label: "", onClick: () => {} },
+        ...categories.map<MenuItem>((c) => ({
+          label: `Category → ${c.name}`,
+          onClick: () => d({ type: "ASSIGN_CATEGORY", ids: [cell.id], categoryId: c.id }),
+        })),
+        { separator: true, label: "", onClick: () => {} },
+        { label: "Delete seat", danger: true, onClick: () => d({ type: "REMOVE_CELL", rowId: row.id, cellId: cell.id }) },
+      ];
 
   return (
     <>
@@ -457,7 +497,12 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
             d({ type: "SET_SEAT_STATUS", ids: [cell.id], status: status === "available" ? "sold" : "available" });
             d({ type: "SELECT_SEAT", id: cell.id, additive: true });
           } else {
-            d({ type: "SELECT_SEAT", id: cell.id, additive: e.shiftKey || e.metaKey || e.ctrlKey });
+            const additive = e.shiftKey || e.metaKey || e.ctrlKey;
+            if (!additive && selected) {
+              d({ type: "SELECT_SEAT", id: cell.id, additive: true });
+            } else {
+              d({ type: "SELECT_SEAT", id: cell.id, additive });
+            }
           }
         }}
         onContextMenu={(e) => {
@@ -466,13 +511,13 @@ function SeatCell({ row, cell, cellIndex }: { row: Row; cell: Cell; cellIndex: n
           e.stopPropagation();
           setMenu({ x: e.clientX, y: e.clientY });
         }}
-        className="w-6 h-7 rounded text-[10px] font-semibold text-white/95 flex items-center justify-center transition-transform hover:scale-110 disabled:cursor-not-allowed"
+        className={`w-6 h-7 rounded text-[10px] font-semibold flex items-center justify-center transition-transform hover:scale-110 disabled:cursor-not-allowed ${selected ? "text-white" : "text-white/95"}`}
         style={{ background: bg, boxShadow: border }}
-        title={`${row.label}${cell.number ?? ""}${cat ? " · " + cat.name : ""}`}
+        title={`${row.label}${cell.number ?? ""}${cat ? " · " + cat.name : ""}${selected ? " · selected" : ""}`}
       >
-        {cell.number}
+        {selected ? <Check size={11} strokeWidth={3} /> : cell.number}
       </button>
-      {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} />}
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} onAction={() => d({ type: "CLEAR_SELECTION" })} />}
     </>
   );
 }
@@ -491,23 +536,17 @@ function VerticalAisleGap({ aisle }: { aisle: VerticalAisle }) {
   ];
 
   return (
-    <div className="relative group">
+    <div
+      className="relative group"
+      onContextMenu={(e) => {
+        if (mode !== "edit") return;
+        e.preventDefault();
+        e.stopPropagation();
+        setMenu({ x: e.clientX, y: e.clientY });
+      }}
+    >
       <div className="w-8 h-7" />
-      {mode === "edit" && (
-          <button
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 text-venue-500 hover:text-danger flex items-center justify-center"
-            onClick={() => d({ type: "REMOVE_VERTICAL_AISLE", id: aisle.id })}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setMenu({ x: e.clientX, y: e.clientY });
-            }}
-            title="Remove vertical aisle"
-          >
-            <X size={10} />
-          </button>
-      )}
-      {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} />}
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems} onClose={() => setMenu(null)} onAction={() => d({ type: "CLEAR_SELECTION" })} />}
     </div>
   );
 }
@@ -571,7 +610,7 @@ function AddRowInline() {
 
 function LeftPanel() {
   const { state, dispatch } = useVenue();
-  const { map, selection } = state;
+  const { map } = state;
 
   return (
     <aside className="w-64 border-r border-venue-800 bg-venue-900 flex flex-col overflow-y-auto">
@@ -593,12 +632,12 @@ function LeftPanel() {
                     type="color"
                     value={c.color}
                     onChange={(e) => dispatch({ type: "UPDATE_CATEGORY", id: c.id, patch: { color: e.target.value } })}
-                    className="w-6 h-6 rounded bg-transparent border-none cursor-pointer"
+                    className="w-6 h-10 rounded bg-transparent border-none cursor-pointer"
                   />
                   <input
                     value={c.name}
                     onChange={(e) => dispatch({ type: "UPDATE_CATEGORY", id: c.id, patch: { name: e.target.value } })}
-                    className="flex-1 bg-venue-800 border border-venue-700 rounded px-2 py-1 text-xs"
+                    className="w-75 bg-venue-800 border border-venue-700 rounded px-2 py-1 text-xs"
                   />
                   <button
                     className="text-venue-500 hover:text-danger flex items-center justify-center"
@@ -608,276 +647,12 @@ function LeftPanel() {
                     <X size={14} />
                   </button>
                 </div>
-                <div className="flex items-center gap-2 mt-1.5">
-                   <button
-                    className="ml-auto venue-btn venue-btn-default"
-                    disabled={selection.size === 0}
-                    onClick={() => dispatch({ type: "ASSIGN_CATEGORY", ids: Array.from(selection), categoryId: c.id })}
-                  >
-                    Apply to {selection.size} seats
-                  </button>
-              </div>
             </div>
           ))}
         </div>
       </div>
-
-      <Legend />
-      <Tips />
     </aside>
   );
 }
 
-function Legend() {
-  const Item = ({ color, label }: { color: string; label: string }) => (
-    <div className="flex items-center gap-2 text-xs text-venue-300">
-      <span className="inline-block w-4 h-4 rounded" style={{ background: color }} />
-      {label}
-    </div>
-  );
-  return (
-    <div className="px-3 py-3 border-b border-venue-800 space-y-1">
-      <h3 className="venue-section-title mb-1">Status</h3>
-      <Item color="#6b7280" label="Reserved" />
-      <Item color="#374151" label="Blocked" />
-      <Item color="#111827" label="Sold" />
-    </div>
-  );
-}
 
-function Tips() {
-  return (
-    <div className="px-3 py-3 text-[11px] text-venue-500 space-y-1">
-      <div className="venue-section-title mb-1">Tips</div>
-      <div>• Right-click a seat or row for actions</div>
-      <div>• Shift-click seats to multi-select</div>
-      <div>• Drag row label to reorder</div>
-      <div>• Delete key removes selected seats</div>
-      <div>• Ctrl/Cmd+Z to undo</div>
-    </div>
-  );
-}
-
-function RightPanel() {
-  const { state, dispatch } = useVenue();
-  const { selection, map, mode } = state;
-
-  const seatIndex = useMemo(() => {
-    const idx = new Map<string, { row: Row; cell: Cell }>();
-    for (const r of map.rows) for (const c of r.cells) idx.set(c.id, { row: r, cell: c });
-    return idx;
-  }, [map]);
-  const selectedList = Array.from(selection).map((id) => seatIndex.get(id)).filter(Boolean) as { row: Row; cell: Cell }[];
-
-  return (
-    <aside className="w-72 border-l border-venue-800 bg-venue-900 flex flex-col overflow-y-auto">
-      <div className="px-3 py-3 border-b border-venue-800">
-        <h2 className="venue-section-title">Selection</h2>
-        <div className="mt-2 text-xs text-venue-300">
-          {selectedList.length === 0 ? (
-            <div className="text-venue-500">Nothing selected.</div>
-          ) : (
-            <>
-              <div>{selectedList.length} seat(s) selected</div>
-              <div className="mt-1 max-h-32 overflow-auto text-[11px] text-venue-400 border border-venue-800 rounded p-1.5">
-                {selectedList.slice(0, 40).map(({ row, cell }) => (
-                  <div key={cell.id}>
-                    {row.label}
-                    {cell.number}
-                  </div>
-                ))}
-                {selectedList.length > 40 && <div>…</div>}
-              </div>
-              {mode === "edit" && (
-                <div className="mt-2 space-y-2">
-                  <div className="text-[11px] text-venue-400">Set status</div>
-                  <div className="flex flex-wrap gap-1">
-                    {(["available", "reserved", "blocked"] as const).map((s) => (
-                      <button
-                        key={s}
-                        className="venue-btn venue-btn-default capitalize"
-                        onClick={() => dispatch({ type: "SET_SEAT_STATUS", ids: Array.from(selection), status: s })}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="text-[11px] text-venue-400 mt-2">Assign category</div>
-                  <div className="flex flex-wrap gap-1">
-                    {map.categories.map((c) => (
-                      <button
-                        key={c.id}
-                        className="px-2 py-1 text-[11px] rounded border border-venue-700"
-                        style={{ background: c.color + "33", color: c.color }}
-                        onClick={() => dispatch({ type: "ASSIGN_CATEGORY", ids: Array.from(selection), categoryId: c.id })}
-                      >
-                        {c.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-      <TemplatesPanel />
-    </aside>
-  );
-}
-
-function TemplatesPanel() {
-  const { dispatch } = useVenue();
-  return (
-    <div className="px-3 py-3 border-b border-venue-800">
-      <h2 className="venue-section-title mb-2">Templates</h2>
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          className="venue-btn venue-btn-default"
-          onClick={() => dispatch({ type: "LOAD_MAP", map: buildTheater() })}
-        >
-          Theater
-        </button>
-        <button
-          className="venue-btn venue-btn-default"
-          onClick={() => dispatch({ type: "LOAD_MAP", map: buildArena() })}
-        >
-          Arena
-        </button>
-        <button
-          className="venue-btn venue-btn-default"
-          onClick={() => dispatch({ type: "LOAD_MAP", map: buildClassroom() })}
-        >
-          Classroom
-        </button>
-        <button
-          className="venue-btn venue-btn-default"
-          onClick={() => dispatch({ type: "LOAD_MAP", map: buildEmpty() })}
-        >
-          Blank
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- Stats -------------------- */
-
-function StatsBar() {
-  const { state } = useVenue();
-  const map = state.map;
-  const stats = useMemo(() => {
-    let total = 0;
-    let available = 0;
-    let sold = 0;
-    let reserved = 0;
-    let blocked = 0;
-    const perCat: Record<string, number> = {};
-    for (const r of map.rows) {
-      for (const c of r.cells) {
-        if (c.type !== "seat") continue;
-        total++;
-        if (c.status === "sold") sold++;
-        else if (c.status === "reserved") reserved++;
-        else if (c.status === "blocked") blocked++;
-        else available++;
-        if (c.categoryId) {
-          perCat[c.categoryId] = (perCat[c.categoryId] ?? 0) + 1;
-        }
-      }
-    }
-    return { total, available, sold, reserved, blocked, perCat };
-  }, [map]);
-  return (
-    <div className="mt-6 flex flex-wrap gap-3 text-xs text-venue-400 border-t border-venue-800 pt-3">
-      <span>Total: <b className="text-venue-200">{stats.total}</b></span>
-      <span>Available: <b className="text-positive">{stats.available}</b></span>
-      <span>Sold: <b className="text-venue-100">{stats.sold}</b></span>
-      <span>Reserved: <b className="text-accent-light">{stats.reserved}</b></span>
-      <span>Blocked: <b className="text-venue-500">{stats.blocked}</b></span>
-    </div>
-  );
-}
-
-function BookingSummary() {
-  const { state, dispatch } = useVenue();
-  const map = state.map;
-  const sold = useMemo(() => {
-    const arr: { row: Row; cell: Cell; cat?: Category }[] = [];
-    for (const r of map.rows) {
-      for (const c of r.cells) {
-        if (c.type === "seat" && c.status === "sold") {
-          arr.push({ row: r, cell: c, cat: map.categories.find((x) => x.id === c.categoryId) });
-        }
-      }
-    }
-    return arr;
-  }, [map]);
-  if (!sold.length) return null;
-  return (
-    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 min-w-[420px] max-w-[600px] rounded-lg border border-venue-700 bg-venue-900/95 backdrop-blur px-4 py-3 shadow-2xl">
-      <div className="text-xs text-venue-400 mb-1">Cart · {sold.length} seat(s)</div>
-      <div className="max-h-24 overflow-auto text-xs text-venue-200">
-        {sold.map(({ row, cell, cat }) => (
-          <div key={cell.id} className="flex items-center justify-between py-0.5">
-            <span>
-              Seat <b>{row.label}{cell.number}</b> {cat && <span className="text-venue-400">· {cat.name}</span>}
-            </span>
-            <button
-              className="text-venue-500 hover:text-danger flex items-center justify-center"
-              onClick={() => dispatch({ type: "SET_SEAT_STATUS", ids: [cell.id], status: "available" })}
-            >
-              <X size={12} />
-            </button>
-          </div>
-        ))}
-      </div>
-      <div className="mt-2 pt-2 border-t border-venue-800 flex items-center justify-between text-sm">
-        <span className="text-venue-400">Total</span>
-        <span className="font-bold text-positive-light">{sold.length} seat(s)</span>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- Templates -------------------- */
-
-import { renumber, makeSeatedRow, makeAisleRow, makeEmptyRow } from "../context/VenueContext";
-import { v4 as uuid } from "uuid";
-import type { Stage } from "./types";
-
-const makeSeatTemplate = (id: string, name: string, stage: Stage, cats: Category[], rows: Row[]): SeatMap =>
-  renumber({ id, name, mode: "SEAT_BASED", stage, categories: cats, rows, verticalAisles: [] });
-
-function baseCats(): Category[] {
-  return [
-    { id: uuid(), name: "Standard", color: "#3b82f6" },
-    { id: uuid(), name: "Premium", color: "#a855f7" },
-    { id: uuid(), name: "VIP", color: "#f59e0b" },
-  ];
-}
-function buildTheater(): SeatMap {
-  const cats = baseCats();
-  const rows: Row[] = [];
-  for (let i = 0; i < 3; i++) rows.push(makeSeatedRow(16, cats[2].id));
-  rows.push(makeAisleRow());
-  for (let i = 0; i < 6; i++) rows.push(makeSeatedRow(20, cats[1].id));
-  rows.push(makeAisleRow());
-  for (let i = 0; i < 6; i++) rows.push(makeSeatedRow(24, cats[0].id));
-  return makeSeatTemplate(uuid(), "Theater", { label: "STAGE", color: "#7f1d1d", position: "top" }, cats, rows);
-}
-function buildArena(): SeatMap {
-  const cats = baseCats();
-  const rows: Row[] = [];
-  for (let i = 0; i < 12; i++) rows.push(makeSeatedRow(30 + (i % 3), cats[i < 3 ? 2 : i < 8 ? 1 : 0].id));
-  return makeSeatTemplate(uuid(), "Arena", { label: "FLOOR", color: "#1e3a8a", position: "top" }, cats, rows);
-}
-function buildClassroom(): SeatMap {
-  const cats = baseCats();
-  const rows: Row[] = [];
-  for (let i = 0; i < 6; i++) rows.push(makeSeatedRow(10, cats[0].id));
-  return makeSeatTemplate(uuid(), "Classroom", { label: "BOARD", color: "#065f46", position: "top" }, cats, rows);
-}
-function buildEmpty(): SeatMap {
-  return makeSeatTemplate(uuid(), "Blank", { label: "STAGE", color: "#7f1d1d", position: "top" }, baseCats(), [makeEmptyRow()]);
-}

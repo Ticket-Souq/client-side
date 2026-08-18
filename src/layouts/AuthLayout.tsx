@@ -1,24 +1,45 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Outlet, Link } from 'react-router-dom';
+import { BRAND_NAME } from '../shared/constants';
+import '../features/auth/styles/auth.css';
+
+function AuthHeader() {
+  return (
+    <header className="auth-header-bar">
+      <div className="wrap" style={{ maxWidth: 1320, margin: '0 auto', padding: '0 36px', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Link to="/" className="auth-logo">
+          <img src="/Logo.png" alt="" style={{ height: 28, width: 'auto' }} />
+          <span className="auth-logo-text">{BRAND_NAME.toUpperCase()}</span>
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+function AuthFooter() {
+  return (
+    <footer className="auth-site-footer">
+      <div className="auth-foot-grid">
+        <Link to="/" className="auth-logo" style={{ alignSelf: 'flex-start' }}>
+          <img src="/Logo.png" alt="" style={{ height: 28, width: 'auto' }} />
+          <span className="auth-logo-text">{BRAND_NAME.toUpperCase()}</span>
+        </Link>
+      </div>
+      <div className="auth-foot-bottom">
+        <span>&copy; 2026 {BRAND_NAME}</span>
+        <span>Made for events across Egypt</span>
+      </div>
+    </footer>
+  );
+}
 
 export default function AuthLayout() {
   return (
-    <div className="min-vh-100 d-flex flex-column">
-      <nav className="navbar navbar-expand navbar-dark bg-hero-brown bg-noise px-4">
-        <NavLink to="/" className="navbar-brand fw-bold" style={{ color: '#E2A30F' }}>
-          TicketSouq
-        </NavLink>
-        <ul className="navbar-nav ms-auto align-items-center gap-2">
-          <li className="nav-item">
-            <NavLink to="/auth/login" className="nav-link">Login</NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink to="/auth/register" className="nav-link">Register</NavLink>
-          </li>
-        </ul>
-      </nav>
-      <main className="flex-grow-1 d-flex flex-column">
+    <div className="auth-page">
+      <AuthHeader />
+      <main>
         <Outlet />
       </main>
+      <AuthFooter />
     </div>
-  )
+  );
 }

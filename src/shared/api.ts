@@ -1,0 +1,88 @@
+const VITE_API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = VITE_API_URL !== undefined ? VITE_API_URL : 'http://localhost:8080';
+
+export const API = {
+  base: BASE_URL,
+  auth: {
+    register: `${BASE_URL}/api/v1/auth/register`,
+    login: `${BASE_URL}/api/v1/auth/login`,
+    logout: `${BASE_URL}/api/v1/auth/logout`,
+    logoutAll: `${BASE_URL}/api/v1/auth/logout-all`,
+    refresh: `${BASE_URL}/api/v1/auth/refresh`,
+    verifyEmail: `${BASE_URL}/api/v1/auth/email-varification`,
+    forgotPassword: `${BASE_URL}/api/v1/auth/password-forgot`,
+    changePassword: `${BASE_URL}/api/v1/auth/password`,
+    deactivate: `${BASE_URL}/api/v1/auth`,
+  },
+  events: {
+    search: `${BASE_URL}/api/v1/event/search`,
+    list: `${BASE_URL}/api/v1/event`,
+    management: `${BASE_URL}/api/v1/event/management`,
+    byId: (id: string) => `${BASE_URL}/api/v1/event/${id}`,
+    create: `${BASE_URL}/api/v1/event`,
+    cancel: (id: string) => `${BASE_URL}/api/v1/event/${id}`,
+    categories: `${BASE_URL}/api/v1/event/categories`,
+    seatStatusByTemplate: (eventId: string, templateSeatId: string) => `${BASE_URL}/api/v1/event/${eventId}/seats/template/${templateSeatId}/status`,
+    createSection: (eventId: string) => `${BASE_URL}/api/v1/event/${eventId}/sections`,
+    updateSection: (sectionId: string) => `${BASE_URL}/api/v1/event/sections/${sectionId}`,
+    organizerReserveSection: (sectionId: string) => `${BASE_URL}/api/v1/event/sections/${sectionId}/organizer-reserve`,
+    organizerReleaseSection: (sectionId: string) => `${BASE_URL}/api/v1/event/sections/${sectionId}/organizer-release`,
+  },
+  notifications: {
+    list: `${BASE_URL}/api/v1/notification`,
+    unreadCount: `${BASE_URL}/api/v1/notification/unread-count`,
+    markRead: (id: number) => `${BASE_URL}/api/v1/notification/${id}/read`,
+    markAllRead: `${BASE_URL}/api/v1/notification/read-all`,
+  },
+  reservations: {
+    list: `${BASE_URL}/api/v1/reservation`,
+    byId: (id: string) => `${BASE_URL}/api/v1/reservation/${id}`,
+  },
+  users: {
+    profile: `${BASE_URL}/api/v1/user/profile`,
+  },
+  admin: {
+    organizations: `${BASE_URL}/api/v1/user/organizations`,
+    orgApprove: (id: string) => `${BASE_URL}/api/v1/user/org/${id}/approve`,
+    orgReject: (id: string) => `${BASE_URL}/api/v1/user/org/${id}/reject`,
+    orgBan: (id: string) => `${BASE_URL}/api/v1/user/org/${id}/ban`,
+    auditLogs: `${BASE_URL}/api/v1/audit`,
+  },
+  org: {
+    members: `${BASE_URL}/api/v1/auth/org/members`,
+    deactivate: `${BASE_URL}/api/v1/auth/org`,
+    activate: `${BASE_URL}/api/v1/auth/org`,
+    generateAccounts: `${BASE_URL}/api/v1/auth/org/generate-accounts`,
+  },
+  tickets: {
+    list: `${BASE_URL}/api/v1/ticket`,
+    byId: (id: string) => `${BASE_URL}/api/v1/ticket/${id}`,
+    byReservation: (reservationId: string) => `${BASE_URL}/api/v1/ticket?reservationId=${reservationId}`,
+    organizerByEvent: (eventId: string) => `${BASE_URL}/api/v1/ticket/organizer/${eventId}`,
+    reserveOrganizer: `${BASE_URL}/api/v1/ticket/reserve/organizer`,
+    updateStatus: (id: string) => `${BASE_URL}/api/v1/ticket/${id}/status`,
+    consume: (id: string) => `${BASE_URL}/api/v1/ticket/${id}/consume`,
+  },
+  locks: {
+    acquireSeats: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/seats`,
+    acquireZone: (eventId: string) => `${BASE_URL}/api/v1/event/locks/${eventId}/zones`,
+    release: `${BASE_URL}/api/v1/event/locks/release`,
+    reserve: `${BASE_URL}/api/v1/event/locks/reserve`,
+  },
+  venues: {
+    list: `${BASE_URL}/api/v1/venue`,
+    byId: (id: string) => `${BASE_URL}/api/v1/venue/${id}`,
+    create: `${BASE_URL}/api/v1/venue`,
+    update: (id: string) => `${BASE_URL}/api/v1/venue/${id}`,
+    delete: (id: string) => `${BASE_URL}/api/v1/venue/${id}`,
+    templates: (venueId: string) => `${BASE_URL}/api/v1/venue/${venueId}/templates`,
+    templateById: (venueId: string, templateId: string) => `${BASE_URL}/api/v1/venue/${venueId}/templates/${templateId}`,
+  },
+  analytics: {
+    overviewKpis: () => `${BASE_URL}/api/v1/analytics/overview/kpis`,
+    overviewSalesPace: (eventId?: string) => `${BASE_URL}/api/v1/analytics/overview/sales-pace${eventId ? `?eventId=${eventId}` : ''}`,
+    overviewEvents: (sort: string, page: number, size: number) => `${BASE_URL}/api/v1/analytics/overview/events?sort=${sort}&page=${page}&size=${size}`,
+    eventSummary: (eventId: string) => `${BASE_URL}/api/v1/analytics/events/${eventId}/summary`,
+    eventSalesTimeline: (eventId: string, granularity: string) => `${BASE_URL}/api/v1/analytics/events/${eventId}/sales-timeline?granularity=${granularity}`,
+  },
+};

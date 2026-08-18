@@ -1,0 +1,33 @@
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 28px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--border);
+  color: var(--ink);
+}
+
+.num {
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.pending {
+  background: var(--yellow-pale);
+  color: var(--yellow-deep);
+}
+
+.flagged {
+  background: #ffebee;
+  color: #c62828;
+}

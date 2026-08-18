@@ -1,38 +1,17 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Suspense } from 'react'
+import { Outlet } from 'react-router-dom'
+import { UserProfileProvider } from '../shared/hooks/useUserProfile'
+import { LayoutShell } from '../shared/components/layout/LayoutShell'
+import { LoadingState } from '../shared/components/display/StateViews/StateViews'
 
 export default function AdminLayout() {
   return (
-    <div className="min-vh-100 d-flex flex-column">
-      <nav className="navbar navbar-expand navbar-dark bg-hero-brown bg-noise px-4">
-        <NavLink to="/admin" className="navbar-brand fw-bold" style={{ color: '#E2A30F' }}>
-          TicketSouq — Admin
-        </NavLink>
-        <ul className="navbar-nav ms-auto align-items-center gap-2">
-          <li className="nav-item">
-            <NavLink to="/admin/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              Dashboard
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink to="/admin/organizations" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              Organizations
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink to="/admin/users" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              Users
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink to="/" className="nav-link btn btn-outline-accent btn-sm px-3">
-              Back to App
-            </NavLink>
-          </li>
-        </ul>
-      </nav>
-      <main className="flex-grow-1 d-flex flex-column">
-        <Outlet />
-      </main>
-    </div>
+    <UserProfileProvider>
+      <LayoutShell>
+        <Suspense fallback={<LoadingState />}>
+          <Outlet />
+        </Suspense>
+      </LayoutShell>
+    </UserProfileProvider>
   )
 }

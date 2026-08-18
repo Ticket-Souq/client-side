@@ -1,0 +1,692 @@
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--white) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--yellow);
+  display: inline-block;
+}
+
+.navLinks {
+  display: flex;
+  gap: 36px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.navLinks a {
+  color: var(--ink-soft);
+  position: relative;
+  padding: 4px 0;
+  text-decoration: none;
+}
+
+.navLinks a:hover {
+  color: var(--ink);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 150ms ease, background 150ms ease;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btnPrimary {
+  background: var(--yellow);
+  color: var(--ink-black);
+}
+
+.btnPrimary:hover {
+  background: var(--accent-hover);
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.btnGhost:hover {
+  color: var(--text-secondary);
+}
+
+.heroSection {
+  padding: 56px 0 72px;
+}
+
+.heroEyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 20px;
+}
+
+.ticketCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  min-height: 460px;
+  background: var(--ink-black);
+  border-radius: 20px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ticketArt {
+  position: relative;
+  background:
+    radial-gradient(circle at 20% 25%, color-mix(in srgb, var(--yellow) 55%, transparent), transparent 45%),
+    radial-gradient(circle at 75% 70%, color-mix(in srgb, var(--yellow) 28%, transparent), transparent 50%),
+    linear-gradient(135deg, var(--ink-deep), var(--ink-black) 70%);
+}
+
+.ticketArt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 34px);
+}
+
+.beam {
+  position: absolute;
+  width: 2px;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(color-mix(in srgb, var(--yellow) 50%, transparent), transparent);
+}
+
+.beam:nth-child(1) { left: 22%; }
+.beam:nth-child(2) { left: 58%; }
+.beam:nth-child(3) { left: 81%; }
+
+.ticketTag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--yellow) 16%, transparent);
+  color: var(--yellow);
+  border: 1px solid color-mix(in srgb, var(--yellow) 40%, transparent);
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+
+.ticketTitle {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  line-height: 1.02;
+  margin: 0 0 14px;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.ticketMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.ticketMeta span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticketStub {
+  position: relative;
+  background: var(--ink-deep);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 28px;
+  color: var(--on-dark);
+}
+
+.ticketStub::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 2px dashed rgba(255, 255, 255, 0.22);
+}
+
+.stubNotch {
+  position: absolute;
+  left: -14px;
+  width: 28px;
+  height: 28px;
+  background: var(--color-bg);
+  border-radius: 50%;
+}
+
+.stubNotchTop {
+  top: -14px;
+}
+
+.stubNotchBottom {
+  bottom: -14px;
+}
+
+.stubCta {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.stubContent {
+  min-width: 0;
+}
+
+.rowSection {
+  padding: 36px 0;
+}
+.rowSection + .rowSection {
+  padding-top: 0;
+}
+
+.rowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.rowTitle {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.rowSeeall {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.rowSeeall:hover {
+  color: var(--ink);
+}
+
+.rowSeeallArrow {
+  margin-left: 4px;
+}
+
+.hscroll {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 4px 4px 12px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+.ecard {
+  position: relative;
+  flex: 0 0 220px;
+  height: 340px;
+  border-radius: 14px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  cursor: pointer;
+  background: var(--surface-muted);
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+}
+
+.corner {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-black);
+  z-index: 2;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 60%;
+  background: linear-gradient(to top, rgba(10, 10, 7, 0.94) 20%, rgba(10, 10, 7, 0));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px;
+  transform: translateY(14px);
+  opacity: 0;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+  pointer-events: none;
+}
+
+.ecard:hover .overlay {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.ecard:hover .art {
+  filter: brightness(0.85) saturate(1.05);
+}
+
+.art {
+  transition: filter 260ms ease;
+}
+
+.evTitle {
+  color: var(--on-dark);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.evMeta {
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.artWaves {
+  background: radial-gradient(circle at 70% 20%, var(--hero-glow), var(--accent-hover) 60%, var(--ink-deep) 130%);
+}
+
+.artWaves::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(color-mix(in srgb, var(--ink-deep) 18%, transparent) 2px, transparent 2px);
+  background-size: 16px 16px;
+}
+
+.artBeams {
+  background: linear-gradient(200deg, var(--ink-deep), var(--ink-softest));
+}
+
+.artBeams::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(70deg, color-mix(in srgb, var(--yellow) 35%, transparent) 0 3px, transparent 3px 26px);
+}
+
+.artGrid {
+  background: linear-gradient(160deg, var(--ink-deep), var(--ink-black));
+}
+
+.artGrid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--yellow) 18%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--yellow) 18%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.artConfetti {
+  background: linear-gradient(160deg, var(--yellow-pale), var(--hero-glow));
+}
+
+.artConfetti::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(color-mix(in srgb, var(--ink-deep) 15%, transparent) 3px, transparent 3px),
+    radial-gradient(rgba(255, 255, 255, 0.6) 3px, transparent 3px);
+  background-size: 30px 30px, 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+.portalSection {
+  padding: 52px 0;
+  text-align: center;
+}
+
+.portalSectionTitle {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.portalSectionDesc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 32px;
+}
+
+.portalGrid {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.portalCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 24px;
+  width: 240px;
+  cursor: pointer;
+  transition: border-color 200ms ease, transform 150ms ease;
+  text-decoration: none;
+}
+
+.portalCard:hover {
+  border-color: var(--yellow);
+  transform: translateY(-4px);
+}
+
+.portalIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--yellow-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.portalName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.portalDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.portalBtn {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--yellow);
+}
+
+.portalCard:hover .portalBtn {
+  color: var(--accent-hover);
+}
+
+.siteFooter {
+  border-top: 1px solid var(--border);
+  padding: 48px 0;
+  margin-top: 40px;
+}
+
+.footGrid {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+
+.footCols {
+  display: flex;
+  gap: 64px;
+}
+
+.footCol h4 {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 14px;
+  font-weight: 600;
+}
+
+.footCol a {
+  display: block;
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+  text-decoration: none;
+}
+
+.footCol a:hover {
+  color: var(--ink);
+}
+
+.footBottom {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+@media (max-width: 860px) {
+  .ticketCard {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .ticketArt {
+    min-height: 300px;
+  }
+
+  .ticketStub {
+    border-top: 2px dashed rgba(255, 255, 255, 0.22);
+    padding: 24px 22px;
+  }
+
+  .ticketStub::before {
+    display: none;
+  }
+
+  .stubNotchBottom {
+    top: -14px;
+    bottom: auto;
+    left: auto;
+    right: -14px;
+  }
+
+  .ticketTitle {
+    font-size: 44px;
+  }
+
+  .ticketMeta {
+    gap: 8px;
+  }
+
+  .heroSection {
+    padding: 40px 0 56px;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .wrap {
+    padding: 0 20px;
+  }
+
+  .rowTitle {
+    font-size: 20px;
+  }
+
+  .footCols {
+    gap: 36px;
+    flex-wrap: wrap;
+  }
+
+  .footBottom {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSection {
+    padding: 28px 0 40px;
+  }
+
+  .heroEyebrow {
+    font-size: 11px;
+    margin-bottom: 16px;
+  }
+
+  .ticketArt {
+    min-height: 240px;
+  }
+
+  .ticketTag {
+    font-size: 10px;
+    padding: 4px 10px;
+    margin-bottom: 12px;
+  }
+
+  .ticketTitle {
+    font-size: clamp(26px, 9vw, 34px);
+    margin-bottom: 10px;
+  }
+
+  .ticketMeta {
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .ticketStub {
+    padding: 20px 18px;
+  }
+
+  .wrap {
+    padding: 0 16px;
+  }
+
+  .rowSection {
+    padding: 28px 0;
+  }
+
+  .rowTitle {
+    font-size: 18px;
+  }
+
+  .ecard {
+    flex: 0 0 180px;
+    height: 300px;
+  }
+
+  .corner {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cardAnimate {
+  animation: cardEnter 0.35s ease-out;
+}
+
+.tapeTrack {
+  display: flex;
+  transition: transform 0.4s ease;
+}
+
+.tapeSlide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.tapeWrap {
+  overflow: hidden;
+  border-radius: 14px;
+}

@@ -1,0 +1,40 @@
+import { memo } from 'react'
+import { Button } from '../../../shared/components'
+import { type TicketGroup } from '../types/ticket.types'
+import { formatDateTime, formatPrice } from '../../../shared/format'
+import styles from '../styles/tickets.module.css'
+
+interface Props {
+  group: TicketGroup
+  onViewTickets: () => void
+}
+
+function ReservationCard({ group, onViewTickets }: Props) {
+  const ticketCount = group.tickets.length
+  const totalPrice = group.tickets.reduce((sum, t) => sum + t.price, 0)
+
+
+  return (
+    <div className={styles.resCard}>
+      <div className={styles.resCardBody}>
+        <div className={styles.resInfo}>
+          <h2 className={styles.resEvent}>{group.eventTitle}</h2>
+          <div className={styles.resMeta}>
+            <span>{formatDateTime(group.eventStartDate)}</span>
+          </div>
+          <div className={styles.resSummary}>
+            <span className={styles.resSeats}>{ticketCount} {ticketCount === 1 ? 'ticket' : 'tickets'}</span>
+            <span className={styles.resTotal}>{formatPrice(totalPrice)}</span>
+          </div>
+        </div>
+        <div className={styles.resAction}>
+          <Button variant="primary" size="sm" onClick={onViewTickets}>
+            View Tickets
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default memo(ReservationCard)

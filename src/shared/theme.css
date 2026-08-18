@@ -1,16 +1,209 @@
 :root {
-  --color-bg: #F7F7F7;
-  --color-surface: #FFFFFF;
-  --color-text: #1F1F1F;
-  --color-text-secondary: #6F6F6F;
-  --color-border: #E8E8E8;
-  --color-accent: #e2a30ff2;
-  --color-accent-light: #EBC681;
-  --color-hero-glow: #F6D66A;
-  --color-hero-blue: #496D7E;
-  --color-hero-brown: #4E3B28;
+  color-scheme: light;
+  /* ── Surfaces ── */
+  --white: #ffffff;
+  --color-surface: #ffffff;
+  --color-bg: #f7f7f7;
+  --bg: #f2efe9;
+  --surface-soft: #fafaf7;
+  --surface-muted: #f0efe8;
+  --surface-hover: #f5f4ef;
+  --white-hover: #f8f7f4;
 
+  /* ── Text ── */
+  --ink: #15150f;
+  --color-text: #15150f;
+  --ink-soft: #3c3b34;
+  --ink-muted: #726f63;
+  --text-secondary: #726f63;
+  --color-text-secondary: #726f63;
+  --on-dark: #ffffff;
+
+  /* ── Border ── */
+  --border: #eae7dc;
+  --color-border: #eae7dc;
+
+  /* ── Accent (brand gold) ── */
+  --accent: #ffc629;
+  --color-accent: #ffc629;
+  --yellow: #ffc629;
+  --accent-hover: #e0a600;
+  --color-accent-hover: #e0a600;
+  --yellow-deep: #e0a600;
+  --accent-pale: #fff6d9;
+  --yellow-pale: #fff6d9;
+  --accent-deep: #e2a30f;
+  --color-accent-deep: #e2a30f;
+  --accent-light: #ebc681;
+  --color-accent-light: #ebc681;
+  --hero-glow: #f6d66a;
+  --color-hero-glow: #f6d66a;
+  --accent-btn-hover: #c88d0c;
+
+  /* ── Dark / Hero ── */
+  --ink-deep: #1c1c14;
+  --ink-black: #0d0d09;
+  --ink-softest: #3a3626;
+  --hero-brown: #4e3b28;
+  --color-hero-brown: #4e3b28;
+  --hero-blue: #496d7e;
+  --color-hero-blue: #496d7e;
+
+  /* ── Feedback ── */
+  --danger: #dc2626;
+  --red: #dc2626;
+  --danger-deep: #c62828;
+  --danger-soft: #fef2f2;
+  --danger-border: #fecaca;
+  --success: #2e7d32;
+  --success-soft: #e8f5e9;
+  --success-bright: #16a34a;
+  --warning: #e65100;
+  --warning-soft: #fff3e0;
+  --warning-bright: #ff9800;
+  --info: #3b82f6;
+
+  /* ── Venue designer (seat-map.css, matches its light values) ── */
+  --venue-bg: #f7f7f7;
+  --venue-surface: #ffffff;
+  --venue-surface-raised: #f0f0f0;
+  --venue-border: #e8e8e8;
+  --venue-border-subtle: #f0f0f0;
+  --venue-text: #1f1f1f;
+  --venue-text-200: #3f3f46;
+  --venue-text-secondary: #6f6f6f;
+  --venue-text-muted: #9a9a9a;
+  --venue-primary: #6366f1;
+  --venue-primary-hover: #4f46e5;
+  --venue-accent: #e2a30f;
+  --venue-accent-light: #c88d0c;
+  --venue-positive: #059669;
+  --venue-positive-light: #047857;
+  --venue-danger: #dc2626;
+  --venue-seat-reserved: #6b7280;
+  --venue-seat-blocked: #374151;
+  --venue-seat-sold: #111827;
+  --venue-seat-default: #334155;
+  --venue-glass-80: rgba(255, 255, 255, 0.8);
+  --venue-glass-95: rgba(255, 255, 255, 0.95);
+  --venue-primary-dim: rgba(99, 102, 241, 0.08);
+  --venue-accent-dim: rgba(226, 163, 15, 0.08);
+  --venue-positive-dim: rgba(5, 150, 105, 0.08);
+  --venue-danger-dim: rgba(220, 38, 38, 0.06);
+
+  /* ── Radius ── */
+  --radius: 14px;
+
+  /* ── Fonts ── */
   --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-body: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+}
+
+/* ═══════════════════════════════════════════════════
+   Dark theme — overrides the tokens above.
+   Toggled via `data-theme="dark"` on <html>.
+   ═══════════════════════════════════════════════════ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* ── Surfaces ── */
+  --white: #1b1a15;
+  --color-surface: #1b1a15;
+  --color-bg: #14130f;
+  --bg: #1a1914;
+  --surface-soft: #201f19;
+  --surface-muted: #292720;
+  --surface-hover: #2b2922;
+  --white-hover: #26241e;
+
+  /* ── Text ── */
+  --ink: #efece1;
+  --color-text: #efece1;
+  --ink-soft: #c9c4b4;
+  --ink-muted: #a29d8d;
+  --text-secondary: #a29d8d;
+  --color-text-secondary: #a29d8d;
+  --on-dark: #ffffff;
+
+  /* ── Border ── */
+  --border: #36342a;
+  --color-border: #36342a;
+
+  /* ── Accent (brand gold stays bright on dark) ── */
+  --accent: #ffc629;
+  --color-accent: #ffc629;
+  --yellow: #ffc629;
+  --accent-hover: #e0a600;
+  --color-accent-hover: #e0a600;
+  --yellow-deep: #e0a600;
+  --accent-pale: #3b3218;
+  --yellow-pale: #3b3218;
+  --accent-deep: #e2a30f;
+  --color-accent-deep: #e2a30f;
+  --accent-light: #d9a950;
+  --color-accent-light: #d9a950;
+  --hero-glow: #f6d66a;
+  --color-hero-glow: #f6d66a;
+  --accent-btn-hover: #c88d0c;
+
+  /* ── Dark / Hero (already dark — unchanged) ── */
+  --ink-deep: #1c1c14;
+  --ink-black: #0d0d09;
+  --ink-softest: #3a3626;
+  --hero-brown: #4e3b28;
+  --color-hero-brown: #4e3b28;
+  --hero-blue: #496d7e;
+  --color-hero-blue: #496d7e;
+
+  /* ── Feedback (brightened for dark backgrounds) ── */
+  --danger: #f87171;
+  --red: #f87171;
+  --danger-deep: #ef4444;
+  --danger-soft: #2b1414;
+  --danger-border: #6b1d1d;
+  --success: #4ade80;
+  --success-soft: #142c18;
+  --success-bright: #22c55e;
+  --warning: #fb923c;
+  --warning-soft: #36220f;
+  --warning-bright: #fb923c;
+  --info: #60a5fa;
+
+  /* ── Venue designer (dark) ── */
+  --venue-bg: #14130f;
+  --venue-surface: #1b1a15;
+  --venue-surface-raised: #26241e;
+  --venue-border: #36342a;
+  --venue-border-subtle: #2b2922;
+  --venue-text: #efece1;
+  --venue-text-200: #d4d4d8;
+  --venue-text-secondary: #a29d8d;
+  --venue-text-muted: #807b6d;
+  --venue-primary: #818cf8;
+  --venue-primary-hover: #6366f1;
+  --venue-accent: #e2a30f;
+  --venue-accent-light: #d9a950;
+  --venue-positive: #4ade80;
+  --venue-positive-light: #22c55e;
+  --venue-danger: #f87171;
+  --venue-seat-reserved: #9ca3af;
+  --venue-seat-blocked: #4b5563;
+  --venue-seat-sold: #1f2937;
+  --venue-seat-default: #475569;
+  --venue-glass-80: rgba(27, 26, 21, 0.8);
+  --venue-glass-95: rgba(27, 26, 21, 0.95);
+  --venue-primary-dim: rgba(99, 102, 241, 0.16);
+  --venue-accent-dim: rgba(226, 163, 15, 0.16);
+  --venue-positive-dim: rgba(5, 150, 105, 0.14);
+  --venue-danger-dim: rgba(220, 38, 38, 0.14);
+
+  /* ── Bootstrap alignment ── */
+  --bs-body-bg: #14130f;
+  --bs-body-color: #efece1;
+  --bs-border-color: #36342a;
+  --bs-secondary-color: #a29d8d;
+  --bs-emphasis-color: #efece1;
+  --bs-emphasis-color-rgb: 239, 236, 225;
+  --bs-body-font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

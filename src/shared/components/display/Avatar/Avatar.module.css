@@ -1,0 +1,12 @@
+.avatar {
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  background: var(--ink-black);
+  color: var(--on-dark);
+  font-family: 'Inter', sans-serif;
+}
+.sm { width: 36px; height: 36px; font-size: 13px; }
+.md { width: 48px; height: 48px; font-size: 16px; }

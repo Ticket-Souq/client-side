@@ -1,9 +1,13 @@
 import { PublisherApp } from '../components/PublisherApp'
 
-export default function OrganizerMaps() {
+interface Props {
+  initialVenueId?: string
+}
+
+export default function OrganizerMaps({ initialVenueId }: Props) {
   return (
     <PublisherApp
-      publisher={{ id: 'org-1', name: 'Organizer' }}
+      initialVenueId={initialVenueId}
     />
   )
 }

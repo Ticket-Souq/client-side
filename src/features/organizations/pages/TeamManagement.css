@@ -1,0 +1,68 @@
+.members-page{padding:46px 0 69px;}
+
+.members-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px;}
+
+.stat-chips{display:flex;gap:12px;margin-bottom:28px;}
+.stat-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 18px;border-radius:999px;font-size:13px;font-weight:500;
+  background:var(--white);border:1px solid var(--border);color:var(--ink);
+  font-family:'Inter',sans-serif;
+}
+.stat-chip-num{font-weight:700;font-family:'IBM Plex Mono',monospace;}
+
+.tabs{display:flex;gap:9px;margin-bottom:28px;}
+.tab{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:9px 21px;border-radius:999px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text-secondary);transition:all 150ms ease;}
+.tab:hover{border-color:var(--ink);color:var(--ink);}
+.tab.active{background:var(--ink-black);color:var(--on-dark);border-color:var(--ink-black);}
+
+.toggle{cursor:pointer;}
+.toggle-track{display:inline-block;width:48px;height:26px;background:var(--border);border-radius:999px;position:relative;transition:background 150ms ease;vertical-align:middle;}
+.toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:var(--white);border-radius:50%;transition:transform 150ms ease;}
+.toggle.active .toggle-track{background:var(--yellow);}
+.toggle.active .toggle-track::after{transform:translateX(22px);}
+
+.badge-yellow{background:var(--yellow);color:var(--ink-black);}
+.badge-soft{background:var(--white);color:var(--ink-soft);}
+.badge-green{background:#e8f5e9;color:#2e7d32;}
+.badge-red{background:#ffebee;color:#c62828;}
+
+.members-page .table{width:100%;border-collapse:collapse;}
+.members-page .table th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-secondary);padding:14px 20px;border-bottom:1px solid var(--border);background:var(--white);}
+.members-page .table td{padding:16px 20px;border-bottom:1px solid var(--border);font-size:14px;color:var(--ink);transition:background 150ms ease;}
+.members-page .table tbody tr:hover{background:var(--white-hover);}
+.members-page .table tbody tr:last-child td{border-bottom:none;}
+
+.modal-overlay{position:fixed;inset:0;background:color-mix(in srgb, var(--ink) 40%, transparent);display:flex;align-items:center;justify-content:center;z-index:100;}
+.modal-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:28px;width:360px;max-width:90vw;}
+.modal-card-wide{width:660px;max-width:90vw;padding:22px 28px;}
+.modal-title{font-size:18px;font-weight:600;color:var(--ink);margin:0 0 24px;}
+.modal-field{margin-bottom:16px;}
+.modal-label{display:block;font-size:12px;font-weight:500;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;}
+.modal-input{width:100%;height:42px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;}
+
+.toast{
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+  background:var(--ink-black);color:var(--on-dark);
+  padding:14px 28px;border-radius:999px;font-size:14px;font-weight:500;
+  z-index:110;animation:toast-in 300ms ease;
+}
+@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(12px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+
+/* ───── Responsive ───── */
+@media (max-width: 860px) {
+  .members-head {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .members-page { padding: 24px 0 48px; }
+  .tabs { flex-wrap: wrap; }
+  .tab { flex: 1 1 45%; text-align: center; padding: 9px 12px; white-space: nowrap; }
+  .modal-card-wide { width: 100%; padding: 20px; }
+  .modal-actions { flex-wrap: wrap; }
+  .modal-actions .btn { flex: 1; }
+}

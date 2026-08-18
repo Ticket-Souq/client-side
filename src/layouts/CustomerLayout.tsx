@@ -1,33 +1,25 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Suspense } from 'react'
+import { Outlet, Navigate } from 'react-router-dom'
+import { UserProfileProvider } from '../shared/hooks/useUserProfile'
+import { LayoutShell } from '../shared/components/layout/LayoutShell'
+import { hasUserRole } from '../shared/auth'
+import { LoadingState } from '../shared/components/display/StateViews/StateViews'
 
 export default function CustomerLayout() {
+  if (hasUserRole('ORG_CONSUMER')) {
+    return <Navigate to="/org/validate" replace />
+  }
+  if (hasUserRole('ORG_HEAD') || hasUserRole('ORG_AGENT')) {
+    return <Navigate to="/org/events" replace />
+  }
+
   return (
-    <div className="min-vh-100 d-flex flex-column">
-      <nav className="navbar navbar-expand navbar-light bg-white nav-bar-shadow px-4">
-        <NavLink to="/" className="navbar-brand fw-bold" style={{ color: '#E2A30F' }}>
-          TicketSouq
-        </NavLink>
-        <ul className="navbar-nav ms-auto align-items-center gap-2">
-          <li className="nav-item">
-            <NavLink to="/events" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              Events
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink to="/tickets" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              My Tickets
-            </NavLink>
-          </li>
-          <li className="nav-item">
-            <NavLink to="/org" className="nav-link btn btn-outline-accent btn-sm px-3">
-              Switch to Organizer
-            </NavLink>
-          </li>
-        </ul>
-      </nav>
-      <main className="flex-grow-1 d-flex flex-column">
-        <Outlet />
-      </main>
-    </div>
+    <UserProfileProvider>
+      <LayoutShell>
+        <Suspense fallback={<LoadingState />}>
+          <Outlet />
+        </Suspense>
+      </LayoutShell>
+    </UserProfileProvider>
   )
 }

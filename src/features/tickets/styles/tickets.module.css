@@ -1,0 +1,375 @@
+/* ─── Base ─── */
+.page {
+  padding: 46px 36px 69px;
+}
+
+/* ─── Page Header ─── */
+.pageHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 37px;
+}
+
+.pageTitle {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.notifCount {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-black);
+  background: var(--yellow);
+  border-radius: 999px;
+  padding: 4px 14px;
+}
+
+/* ─── Reservation List ─── */
+.reservationList {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+}
+
+/* ─── Reservation Card ─── */
+.resCard {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.resCardBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 32px;
+  gap: 24px;
+}
+
+.resInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.resEvent {
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.resMeta {
+  display: flex;
+  gap: 23px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.resSummary {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.resSeats {
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.resTotal {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+}
+
+.resAction {
+  flex-shrink: 0;
+}
+
+/* ─── Detail Page ─── */
+.detailPage {
+  padding: 41px 36px 69px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 28px;
+}
+
+/* ─── Detail Header ─── */
+.ticketGroup {
+  margin-bottom: 48px;
+}
+
+.detailHead {
+  margin-bottom: 32px;
+}
+
+.detailEvent {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.detailMeta {
+  display: flex;
+  gap: 23px;
+  font-size: 16px;
+  color: var(--text-secondary);
+  align-items: center;
+}
+
+/* ─── Tickets Grid ─── */
+.ticketsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 23px;
+}
+
+/* ─── Ticket Card ─── */
+.ticketCardDetail {
+  position: relative;
+  background: var(--ink-black);
+    z-index: 1;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* ─── Banner background ─── */
+.ticketArtBg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(1) contrast(.5);
+  /*opacity: 0.35;*/
+  pointer-events: none;
+}
+
+/* ─── Art Band ─── */
+.ticketArtBand {
+  height: 55px;
+  background: linear-gradient(135deg, var(--accent-deep), var(--ink-softest));
+  position: relative;
+  overflow: hidden;
+}
+
+.beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 1px;
+  background: color-mix(in srgb, var(--yellow) 10%, transparent);
+  transform: rotate(-20deg);
+  transform-origin: left center;
+}
+
+.beam:nth-child(1) { top: 20%; }
+.beam:nth-child(2) { top: 50%; }
+.beam:nth-child(3) { top: 75%; }
+
+/* ─── Ticket Body ─── */
+.ticketBody {
+  display: flex;
+  padding: 23px 28px;
+  gap: 28px;
+}
+
+.ticketLeft {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ticketLabel {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent-deep);
+  margin-top: 8px;
+}
+
+.ticketLabel:first-of-type {
+  margin-top: 12px;
+}
+
+.ticketValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--on-dark);
+}
+
+.ticketRight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.printButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.printing .printButton {
+  visibility: hidden;
+}
+
+.ticketCode {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ─── Stub Notches ─── */
+.ticketStubNotch {
+  position: relative;
+  height: 0;
+}
+
+.stubNotchTop,
+.stubNotchBottom {
+  position: absolute;
+  width: 23px;
+  height: 12px;
+  border: 1px solid var(--border);
+  background: var(--white);
+}
+
+.stubNotchTop {
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 0 0 999px 999px;
+  border-top: none;
+}
+
+.stubNotchBottom {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(50%);
+  border-radius: 999px 999px 0 0;
+  border-bottom: none;
+}
+
+/* ─── Loading / Error / Empty ─── */
+.loading {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--text-secondary);
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 6px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+.error {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--danger);
+}
+
+.error button {
+  margin-top: 16px;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--text-secondary);
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 860px) {
+  .page {
+    padding: 36px 24px 60px;
+  }
+
+  .detailPage {
+    padding: 32px 24px 60px;
+  }
+
+  .resCardBody {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px 24px;
+  }
+
+  .resAction {
+    align-self: stretch;
+    flex-direction: column;
+  }
+
+  .resAction button,
+  .resAction a {
+    width: 100%;
+  }
+
+  .resMeta {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .resSummary {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .ticketsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ticketBody {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .ticketLeft {
+    align-items: center;
+  }
+
+  .detailMeta {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+}

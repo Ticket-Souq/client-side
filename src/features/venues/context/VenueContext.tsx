@@ -33,8 +33,7 @@ function renumber(map: SeatMap): SeatMap {
 
 const defaultCategories = (): Category[] => [
   { id: uuid(), name: "Standard", color: "#3b82f6" },
-  { id: uuid(), name: "Premium", color: "#a855f7" },
-  { id: uuid(), name: "VIP", color: "#f59e0b" },
+  { id: uuid(), name: "Premium", color: "#a855f7" }
 ];
 
 function makeSeat(categoryId?: string): Cell {
@@ -69,7 +68,7 @@ function makeDefaultMap(): SeatMap {
   for (let i = 0; i < 5; i++) rows.push(makeSeatedRow(14, cats[1].id));
   return renumber({
     id: uuid(),
-    name: "New venue",
+    name: "New Template",
     mode: "SEAT_BASED",
     stage: { label: "STAGE", color: "#7f1d1d", position: "top" },
     categories: cats,
@@ -121,7 +120,9 @@ export type VenueAction =
   | { type: "MOVE_ROW"; from: number; to: number }
   | { type: "INSERT_SEAT"; rowId: string; atCellId: string; side: "left" | "right"; cellType: "seat" | "space" }
   | { type: "APPEND_SEAT"; rowId: string; cellType: "seat" | "space" }
+  | { type: "EMPTY_CELLS_SIDE"; rowId: string; atCellId: string; side: "left" | "right" }
   | { type: "REMOVE_CELL"; rowId: string; cellId: string }
+  | { type: "DELETE_CELLS"; ids: string[] }
   | { type: "SET_SEAT_STATUS"; ids: string[]; status: SeatStatus }
   | { type: "ASSIGN_CATEGORY"; ids: string[]; categoryId: string }
   | { type: "RENUMBER_SEAT"; rowId: string; cellId: string; number: string }
@@ -294,11 +295,35 @@ export function venueReducer(state: VenueState, action: VenueAction): VenueState
       return { ...state, map: renumber({ ...state.map, rows }), history: push(state) };
     }
 
+    case "EMPTY_CELLS_SIDE": {
+      const rows = state.map.rows.map((r) => {
+        if (r.id !== action.rowId) return r;
+        const idx = r.cells.findIndex((c) => c.id === action.atCellId);
+        if (idx < 0) return r;
+        const start = action.side === "left" ? 0 : idx + 1;
+        const end = action.side === "left" ? idx : r.cells.length;
+        const cells = r.cells.map((c, i) =>
+          i >= start && i < end && c.type === "seat" ? { id: c.id, type: "space" as const } : c,
+        );
+        return { ...r, cells };
+      });
+      return { ...state, map: renumber({ ...state.map, rows }), history: push(state) };
+    }
+
     case "REMOVE_CELL": {
       const rows = state.map.rows.map((r) =>
         r.id !== action.rowId ? r : { ...r, cells: r.cells.filter((c) => c.id !== action.cellId) },
       );
       return { ...state, map: renumber({ ...state.map, rows }), history: push(state) };
+    }
+
+    case "DELETE_CELLS": {
+      const set = new Set(action.ids);
+      const rows = state.map.rows.map((r) => ({
+        ...r,
+        cells: r.cells.filter((c) => !set.has(c.id)),
+      }));
+      return { ...state, map: renumber({ ...state.map, rows }), selection: new Set(), history: push(state) };
     }
 
     case "SET_SEAT_STATUS": {
