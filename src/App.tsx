@@ -38,6 +38,7 @@ import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
 import SystemMonitoring from './features/admin/pages/SystemMonitoring'
 import AdminEventsManagement from './features/admin/pages/EventsManagement'
+import Payouts from './features/admin/pages/Payouts'
 
 import { ErrorPage } from './shared/components/display/ErrorPage/ErrorPage'
 
@@ -118,6 +119,7 @@ function App() {
                 <Route path="monitoring" element={<SystemMonitoring/>}/>
                 <Route path="logs" element={<Logs/>}/>
                 <Route path="organizations" element={<OrganizationsManagement/>}/>
+                <Route path="payouts" element={<Payouts/>}/>
             </Route>
 
             {/* Catch-all */}
