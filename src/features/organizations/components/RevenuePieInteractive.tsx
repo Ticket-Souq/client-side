@@ -170,7 +170,9 @@ export function RevenuePieInteractive({ events, loading, error }: RevenuePieInte
         </div>
         <Select value={activeEventId} onValueChange={setActiveEventId}>
           <SelectTrigger className="ml-auto h-7 w-[160px] rounded-lg pl-2.5" aria-label="Select event">
-            <SelectValue placeholder="Select event" />
+            <SelectValue placeholder="Select event">
+              {activeDatum ? truncate(activeDatum.name, 22) : ''}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent align="end" className="rounded-xl">
             {chartData.map((d, i) => (

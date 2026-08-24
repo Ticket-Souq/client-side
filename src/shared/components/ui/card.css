@@ -45,8 +45,31 @@
   flex-direction: column;
 }
 
+/* when used inside analytics grid, remove legacy .chart-card outer padding */
+.ui-card.chart-card {
+  padding: 0 !important;
+}
+.ui-card-header.p-0 {
+  padding: 0 !important;
+}
+
+/* allow utility overrides for ticket chart (px-2 / sm:p-6) */
+.ui-card-content.px-2 {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+@media (min-width: 640px) {
+  .ui-card-content.sm\:p-6 {
+    padding: 24px !important;
+  }
+}
+
 /* compact variant used by ticket/revenue cards on small screens */
 @media (max-width: 640px) {
   .ui-card-header { padding: 20px 20px 0; }
   .ui-card-content { padding: 14px 20px 20px; }
+  .ui-card-content.px-2 {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
 }

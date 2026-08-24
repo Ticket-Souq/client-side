@@ -10,6 +10,7 @@ import {
 } from '../../../shared/components/ui/card'
 import {
   ChartContainer,
+  ChartStyle,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -47,6 +48,7 @@ function toTickLabel(value: string): string {
 }
 
 export function TicketSalesLineInteractive({ eventId, data: propData, loading: propLoading, error: propError }: TicketSalesLineInteractiveProps) {
+  const chartId = `ticket-sales-${eventId ?? 'overview'}`
   const shouldFetch = propData === undefined
   const { data: fetched, loading: fetchLoading, error: fetchError } = useFetch(
     async () => {
@@ -82,7 +84,8 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
 
   if (loading) {
     return (
-      <Card className="py-4 sm:py-0 chart-card">
+      <Card data-chart={chartId} className="py-4 sm:py-0 chart-card">
+        <ChartStyle id={chartId} config={chartConfig} />
         <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
           <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
             <CardTitle>Ticket Sales</CardTitle>
@@ -104,7 +107,8 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
 
   if (error) {
     return (
-      <Card className="py-4 sm:py-0 chart-card">
+      <Card data-chart={chartId} className="py-4 sm:py-0 chart-card">
+        <ChartStyle id={chartId} config={chartConfig} />
         <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
           <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
             <CardTitle>Ticket Sales</CardTitle>
@@ -120,7 +124,8 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
 
   if (chartData.length === 0) {
     return (
-      <Card className="py-4 sm:py-0 chart-card">
+      <Card data-chart={chartId} className="py-4 sm:py-0 chart-card">
+        <ChartStyle id={chartId} config={chartConfig} />
         <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
           <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
             <CardTitle>Ticket Sales</CardTitle>
@@ -141,7 +146,8 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
   }
 
   return (
-    <Card className="py-4 sm:py-0 chart-card">
+    <Card data-chart={chartId} className="py-4 sm:py-0 chart-card">
+      <ChartStyle id={chartId} config={chartConfig} />
       <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
           <CardTitle>Ticket Sales</CardTitle>
@@ -155,7 +161,7 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
         </div>
       </CardHeader>
       <CardContent className="px-2 sm:p-6">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+        <ChartContainer id={chartId} config={chartConfig} className="aspect-auto h-[250px] w-full">
           <LineChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12, top: 8, bottom: 8 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
             <XAxis
@@ -189,7 +195,15 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
                 />
               }
             />
-            <Line dataKey="tickets" type="monotone" stroke="var(--color-tickets)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+            <Line
+              dataKey="tickets"
+              type="monotone"
+              stroke="var(--color-tickets)"
+              strokeWidth={2.5}
+              dot={{ r: 4, fill: 'var(--color-tickets)', stroke: 'var(--white)', strokeWidth: 2 }}
+              activeDot={{ r: 6, strokeWidth: 2 }}
+              connectNulls
+            />
           </LineChart>
         </ChartContainer>
       </CardContent>

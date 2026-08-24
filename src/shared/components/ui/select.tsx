@@ -40,8 +40,11 @@ export function SelectTrigger({ className, children, ...props }: React.ButtonHTM
   )
 }
 
-export function SelectValue({ placeholder }: { placeholder?: string }) {
+export function SelectValue({ placeholder, children }: { placeholder?: string; children?: React.ReactNode }) {
   const ctx = React.useContext(SelectCtx)!
+  if (children !== undefined && children !== null) {
+    return <span className="ui-select-value">{children}</span>
+  }
   return <span className="ui-select-value">{ctx.value || placeholder || ''}</span>
 }
 
