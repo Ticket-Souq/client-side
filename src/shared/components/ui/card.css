@@ -1,0 +1,52 @@
+.ui-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ui-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 28px 28px 0;
+}
+.ui-card-header.flex-row {
+  flex-direction: row;
+  align-items: flex-start;
+  padding-bottom: 0;
+}
+
+.ui-card-title {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+.ui-card-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+  font-family: var(--font-body);
+}
+
+.ui-card-content {
+  padding: 18px 28px 28px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* compact variant used by ticket/revenue cards on small screens */
+@media (max-width: 640px) {
+  .ui-card-header { padding: 20px 20px 0; }
+  .ui-card-content { padding: 14px 20px 20px; }
+}
