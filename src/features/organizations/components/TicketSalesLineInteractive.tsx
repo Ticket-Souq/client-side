@@ -98,7 +98,7 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-2 sm:p-6">
+        <CardContent>
           <div className="analytics-loading">Loading ticket sales…</div>
         </CardContent>
       </Card>
@@ -115,7 +115,7 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
             <CardDescription>{dateRangeLabel}</CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="px-2 sm:p-6">
+        <CardContent>
           <div className="analytics-error" style={{ padding: 16 }}>{error}</div>
         </CardContent>
       </Card>
@@ -138,7 +138,7 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-2 sm:p-6">
+        <CardContent>
           <div className="analytics-empty" style={{ padding: 24 }}>No ticket sales yet. Data appears here after reservations are completed.</div>
         </CardContent>
       </Card>
@@ -160,7 +160,7 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-2 sm:p-6">
+      <CardContent>
         <ChartContainer id={chartId} config={chartConfig} className="aspect-auto h-[250px] w-full">
           <LineChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12, top: 8, bottom: 8 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
