@@ -14,6 +14,7 @@ import { OrgPayoutBar } from '../components/OrgPayoutBar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../shared/components/ui/card'
 import { ChartContainer, ChartStyle } from '../../../shared/components/ui/chart'
 import { Pie, PieChart, Cell } from 'recharts'
+import './Finances.css'
 
 type PayoutStatus = 'COMPLETED' | 'PENDING' | 'FAILED'
 
@@ -186,10 +187,10 @@ export default function Finances() {
             </div>
           </div>
 
-          <div className="chart-grid" style={{ paddingTop: 0, paddingBottom: 28, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 560px))', justifyContent: 'center', maxWidth: 1120, margin: '0 auto' }}>
+          <div className="finance-charts">
             <OrgPayoutBar events={events} />
 
-            <Card data-chart={pieId} className="flex flex-col chart-card" style={{ maxWidth: 380, width: '100%', margin: '0 auto' }}>
+            <Card data-chart={pieId} className="flex flex-col chart-card">
               <ChartStyle id={pieId} config={pieConfig} />
               <CardHeader className="flex-row items-start space-y-0 pb-0">
                 <div className="grid gap-1">
@@ -235,8 +236,10 @@ export default function Finances() {
                 Total owed: {formatEGP(Number(owed))} EGP
               </div>
             </Card>
+          </div>
 
-            <div className="chart-card chart-card--wide" style={{ maxWidth: 1120, margin: '0 auto', width: '100%' }}>
+          <div className="finance-table-section">
+            <div className="chart-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
                 <h3 className="chart-title" style={{ margin: 0 }}>Per-Event Breakdown</h3>
                 <button

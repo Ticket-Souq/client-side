@@ -94,7 +94,7 @@ export function OrgPayoutBar({ events, loading, error }: OrgPayoutBarProps) {
   }
 
   return (
-    <Card data-chart={id} className="flex flex-col chart-card" style={{ maxWidth: 560, width: '100%', margin: '0 auto' }}>
+    <Card data-chart={id} className="flex flex-col chart-card">
       <ChartStyle id={id} config={chartConfig} />
       <CardHeader className="flex-row items-start space-y-0 pb-0">
         <div className="grid gap-1">
