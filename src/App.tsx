@@ -33,6 +33,7 @@ import VenueTemplates from './features/organizations/pages/VenueTemplates'
 import VenueManagement from './features/organizations/pages/VenueManagement'
 import TeamManagement from './features/organizations/pages/TeamManagement'
 import Analytics from './features/organizations/pages/Analytics'
+import Finances from './features/organizations/pages/Finances'
 import QRValidation from './features/organizations/pages/QRValidation'
 import Logs from './features/admin/pages/Logs'
 import OrganizationsManagement from './features/admin/pages/OrganizationsManagement'
@@ -109,6 +110,7 @@ function App() {
                 <Route path="venue-templates" element={<VenueTemplates/>}/>
                 <Route path="team" element={<TeamManagement/>}/>
                 <Route path="analytics" element={<Analytics/>}/>
+                <Route path="finances" element={<Finances/>}/>
                 <Route path="validate" element={<QRValidation/>}/>
             </Route>
 

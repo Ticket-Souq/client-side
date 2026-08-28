@@ -6,7 +6,6 @@ import { PageHeader } from '../../../shared/components/layout/PageHeader/PageHea
 import { StatChips } from '../../../shared/components/display/StatChips/StatChips'
 import { StatusBadge, type StatusBadgeOption } from '../../../shared/components/display/StatusBadge/StatusBadge'
 import { LoadingState, ErrorState } from '../../../shared/components/display/StateViews/StateViews'
-import { useConfirm } from '../../../shared/hooks/useConfirm'
 import { toast } from '../../../shared/components/display/Toast/Toast'
 import { formatDateTime } from '../../../shared/format'
 
@@ -64,13 +63,6 @@ interface SpringPage<T> {
   size: number
 }
 
-interface PayOrgResponse {
-  created: number
-  skipped: number
-  failed: number
-  payouts: PayoutRecord[]
-}
-
 const PAYOUT_STATUS_OPTIONS: Record<string, StatusBadgeOption> = {
   COMPLETED: { label: 'Completed', variant: 'green' },
   PENDING: { label: 'Pending', variant: 'yellow' },
@@ -95,33 +87,12 @@ function getTransferId(payout: PayoutInfo | PayoutRecord | null | undefined): st
   return tid ? String(tid) : '—'
 }
 
-function Spinner() {
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        width: 12,
-        height: 12,
-        border: '2px solid currentColor',
-        borderTopColor: 'transparent',
-        borderRadius: '50%',
-        animation: 'payout-spin 0.6s linear infinite',
-        verticalAlign: 'middle',
-        marginRight: 6,
-      }}
-    />
-  )
-}
-
 export default function Payouts() {
   const [view, setView] = useState<'dashboard' | 'records'>('dashboard')
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
-  const [payingOrg, setPayingOrg] = useState<string | null>(null)
-  const [payingEvent, setPayingEvent] = useState<string | null>(null)
   const [recordsPage, setRecordsPage] = useState(0)
-  const { confirm, dialog } = useConfirm()
 
   // debounce searchInput -> search
   useEffect(() => {
@@ -140,7 +111,6 @@ export default function Payouts() {
     data: dashboardData,
     loading: dashboardLoading,
     error: dashboardError,
-    refresh: refreshDashboard,
   } = useFetch<DashboardResponse>(
     () => request<DashboardResponse>(API.payout.dashboard(search)),
     'Failed to load payouts',
@@ -151,7 +121,6 @@ export default function Payouts() {
     data: recordsData,
     loading: recordsLoading,
     error: recordsError,
-    refresh: refreshRecords,
   } = useFetch<SpringPage<PayoutRecord>>(
     () => {
       const url = API.payout.records
@@ -181,65 +150,16 @@ export default function Payouts() {
     }
   }, [])
 
-  const handlePayOrg = useCallback(async (org: OrgPayoutRow) => {
-    const outstandingEvents = org.events.filter((ev) => ev.payout?.status !== 'COMPLETED').length
-    const count = outstandingEvents > 0 ? outstandingEvents : org.eventCount
-    const confirmed = await confirm(`Pay all outstanding for ${org.organization}? This will process ${count} event(s).`, {
-      title: 'Confirm payout',
-      confirmLabel: 'Pay',
-      cancelLabel: 'Cancel',
-      danger: false,
-    })
-    if (!confirmed) return
-    setPayingOrg(org.organization)
-    try {
-      await request<PayOrgResponse>(API.payout.payOrganization(org.organization), { method: 'POST' })
-      toast(`Payout processed for ${org.organization}`, 'success')
-      await refreshDashboard()
-      if (view === 'records') await refreshRecords()
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : 'Unknown error'
-      toast(`Payout failed: ${reason}`, 'error')
-    } finally {
-      setPayingOrg(null)
-    }
-  }, [confirm, refreshDashboard, refreshRecords, view])
-
-  const handlePayEvent = useCallback(async (eventId: string, organization?: string) => {
-    setPayingEvent(eventId)
-    try {
-      const url = API.payout.payEvent(eventId)
-      const query = organization ? { organization } : undefined
-      await request(url, { method: 'POST', query })
-      const short = truncateId(eventId).replace('…', '')
-      toast(`Payout processed for ${organization ?? short}`, 'success')
-      await refreshDashboard()
-      if (view === 'records') await refreshRecords()
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : 'Unknown error'
-      toast(`Payout failed: ${reason}`, 'error')
-    } finally {
-      setPayingEvent(null)
-    }
-  }, [refreshDashboard, refreshRecords, view])
-
-  const handleRetryRecord = useCallback(async (record: PayoutRecord) => {
-    await handlePayEvent(record.eventId, record.organization)
-  }, [handlePayEvent])
-
   const totalOwed = dashboardData?.totalOwed ?? 0
   const totalPaid = dashboardData?.totalPaid ?? 0
   const totalOutstanding = dashboardData?.totalOutstanding ?? 0
   const orgs = dashboardData?.orgs ?? []
-
-  const isAnyPaying = payingOrg !== null || payingEvent !== null
 
   const records = recordsData?.content ?? []
   const totalPages = recordsData?.totalPages ?? 0
 
   return (
     <div className="wrap oversight-page">
-      <style>{`@keyframes payout-spin { to { transform: rotate(360deg); } }`}</style>
       <PageHeader
         title="Payout Dashboard"
         subtitle="Organization-level payouts, outstanding balances and transfer status."
@@ -319,8 +239,6 @@ export default function Payouts() {
                 <tbody>
                   {orgs.map((org) => {
                     const isExpanded = expanded.has(org.organization)
-                    const isPayingThisOrg = payingOrg === org.organization
-                    const payTotalDisabled = Number(org.outstanding) === 0 || isAnyPaying
                     return (
                       <React.Fragment key={org.organization}>
                         <tr>
@@ -372,26 +290,7 @@ export default function Payouts() {
                           <td>{fmt(org.paid)}</td>
                           <td style={{ fontWeight: 600, color: Number(org.outstanding) > 0 ? 'var(--warning-bright)' : 'var(--ink)' }}>{fmt(org.outstanding)}</td>
                           <td>
-                            <div className="table-actions">
-                              <button
-                                type="button"
-                                className="btn btn-primary btn-sm"
-                                disabled={payTotalDisabled}
-                                onClick={() => handlePayOrg(org)}
-                                style={{
-                                  cursor: payTotalDisabled ? 'not-allowed' : 'pointer',
-                                  opacity: payTotalDisabled ? 0.6 : 1,
-                                  fontSize: 13,
-                                  height: 32,
-                                  padding: '0 14px',
-                                  borderRadius: 6,
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {isPayingThisOrg && <Spinner />}
-                                {isPayingThisOrg ? 'Paying…' : 'Pay Total'}
-                              </button>
-                            </div>
+                            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>—</span>
                           </td>
                         </tr>
                         {isExpanded && (
@@ -429,8 +328,6 @@ export default function Payouts() {
                                       {org.events.map((ev) => {
                                         const status = ev.payout?.status ?? 'PENDING'
                                         const transferId = getTransferId(ev.payout)
-                                        const isPayingThisEvent = payingEvent === ev.eventId
-                                        const payEventDisabled = status === 'COMPLETED' || isAnyPaying
                                         return (
                                           <tr key={ev.eventId}>
                                             <td style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13 }}>
@@ -470,28 +367,7 @@ export default function Payouts() {
                                               {transferId}
                                             </td>
                                             <td>
-                                              <div className="table-actions">
-                                                <button
-                                                  type="button"
-                                                  className="btn btn-ghost btn-sm"
-                                                  disabled={payEventDisabled}
-                                                  onClick={() => handlePayEvent(ev.eventId, org.organization)}
-                                                  style={{
-                                                    cursor: payEventDisabled ? 'not-allowed' : 'pointer',
-                                                    opacity: payEventDisabled ? 0.5 : 1,
-                                                    fontSize: 12,
-                                                    height: 30,
-                                                    padding: '0 12px',
-                                                    border: '1px solid var(--border)',
-                                                    borderRadius: 6,
-                                                    background: payEventDisabled ? 'var(--surface-muted)' : 'var(--white)',
-                                                    whiteSpace: 'nowrap',
-                                                  }}
-                                                >
-                                                  {isPayingThisEvent && <Spinner />}
-                                                  {isPayingThisEvent ? 'Paying…' : 'Pay Event'}
-                                                </button>
-                                              </div>
+                                              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>—</span>
                                             </td>
                                           </tr>
                                         )
@@ -553,8 +429,6 @@ export default function Payouts() {
                 <tbody>
                   {records.map((rec) => {
                     const transferId = getTransferId(rec)
-                    const isPayingThisEvent = payingEvent === rec.eventId
-                    const retryDisabled = rec.status === 'COMPLETED' || isAnyPaying
                     return (
                       <tr key={`${rec.id ?? rec.eventId}-${rec.createdAt}`}>
                         <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }} title={rec.organization}>
@@ -587,24 +461,7 @@ export default function Payouts() {
                         </td>
                         <td style={{ fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{rec.createdAt ? formatDateTime(rec.createdAt) : '—'}</td>
                         <td>
-                          <div className="table-actions">
-                            <button
-                              type="button"
-                              className="action-link"
-                              disabled={retryDisabled}
-                              onClick={() => handleRetryRecord(rec)}
-                              style={{
-                                cursor: retryDisabled ? 'not-allowed' : 'pointer',
-                                opacity: retryDisabled ? 0.45 : 1,
-                                fontSize: 13,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                              }}
-                            >
-                              {isPayingThisEvent && <Spinner />}
-                              {isPayingThisEvent ? 'Retrying…' : 'Retry'}
-                            </button>
-                          </div>
+                          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>—</span>
                         </td>
                       </tr>
                     )
@@ -641,8 +498,6 @@ export default function Payouts() {
           )}
         </>
       )}
-
-      {dialog}
     </div>
   )
 }

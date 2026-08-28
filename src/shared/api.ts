@@ -92,6 +92,8 @@ export const API = {
   payout: {
     dashboard: (search?: string) => `${BASE_URL}/api/v1/payout/dashboard${search ? `?search=${encodeURIComponent(search)}` : ''}`,
     records: `${BASE_URL}/api/v1/payout/records`,
+    myOrgSummary: `${BASE_URL}/api/v1/payout/my-organization/summary`,
+    orgSummary: (organization: string) => `${BASE_URL}/api/v1/payout/organization/${encodeURIComponent(organization)}/summary`,
     payOrganization: (organization: string) => `${BASE_URL}/api/v1/payout/pay/organization/${encodeURIComponent(organization)}`,
     payEvent: (eventId: string) => `${BASE_URL}/api/v1/payout/pay/event/${eventId}`,
   },
