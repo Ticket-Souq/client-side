@@ -11,6 +11,8 @@
 .p-0 { padding: 0; }
 .px-2 { padding-left: 8px; padding-right: 8px; }
 .px-6 { padding-left: 24px; padding-right: 24px; }
+.px-7 { padding-left: 28px; padding-right: 28px; }
+.py-7 { padding-top: 28px; padding-bottom: 28px; }
 .pb-3 { padding-bottom: 12px; }
 .py-4 { padding-top: 16px; padding-bottom: 16px; }
 .gap-1 { gap: 4px; }

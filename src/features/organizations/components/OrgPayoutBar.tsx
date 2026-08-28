@@ -94,7 +94,7 @@ export function OrgPayoutBar({ events, loading, error }: OrgPayoutBarProps) {
   }
 
   return (
-    <Card data-chart={id} className="flex flex-col chart-card">
+    <Card data-chart={id} className="flex flex-col chart-card" style={{ maxWidth: 560, width: '100%', margin: '0 auto' }}>
       <ChartStyle id={id} config={chartConfig} />
       <CardHeader className="flex-row items-start space-y-0 pb-0">
         <div className="grid gap-1">
@@ -103,8 +103,8 @@ export function OrgPayoutBar({ events, loading, error }: OrgPayoutBarProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer id={id} config={chartConfig} className="aspect-auto h-[280px] w-full">
-          <BarChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12, top: 8, bottom: 28 }}>
+        <ChartContainer id={id} config={chartConfig} className="mx-auto aspect-auto h-[220px] w-full max-w-[520px]">
+          <BarChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12, top: 8, bottom: 28 }} barCategoryGap="28%" barSize={26}>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
             <XAxis
               dataKey="shortId"
@@ -144,8 +144,8 @@ export function OrgPayoutBar({ events, loading, error }: OrgPayoutBarProps) {
                 />
               }
             />
-            <Bar dataKey="paid" stackId="a" fill="var(--color-paid)" radius={[0, 0, 4, 4]} />
-            <Bar dataKey="outstanding" stackId="a" fill="var(--color-outstanding)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="paid" stackId="a" fill="var(--color-paid)" radius={[0, 0, 4, 4]} maxBarSize={44} />
+            <Bar dataKey="outstanding" stackId="a" fill="var(--color-outstanding)" radius={[4, 4, 0, 0]} maxBarSize={44} />
           </BarChart>
         </ChartContainer>
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 12, fontSize: 12, color: 'var(--text-secondary)' }}>

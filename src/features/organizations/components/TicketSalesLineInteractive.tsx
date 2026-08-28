@@ -84,21 +84,21 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
 
   if (loading) {
     return (
-      <Card data-chart={chartId} className="py-4 sm:py-0 chart-card">
+      <Card data-chart={chartId} className="flex flex-col chart-card">
         <ChartStyle id={chartId} config={chartConfig} />
         <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
-          <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
+          <div className="flex flex-1 flex-col justify-center gap-1 px-7 pb-3 sm:pb-0" style={{ paddingTop: 28, paddingBottom: 12 }}>
             <CardTitle>Ticket Sales</CardTitle>
             <CardDescription>Tickets sold per day{eventId ? ' — this event' : ' — all events'}</CardDescription>
           </div>
           <div className="flex">
-            <div className="flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
+            <div className="flex flex-1 flex-col justify-center gap-1 border-t px-7 py-7 sm:border-t-0 sm:border-l sm:px-7 sm:py-7">
               <span className="text-xs text-muted-foreground">Tickets</span>
               <span className="text-lg leading-none font-bold sm:text-3xl">—</span>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent style={{ padding: '18px 28px 28px' }}>
           <div className="analytics-loading">Loading ticket sales…</div>
         </CardContent>
       </Card>
@@ -107,15 +107,15 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
 
   if (error) {
     return (
-      <Card data-chart={chartId} className="py-4 sm:py-0 chart-card">
+      <Card data-chart={chartId} className="flex flex-col chart-card">
         <ChartStyle id={chartId} config={chartConfig} />
         <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
-          <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
+          <div className="flex flex-1 flex-col justify-center gap-1 px-7 pb-3 sm:pb-0" style={{ paddingTop: 28, paddingBottom: 12 }}>
             <CardTitle>Ticket Sales</CardTitle>
             <CardDescription>{dateRangeLabel}</CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent style={{ padding: '18px 28px 28px' }}>
           <div className="analytics-error" style={{ padding: 16 }}>{error}</div>
         </CardContent>
       </Card>
@@ -124,21 +124,21 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
 
   if (chartData.length === 0) {
     return (
-      <Card data-chart={chartId} className="py-4 sm:py-0 chart-card">
+      <Card data-chart={chartId} className="flex flex-col chart-card">
         <ChartStyle id={chartId} config={chartConfig} />
         <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
-          <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
+          <div className="flex flex-1 flex-col justify-center gap-1 px-7 pb-3 sm:pb-0" style={{ paddingTop: 28, paddingBottom: 12 }}>
             <CardTitle>Ticket Sales</CardTitle>
             <CardDescription>Tickets sold per day</CardDescription>
           </div>
           <div className="flex">
-            <div className="flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
+            <div className="flex flex-1 flex-col justify-center gap-1 border-t px-7 py-7 sm:border-t-0 sm:border-l sm:px-7 sm:py-7">
               <span className="text-xs text-muted-foreground">Tickets</span>
               <span className="text-lg leading-none font-bold sm:text-3xl">0</span>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent style={{ padding: '18px 28px 28px' }}>
           <div className="analytics-empty" style={{ padding: 24 }}>No ticket sales yet. Data appears here after reservations are completed.</div>
         </CardContent>
       </Card>
@@ -146,21 +146,21 @@ export function TicketSalesLineInteractive({ eventId, data: propData, loading: p
   }
 
   return (
-    <Card data-chart={chartId} className="py-4 sm:py-0 chart-card">
+    <Card data-chart={chartId} className="flex flex-col chart-card">
       <ChartStyle id={chartId} config={chartConfig} />
       <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-7 pb-3 sm:pb-0" style={{ paddingTop: 28, paddingBottom: 12 }}>
           <CardTitle>Ticket Sales</CardTitle>
           <CardDescription>{eventId ? `This event — ${dateRangeLabel}` : `All events — ${dateRangeLabel}`}</CardDescription>
         </div>
         <div className="flex">
-          <div className="flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
+          <div className="flex flex-1 flex-col justify-center gap-1 border-t px-7 py-7 text-left sm:border-t-0 sm:border-l sm:px-7 sm:py-7">
             <span className="text-xs text-muted-foreground">Tickets</span>
             <span className="text-lg leading-none font-bold sm:text-3xl">{formatNumber(total)}</span>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent style={{ padding: '18px 28px 28px' }}>
         <ChartContainer id={chartId} config={chartConfig} className="aspect-auto h-[250px] w-full">
           <LineChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12, top: 8, bottom: 8 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
