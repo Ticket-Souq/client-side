@@ -19,6 +19,19 @@ export interface StoredReservation {
   holderNames: Record<string, string>
 }
 
+/**
+ * The backend serializes lock `expiresAt` as a timezone-less ISO string in
+ * UTC wall-clock time. `new Date("...")` would otherwise treat it as local
+ * browser time, skewing the countdown by the timezone offset. Normalize it
+ * to an absolute instant by assuming UTC when no offset is present.
+ */
+export function parseExpiresAt(expiresAt: string): number {
+  const normalized = /[zZ]|[+-]\d{2}:?\d{2}$/.test(expiresAt)
+    ? expiresAt
+    : `${expiresAt}Z`
+  return new Date(normalized).getTime()
+}
+
 function notifyReservationChanged() {
   try { window.dispatchEvent(new Event(RESERVATION_CHANGED_EVENT)) } catch { /* ignore */ }
 }
@@ -43,7 +56,7 @@ export function clearReservation() {
 export function getHasActiveReservation(): boolean {
   const stored = loadReservation()
   if (!stored) return false
-  const expiresMs = new Date(stored.expiresAt).getTime()
+  const expiresMs = parseExpiresAt(stored.expiresAt)
   if (expiresMs <= Date.now()) return false
   return true
 }

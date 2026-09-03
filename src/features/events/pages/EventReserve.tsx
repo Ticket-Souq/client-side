@@ -9,7 +9,7 @@ import { getTemplateById } from '../../venues/api/venueApi'
 import { formatEventDate, formatPrice } from '../../../shared/format'
 import { releaseLocks, acquireSeatLocks, acquireZoneLock } from '../services/lockApi'
 import { toast } from '../../../shared/components/display/Toast/Toast'
-import { loadReservation, saveReservation, clearReservation } from '../../../shared/booking/reservationStorage'
+import { loadReservation, saveReservation, clearReservation, parseExpiresAt } from '../../../shared/booking/reservationStorage'
 import { request } from '../../../shared/http'
 import { API } from '../../../shared/api'
 import { isAuthenticated } from '../../../shared/auth'
@@ -37,7 +37,7 @@ export default function EventReserve() {
   const [hasActiveReservation, setHasActiveReservation] = useState<{ reservationId: string } | null>(() => {
     const stored = loadReservation()
     if (stored?.tickets?.length) {
-      const expiresMs = new Date(stored.expiresAt).getTime()
+      const expiresMs = parseExpiresAt(stored.expiresAt)
       if (expiresMs > Date.now()) return { reservationId: stored.reservationId }
     }
     return null
