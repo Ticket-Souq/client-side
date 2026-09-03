@@ -5,7 +5,7 @@ import { formatDateTime, formatPrice } from "../../../shared/format";
 import { releaseLocks } from "../../events/services/lockApi";
 import { getMyReservations, type ReservationResponse } from "../../booking/services/reservationApi";
 import { Modal } from "../../../shared/components";
-import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
+import { loadReservation, clearReservation, parseExpiresAt } from "../../../shared/booking/reservationStorage";
 import styles from "../styles/tickets.module.css";
 import { StatusBadge, type StatusBadgeOption } from "../../../shared/components/display/StatusBadge/StatusBadge";
 
@@ -33,7 +33,7 @@ export default function MyReservations() {
     return () => clearInterval(id);
   }, []);
 
-  const active = stored && now > 0 && new Date(stored.expiresAt).getTime() > now ? stored : null;
+  const active = stored && now > 0 && parseExpiresAt(stored.expiresAt) > now ? stored : null;
 
   const enrichTitles = async (list: ReservationResponse[]) => {
     const missing = [...new Set(list.map((r) => r.eventId))].filter((id) => !knownTitlesRef.current[id]);
@@ -103,7 +103,7 @@ export default function MyReservations() {
 
   const activeReservation = reservations.find((r) => r.id === active?.reservationId);
 
-  const expiresMs = active ? new Date(active.expiresAt).getTime() : 0;
+  const expiresMs = active ? parseExpiresAt(active.expiresAt) : 0;
   const timeLeftSec = active ? Math.max(0, Math.floor((expiresMs - now) / 1000)) : 0;
   const timeLeftMin = Math.ceil(timeLeftSec / 60);
   const total = active ? active.tickets.reduce((s, t) => s + t.price, 0) : 0;

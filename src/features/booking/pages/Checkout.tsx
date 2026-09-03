@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { releaseLocks, beginReservation } from "../../events/services/lockApi";
 import { formatPrice } from "../../../shared/format";
-import { loadReservation, clearReservation } from "../../../shared/booking/reservationStorage";
+import { loadReservation, clearReservation, parseExpiresAt } from "../../../shared/booking/reservationStorage";
 import { createPortal } from "react-dom";
 
 interface TicketState {
@@ -67,7 +67,7 @@ export default function Checkout() {
     if (!tickets.length || !eventId || !bookingModel) return null;
     const stored = loadReservation();
     if (stored && stored.eventId === eventId && JSON.stringify(stored.seatIds) === JSON.stringify(seatIds)) {
-      const expiresMs = new Date(stored.expiresAt).getTime();
+      const expiresMs = parseExpiresAt(stored.expiresAt);
       const initialSec = Math.max(0, Math.floor((expiresMs - Date.now()) / 1000));
       if (initialSec > 0) return { reservationId: stored.reservationId, initialSec };
     }
