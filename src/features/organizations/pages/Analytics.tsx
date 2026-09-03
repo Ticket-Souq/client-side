@@ -2,7 +2,6 @@ import { useState } from 'react'
 import './Analytics.css'
 import {
   getEvents,
-  getEventSalesTimeline,
   getEventSummary,
   getEventCapacities,
   getEventCapacity,
@@ -11,55 +10,15 @@ import {
   type EventComparisonRow,
   type EventCapacityMap,
 } from '../services/analyticsApi'
-import { formatEGP, formatNumber, fillPct, shortDateLabel, truncate } from '../../../shared/format'
+import { formatEGP, formatNumber, fillPct, truncate } from '../../../shared/format'
 import { useFetch } from '../../../shared/hooks/useFetch'
-
-interface BarDatum {
-  value: number
-  label: string
-}
-
-const CHART_COLORS = ['#FFC629', '#FF6B6B', '#4ECDC4', '#6C5CE7', '#FF9F1C', '#2EC4B6', '#E76F51', '#A78BFA']
+import { RevenuePieInteractive } from '../components/RevenuePieInteractive'
+import { TicketSalesLineInteractive } from '../components/TicketSalesLineInteractive'
 
 function fillRateColor(pct: number): string {
   if (pct < 40) return '#FF6B6B'
   if (pct < 75) return '#FFC629'
   return '#34D399'
-}
-
-function Bars({ data }: { data: BarDatum[] }) {
-  if (data.length === 0) return <div className="analytics-empty">No data available</div>
-  const max = Math.max(...data.map((d) => d.value), 1)
-  const labelStep = Math.max(1, Math.ceil(data.length / 10))
-  const ticks = Array.from({ length: 5 }, (_, i) => (i / 4) * max)
-  return (
-    <div className="chart-area">
-      <div className="chart-axes">
-        {ticks.map((t) => (
-          <div key={t} className="axis-line" style={{ bottom: `${(t / max) * 100}%` }}>
-            <span className="axis-label">{formatAxisValue(t)}</span>
-          </div>
-        ))}
-      </div>
-      {data.map((d, i) => (
-        <div
-          key={i}
-          className="bar"
-          style={{
-            height: `${Math.max((d.value / max) * 100, 2)}%`,
-            backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
-          }}
-          title={`${d.label}: ${formatNumber(d.value)}`}
-        >
-          {i % labelStep === 0 && <span className="bar-label">{d.label}</span>}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function formatAxisValue(v: number): string {
-  return v >= 1000 ? `${(v / 1000).toFixed(1).replace(/\.0$/, '')}k` : `${Math.round(v)}`
 }
 
 const PIE_COLORS = ['#FFC629', '#FF6B6B', '#4ECDC4', '#6C5CE7', '#9AA3AB']
@@ -123,18 +82,16 @@ function PieChart({ data }: { data: { label: string; value: number }[] }) {
 function AnalyticsDrillDown({ event, onBack }: { event: EventComparisonRow; onBack: () => void }) {
   const { data, loading, error } = useFetch(
     async () => {
-      const [s, t, c] = await Promise.all([
+      const [s, c] = await Promise.all([
         getEventSummary(event.eventId),
-        getEventSalesTimeline(event.eventId, 'day'),
         getEventCapacity(event.eventId),
       ])
-      return { summary: s, timeline: t, capacity: c }
+      return { summary: s, capacity: c }
     },
     (err) => (err instanceof Error ? err.message : 'Failed to load event analytics'),
     [event.eventId],
   )
   const summary = data?.summary ?? null
-  const timeline = data?.timeline ?? null
   const capacity = data?.capacity ?? summary?.capacity ?? 0
 
   return (
@@ -173,12 +130,7 @@ function AnalyticsDrillDown({ event, onBack }: { event: EventComparisonRow; onBa
             </div>
           </div>
 
-          <div className="chart-card">
-            <h3 className="chart-title">Sales Timeline</h3>
-            <Bars
-              data={(timeline?.series ?? []).map((p) => ({ value: p.ticketsCumulative, label: shortDateLabel(p.period) }))}
-            />
-          </div>
+          <TicketSalesLineInteractive eventId={event.eventId} />
         </>
       )}
       {!loading && !error && !summary && <div className="analytics-empty">No analytics available for this event</div>}
@@ -210,14 +162,9 @@ export default function Analytics() {
 
   const revenue = kpis?.revenue
 
-  const revenueBars: BarDatum[] = (eventsData?.events ?? []).slice(0, 8).map((ev) => ({
-    value: ev.revenue,
-    label: truncate(ev.name, 10),
-  }))
-
-  const ticketBars: BarDatum[] = (salesPace?.series ?? []).map((p) => ({
-    value: p.ticketsCumulative,
-    label: shortDateLabel(p.date),
+  const ticketLineData = (salesPace?.series ?? []).map((p) => ({
+    date: p.date,
+    tickets: p.ticketsCumulative ?? 0,
   }))
 
   const pieData = (() => {
@@ -256,15 +203,9 @@ export default function Analytics() {
 
       {!loading && !error && !selected && (
         <div className="chart-grid">
-          <div className="chart-card">
-            <h3 className="chart-title">Revenue by Event</h3>
-            <Bars data={revenueBars} />
-          </div>
+          <RevenuePieInteractive events={eventsData?.events ?? []} loading={loading} error={error} />
 
-          <div className="chart-card">
-            <h3 className="chart-title">Ticket Sales</h3>
-            <Bars data={ticketBars} />
-          </div>
+          <TicketSalesLineInteractive data={ticketLineData} loading={loading} error={error} />
 
           <div className="chart-card chart-card--wide">
             <h3 className="chart-title">Event Performance</h3>

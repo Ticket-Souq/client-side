@@ -63,6 +63,18 @@
   --warning-bright: #ff9800;
   --info: #3b82f6;
 
+  /* ── Charts (recharts shadcn compat) ── */
+  --chart-1: #FFC629;
+  --chart-2: #FF6B6B;
+  --chart-3: #4ECDC4;
+  --chart-4: #6C5CE7;
+  --chart-5: #FF9F1C;
+  --chart-1-rgb: 255 198 41;
+  --chart-2-rgb: 255 107 107;
+  --chart-3-rgb: 78 205 196;
+  --chart-4-rgb: 108 92 231;
+  --chart-5-rgb: 255 159 28;
+
   /* ── Venue designer (seat-map.css, matches its light values) ── */
   --venue-bg: #f7f7f7;
   --venue-surface: #ffffff;

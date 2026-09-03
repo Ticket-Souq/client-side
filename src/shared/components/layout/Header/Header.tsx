@@ -51,6 +51,7 @@ const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
   ADMIN: [
     { label: 'Events', href: '/admin/events' },
     { label: 'Organizations', href: '/admin/organizations' },
+    { label: 'Payouts', href: '/admin/payouts' },
     { label: 'Monitoring', href: '/admin/monitoring' },
     { label: 'Audit Logs', href: '/admin/logs' },
   ],
@@ -59,6 +60,7 @@ const ROLE_LINKS: Record<string, { label: string; href: string }[]> = {
     { label: 'Venues', href: '/org/venues' },
     { label: 'Team', href: '/org/team' },
     { label: 'Statistics', href: '/org/analytics' },
+    { label: 'Finances', href: '/org/finances' },
   ],
   ORG_AGENT: [
     { label: 'Events', href: '/org/events' },

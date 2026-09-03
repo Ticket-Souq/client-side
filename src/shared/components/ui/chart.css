@@ -1,0 +1,48 @@
+.ui-chart-container {
+  width: 100%;
+  min-height: 180px;
+}
+.ui-chart-container .recharts-responsive-container {
+  width: 100% !important;
+}
+.ui-chart-tooltip {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  min-width: 140px;
+  font-family: var(--font-body);
+}
+.ui-chart-tooltip-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.ui-chart-tooltip-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ui-chart-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.ui-chart-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ui-chart-tooltip-name {
+  flex: 1;
+  color: var(--text-secondary);
+}
+.ui-chart-tooltip-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--ink);
+}
